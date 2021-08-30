@@ -43,7 +43,6 @@ c	COILS order: PF1->PF6 CS3L CS2L CS1(series L+U) CS2U CS3U
 c	SET PARAMETERS AND VARIABLES
 
 	include 'double.inc'
-        include 'parf1'
         include 'parf_mario'
         include 'parf8'
 
@@ -82,7 +81,7 @@ c kavin_1         parameter(num_inputs_div=18,num_states_div=28)
 
         dimension gaps_ref(30),curr_ref(30)
 
-	dimension vchopper(*),u_help(kf)
+	dimension vchopper(*),u_help(30)
 
 	dimension state(*),state_old(*),pf_turns(*)
 	dimension state_vert(*),state_old_vert(*)

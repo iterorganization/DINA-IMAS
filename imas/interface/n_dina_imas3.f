@@ -568,6 +568,7 @@ c=================================================
 
       tt_1=tt_1+tay
       
+      t_ret=1.e5
       
       print *,' CALL dina_input tt_1 tay t_ret=',tt_1,tay,t_ret
       
@@ -1585,6 +1586,10 @@ c
 	if(kpr.eq.1)print *,'r00,rk ',r00_c,rk_c
 	if(kpr.eq.1)print *,'z00,zk ',z00_c,zk_c
 
+
+      return
+      
+
 ! 		 open (unit=41,file='k_jetto.dat',form='formatted') 
        read (49,*) 
        read (49,*)ih_imas_c
@@ -1770,6 +1775,9 @@ c	implicit real*8 (a-h,o-z)
      * dtpl_term_l_c1,cIp_end_c1,CS1_eob_c1,rms_noise_c1
 
 
+
+      return
+      
 cc
 
       kpr_help=kpr

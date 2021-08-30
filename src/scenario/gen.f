@@ -633,8 +633,6 @@ c      beta=0.
 
 	apr='pf (GEN)'
 	if(kpr.eq.1)print 71,apr,(t_gen(i+ncam),i=1,npf)
-	apr='tcam (GEN)'
-	if(kpr.eq.1)print 71,apr,(t_gen(i),i=1,ncam)
 
            return
 
@@ -690,10 +688,10 @@ c           tokc=tokc+tcam(i)
 	if(kpr.eq.1)print 71,apr,(t_gen(i+ncam),i=1,npf)
 
 	apr='volt (GEN)'
-	if(kpr.eq.1)print 71,apr,(vchopper(i),i=1,npf)
+	if(kpr.eq.1)print 73,apr,(vchopper(i),i=1,npf)
 
       do i=1,npf
-	a_print(i)=pf(i)
+!	a_print(i)=pf(i)
 	end do
 	
 	n_pr=npf
@@ -706,6 +704,7 @@ c        read (*,*)
 
 c===============================
 71	format(5x,a10/,(1X,6(1pe11.3)))
+73	format(5x,a10/,(1X,6(1pe14.6)))
 	return
 	end
 
@@ -1291,12 +1290,6 @@ c
 	end do
 	end do
 	end do
-
-	apr='rcam (GEN) [inv]'
-	if(kpr.eq.1)print 71,apr,(rcam(i),i=1,ncam)
-	apr='pfres (GEN) [inv]'
-	if(kpr.eq.1)print 71,apr,(pfres(i),i=1,npf)
-
 
 	apr='e{i} (GEN) [inv]'
 	if(kpr.eq.1)print 71,apr,(ed(i,i),i=1,n_gen)

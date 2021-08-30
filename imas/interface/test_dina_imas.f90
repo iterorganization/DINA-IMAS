@@ -83,18 +83,17 @@ character (len=255) :: user
 INTEGER :: clock_start,clock_end,clock_rate
 
 
-    
 call getenv("USER", user)
 print *,'User name is ', user
 
 
 print *,'Enter pulse number...'
-read (*,*) pulse
+!read (*,*) pulse
 prescribedpulse = pulse
 
 
 print *,'Enter run number...'
-read (*,*) run
+!read (*,*) run
 prescribedrun = 1
 
 
@@ -109,8 +108,8 @@ tmax=10000.d0
 
 
 print *,'Enter decimation for filling the database...'
-read (*,*)idec
-!idec=100
+!read (*,*)idec
+idec=100000
 
 
 print *,' Input pulse,run =', prescribedpulse, prescribedrun
@@ -121,7 +120,7 @@ print *,' Database put decimation =', idec
 
 
 print *,'Press any key to begin simulation...'
-read (*,*)
+!read (*,*)
 
 
 write(*,*) 'Reading the prescribed IDS'

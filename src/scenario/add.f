@@ -803,8 +803,9 @@ c	     call out42(n_pr,a_print,num,apr)
 	tene_xx=tay_ee
 	p_dop_xx=q_ech
 	p_tot_xx=P_oh*v_p+q_ech
-	p_loss_xx=qlos_imp
-
+	p_loss_xx=(sel(1)+sel(2))*0.1*v_p
+	qlos_imp=(sel(1)+sel(2))*0.1
+!	print *,' qlos_imp v_p=',qlos_imp,v_p
 	return
 	end
 
@@ -2184,3 +2185,111 @@ c  saving for the next time_step...
 	end
 
 
+      subroutine ip_lh()
+	include 'double.inc'
+	include 'new_com.inc'
+
+        call ip_lh_c(n,
+     *  aj0_lh,sb_lh,ai,power_lh,tt,pcch,s,vi,ha,rs0,pi,
+     *  tpl_lh,kpr)
+
+	return
+	end
+
+        subroutine ip_lh_c(n,
+     *  aj0_lh,sb_lh,ai,power_lh,tt,pcch,spo,vi,ha,rs0,pi,
+     *  tpl_lh,kpr)
+	include 'double.inc'
+
+	dimension aj0_lh(*),sb_lh(*),ai(*),spo(*),vi(*),ha(*)
+
+	character *20 apr
+
+	i_en=i_en+1
+	if(i_en.eq.1)then
+
+	 open (unit=41,file='lh.dat',form='formatted')
+	 read (41,*)
+	 read (41,*)ro_uv,del_uv,pow_uv
+	 read (41,*)
+	 read (41,*)gam_uv,tt_uv
+
+         if(kpr.eq.1)print *,'ro_uv,del_uv,pow_uv',ro_uv,del_uv,pow_uv
+         if(kpr.eq.1)print *,'gam_uv tt_uv',gam_uv,tt_uv
+
+	end if
+
+	if(tt.le.tt_uv)return
+
+      if(kpr.eq.1)print *,' == pi pcch rs0 ===',pi,pcch,rs0
+
+	
+	tpl_lh=power_lh*1.e6*gam_uv/(pcch*0.1*rs0*1.e-2)
+	
+	tpl_lh=tpl_lh*1.e-3
+
+	do i=2,n	   
+	   aj0_lh(i)=0.
+	   sb_lh(i)=0.
+	enddo
+
+
+        if(kpr.eq.1)print*,'from ip_lh'
+        if(kpr.eq.1)print*,'tt tpl_lh power_lh gam_uv pcch rs0'
+        if(kpr.eq.1)print*,tt,tpl_lh,power_lh,gam_uv,pcch,rs0
+
+
+	do i=2,n
+
+           if(abs(ro_uv-ai(i)).le.del_uv)then
+              aj0_lh(i)=abs(1.-abs(ai(i)-ro_uv)/
+     *  del_uv)**pow_uv
+
+	      sb_lh(i)=aj0_lh(i)
+
+           end if
+
+        end do
+	
+	tok_lh=0.
+	do i=2,n
+	tok_lh=tok_lh+aj0_lh(i)*spo(i)*ha(i)
+	end do
+
+	al1=tpl_lh/tok_lh
+
+	tok_lh=0.
+	do i=2,n
+	aj0_lh(i)=aj0_lh(i)*al1
+	tok_lh=tok_lh+aj0_lh(i)*spo(i)*ha(i)
+	end do
+
+	apr='aj0_lh='
+c	if(kpr.eq.1)print 71,apr,(aj0_lh(i),i=1,n)
+
+	p_lh=0.
+	do i=2,n
+	p_lh=p_lh+sb_lh(i)*2.*pi*vi(i)*ha(i)
+	end do
+
+	al1=power_lh/p_lh
+	PNOR=6.25E8
+
+	p_lh=0.
+	do i=2,n
+	sb_lh(i)=sb_lh(i)*al1
+	p_lh=p_lh+sb_lh(i)*2.*pi*vi(i)*ha(i)
+
+	sb_lh(i)=sb_lh(i)*pnor
+
+	end do
+
+	apr='sb_lh='
+c	if(kpr.eq.1)print 71,apr,(sb_lh(i),i=1,n)
+
+71	FORMAT(5X,A10/,(2x,6(1PE11.3)))
+
+        if(kpr.eq.1)print *,' == power_lh tok_lh===',p_lh,tok_lh
+
+	return
+	end

@@ -101,6 +101,7 @@
      *  /en12/pnal(npo),pnaln(npo),zalfa,talfa
      *  /en14e/t_dop
      *  /en14/EMOE,EMOQ,NDOP,QDE0(npo),QDQ0(npo)
+     *  /en23/kk,tn0,pna,wie(npo),wcx(npo),tn(npo),pn(npo),pn0(npo)
      *  /en25/zhib,tego
      *  /en28/wen1,wen2
      *  /en33/anom_e,anom_i,key_t11,kcchp
@@ -660,8 +661,12 @@ c*** Victor's common blocks
 	common
      *  /c_grib2/rp1,zp1,dist1,rp2,zp2,dist2
 
-        common /c_imas1/dxe0(npo),dxq0(npo),ajb0(npo)
-     *  /c_imas2/pd0_p,pt0_p
+        common /c_imas0/dxe0(npo),dxq0(npo),ajb0(npo)
+!     *  /c_imas2/pd0_p,pt0_p
+     *  /c_imas1/pd0_p,pt0_p
+     *  /c_imas2/p_n0
+     *  /c_imas3/w_imp_pr(npo),w_imp_pr2(npo)
+     *  /c_imas4/pn0_tot
 
         common /c_tran1/te0_tran(npo),tq0_tran(npo)
         common /c_tran3/pd0_tran(npo),pt0_tran(npo),pne_tran(npo)

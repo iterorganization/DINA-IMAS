@@ -1,134 +1,3 @@
-!>  write_data_in_time is a subroutine to output the 0D DINA-IMAS parameters
-!>  through the internal array wr:
-!>  wr(1)-time,[s]
-!>  wr(2)-plasma current,[MA]
-!>  wr(3)-plasma major radius,[m]
-!>  wr(4)-plasma minor radius,[m]
-!>  wr(5)-plasma elongation
-!>  wr(6)-plasma triangularity
-!>  wr(7)-plasma volume,[m3]
-!>  wr(8)-plasma poloidal cross section,[m2]
-!>  wr(9)-plasma surface area,[m2]
-!>  wr(10)-R coordinate of the plasma current center,[m]
-!>  wr(11)-Z coordinate of the plasma current center,[m]
-!>  wr(12)-vertical speed of the plasma current center,[m*s^-1]
-!>  wr(13)-R coordinate of the magnetic axis,[m]
-!>  wr(14)-Z coordinate of the magnetic axis,[m]
-!>  wr(15)-in case of divertor plasma-R coordinate of the X-point and in  
-!! case of limiter plasma-R coordinate of the plasma-wall touching point,[m]
-!>  wr(16)-in case of divertor plasma-Z coordinate of the X-point and in  
-!!  case of limiter plasma-Z coordinate of the plasma-wall touching point,[m]
-!>  wr(17)-the value of q on the magnetic surface where PSI/PSIbnd=0.95
-!>  wr(18)-the value of q on the magnetic axis
-!>  wr(19)-li(3)
-!>  wr(20)-BETA poloidal
-!>  wr(21)-volume averaged electron density,[19m^-3]
-!>  wr(22)-Greenwald ratio
-!>  wr(23)-volume averaged density of the main ion species,[19m^-3]
-!>  wr(24)-volume averaged electron temperature,[keV]
-!>  wr(25)-picking factor of the electron temperature
-!>  wr(26)-volume averaged ion temperature,[keV]
-!>  wr(27)-picking factor of the ion temperature
-!>  wr(28)-Zeff
-!>  wr(29)-plasma loop voltage
-!>  wr(30)-resistive losses of the poloidal magnetic flux,[Wb]
-!>  wr(31)-Ejima coefficient
-!>  wr(32)-averaged over the plasma poloidal magnetic flux, produced
-!! by all external circuits,[Wb]
-!>  wr(33)-averaged over the plasma poloidal magnetic flux, produced
-!! by the CS and PF coils,[Wb]
-!>  wr(34)-averaged over the plasma poloidal magnetic flux, produced
-!! by all extrenal circuits and plasma,[Wb]
-!>  wr(35)-current in the coil CS3U,[kA]
-!>  wr(36)-current in the coil CS2U,[kA]
-!>  wr(37)-current in the coils CS1U and CS1L connected in series,[kA]
-!>  wr(38)-current in the coil CS2L,[kA]
-!>  wr(39)-current in the coil CS3L,[kA]
-!>  wr(40)-current in the coil PF1,[kA]
-!>  wr(41)-current in the coil PF2,[kA]
-!>  wr(42)-current in the coil PF3,[kA]
-!>  wr(43)-current in the coil PF4,[kA]
-!>  wr(44)-current in the coil PF5,[kA]
-!>  wr(45)-current in the coil PF6,[kA]
-!>  wr(46)-voltage produced by the converter CS3U,[kV]
-!>  wr(47)-voltage produced by the converter CS2U,[kV]
-!>  wr(48)-voltage produced by the converter CS1U and CS1L connected 
-!! in series,[kV]
-!>  wr(49)-voltage produced by the converter CS2L,[kV]
-!>  wr(50)-voltage produced by the converter CS3L,[kV]
-!>  wr(51)-voltage produced by the converter PF1,[kV]
-!>  wr(52)-voltage produced by the converter PF2,[kV]
-!>  wr(53)-voltage produced by the converter PF3,[kV]
-!>  wr(54)-voltage produced by the converter PF4,[kV]
-!>  wr(55)-voltage produced by the converter PF5,[kV]
-!>  wr(56)-voltage produced by the converter PF6,[kV]
-!>  wr(57)-current of the converter VS1,[kA]
-!>  wr(58)-current of the converter VS2,[kA]
-!>  wr(59)-current of the converter VS3,[kA]
-!>  wr(60)-voltage produced by the converter VS1,[kV]
-!>  wr(61)-voltage produced by the converter VS2,[kV]
-!>  wr(62)-voltage produced by the converter VS3,[kV]
-!>  wr(63)-total power of the converters in the circuits CS,PF,VS1 and VS2,[MW]
-!>  wr(64)-power requested from the electric grid,[MW]
-!>  wr(65)-power of the Ohmic heating,[MW]
-!>  wr(66)-power of the auxiliary heating,[MW]
-!>  wr(67)-power of theplasma heating by alfa-particle,[MW]
-!>  wr(68)-fusion power,[MW]
-!>  wr(69)-neutron fluence,[MW*h]
-!>  wr(70)-power gain Q
-!>  wr(71)-total heating power,[MW]
-!>  wr(72)-power threshold for L to H mode transition Plh,[MW]
-!>  wr(73)-ratio Psep/Plh
-!>  wr(74)-plasma magnetic energy,[MJ]
-!>  wr(75)-plasma inductance,[H]
-!>  wr(76)-plasma thermal energy,[MJ]
-!>  wr(77)-plasma resistance,[mkOhm]
-!>  wr(78)-L/R plasma current decay time,[s]
-!>  wr(79)-content of He
-!>  wr(80)-content of Be
-!>  wr(81)-content of W
-!>  wr(82)-content of Ar
-!>  wr(83)-content of Ne
-!>  wr(84)-power of the bremsstrahlung radiation,[MW]
-!>  wr(85)-power of the cyclotron radiation,[MW]
-!>  wr(86)-power of Be radiation,[MW]
-!>  wr(87)-power of W radiation,[MW]
-!>  wr(88)-power of Ar radiation,[MW]
-!>  wr(89)-power of Ne radiation,[MW]
-!>  wr(90)-total power of the impurity radiation,[MW]
-!>  wr(91)-total power of the radiation,[MW]
-!>  wr(92)-power loss through the plasma boundary due to conductivity 
-!! and convection,[MW]
-!>  wr(93)-plasma energy confinement time,[s]
-!>  wr(94)-in divertor phase R coordinate of the upper X-point (belonging 
-!! to the outer separatrix); in limiter phase =0
-!>  wr(95)-in divertor phase Z coordinate of the upper X-point (belonging 
-!! to the outer separatrix); in limiter phase =0
-!>  wr(96)-in divertor phase is the distance between the inner and outer 
-!! separatrix in the plasma mid plane (in the outboard region); <0 when 
-!! the inner separatrix has upper X-point; in limiter phase =0
-!>  wr(97)-in divertor phase, if the upper X-point is located inside of 
-!! first wall, is R coordinate of the outer strike point; otherwise =0,[m]
-!>  wr(98)-in divertor phase, if the upper X-point is located inside of 
-!! first wall, is Z coordinate of the outer strike point; otherwise =0,[m]
-!>  wr(99)-vertical component of the poloidal magnetic field in the inboard 
-!! points of the plasma boundary belonging to the plane Z=Zmag,[T] 
-!>  wr(100)-vertical component of the poloidal magnetic field in the outboard 
-!! points of the plasma boundary belonging to the plane Z=Zmag,[T] 
-!>  wr(101)-minimum distance between the plasma boundary and the first wall,[m]
-!>  wr(102)-R coordinate of the point of the first wall which is the 
-!! closest to plasma boundary,[m]  
-!>  wr(103)-Z coordinate of the point of the first wall which is the 
-!! closest to plasma boundary,[m]
-!>  wr(104)-distance between the separatrix inner strike point and the bottom 
-!! of the divertor inner vertical target plate; =0 means that the separatrix 
-!! inner leg strikes the inner reflector plate,[m]   
-!>  wr(105)-distance between the separatrix inner strike point and the bottom 
-!! of the divertor outer vertical target plate; =0 means that the separatrix 
-!! inner leg strikes the outer reflector plate,[m]
-!>  wr(106)-wr(129)- additional gaps between plasma boundary and 
-!! fixed points,[m]   
-
       subroutine write_data_in_time(
      *	tt,tpl,betpj,eu_xx,uli,r_cur,z_cur,p_sep,wel,wio,eksk,
 c     *	pcch,zeff_a,tec,te_ax,tqc,tq_ax,tene,zsep,c_e_old,c_e_new,
@@ -169,8 +38,9 @@ c     *  pf2,pf6,cs2L,cs1,cs2U,volume,z_tok,tokc,zvel_out)
 
      *  /c_br4/wdh,p_oh
      *  /vic_psi_av/psipl_av,psiext_av
-	  common                                                                 
-     *  /ge2/NTAY,TAY,TT_com                                                  
+	  common                                   
+     *  /ge2/NTAY,TAY,TT_com
+     *  /ge2e/t_end                                
      *  /ge5/kpr                                                        
      *  /ge7/eu,rout,zout,elong
 
@@ -183,16 +53,13 @@ c     *  pf2,pf6,cs2L,cs1,cs2U,volume,z_tok,tokc,zvel_out)
 	common
      *  /c_grib2/rp1,zp1,dist1,rp2,zp2,dist2
      *  /vic_018/r_lh_new
-c*********************************************************
-     *  /maksim_01/tqc_xx,emag
-     
-        common/maksim_03/wr,wr_imas       
-        dimension wr(150), wr_imas(150)
-        
-        !include 'imas_interface.inc'
-        
-        
-        dimension dNB_xx(24)
+
+      common 
+     * /c_imas_t_end2/t_end2
+     *  /c_imas2/p_n0
+     *  /c_imas4/pn0_tot
+
+        dimension dNB_xx(24),wr(150)
 
 c******* Begin of Sign changing ******
         tpl_imas=tpl*(-1)
@@ -226,10 +93,11 @@ c******* Begin of Sign changing ******
 
         U_vs1_imas=U_vs1*(-1)
         U_vs2_imas=U_vs2*(-1)
-        
-        
-        uact_imas = -uact
-        
+c***************************************
+
+ 	uact_imas=uact*(-1)
+
+
 c******* End of Sign changing ******
 
 	  i_en=i_en+1
@@ -317,10 +185,10 @@ c        read(*,*)
 
 
         if(i_en.eq.1)then
-!           open (unit=41,file='Pvs3.dat',form='formatted')
-!           read(41,*)
-           Pvs3=0.
- !          close (41)
+           open (unit=41,file='Pvs3.dat',form='formatted')
+           read(41,*)
+           read (41,*)Pvs3
+           close (41)
         end if
 
 
@@ -357,12 +225,9 @@ c	close (41)
 
 	call bp_gribov(bz_left,bz_right)
 
-        if(i_en.gt.1)then
-	   open (unit=65,file='plasma.dat',
-     *	access='append',form='formatted')
-        end if
-        
+
         if(i_en.eq.1)then
+
 	   open (unit=65,file='plasma.dat',
      *	form='formatted')
 
@@ -382,14 +247,23 @@ c	close (41)
 
 c     * wdop,qtep,w_fusion,pf2,pf6,cs2L,cs1,cs2U,volume 
 c     * tokc zvel'
+      else
+      	   open (unit=65,file='plasma.dat',
+     *	access='append',form='formatted')
+
 
 	end if
 
 		do i=1,24
 			dNB_xx(i)=dNB_xx(i)/100.
 		end do	
+	
+	if(tec.le.1.)tec=1
+	if(tqc.le.1.)tqc=1
 					
 	wr(1)=t
+	
+	
 	wr(2)=tpl_imas/1000.
 	wr(3)=rout/100.
 	wr(4)=eu/100.
@@ -453,6 +327,7 @@ c     * tokc zvel'
 	wr(62)=U_vs3
 	wr(63)=Ptotal
 	wr(64)=P_rg   !!!!! we will do it later
+!!!	wr(64)=pn0_tot   !!!!! N0 avr
 	wr(65)=Pohm     !!!! %%% one needs to add Ohmic power in MW
 	wr(66)=wdop
 	wr(67)=w_alfa
@@ -481,7 +356,31 @@ cccccc	wr(73)=r_lh
 	wr(88)=w_Ar
 	wr(89)=w_Ne
 	wr(90)=w_imp
+	
+	w_sum= w_Be+w_W
+
+	if(kpr.eq.1)print*,'from write_plasma =w_imp w_sum',w_imp,w_sum
+	if(kpr.eq.1)print*,'from write_plasma =w_imp2 w_imp4',w_imp2,w_imp4
+	if(kpr.eq.1)print*,'from write_plasma = w_Be w_W', w_Be,w_W
+	if(kpr.eq.1)print*,'from write_plasma = wtor+qc', wtor,qc
+	w_sum1= w_Be+w_W+wtor+qc
+	w_sum2= w_imp+wtor+qc
+	if(kpr.eq.1)print*,'from write_plasma = w_sum1 w_sum2', w_sum1,w_sum2
+
 	wr(91)=w_imp+wtor+qc
+
+      if(p_sep_tot.le.0.1)then
+	if(kpr.eq.1)print*,' --wr_plasma = p_sep_tot p_n0', 
+     *  p_sep_tot,p_n0
+!      p_n0=0.9*p_n0
+      end if
+      
+      
+	if(kpr.eq.1)print*,'from wr_plasma = p_sep_tot p_n0', 
+     *  p_sep_tot,p_n0
+     
+      
+
 	wr(92)=p_sep_tot
 	wr(93)=tene/1000.
 	wr(94)=rsep2/100.
@@ -496,6 +395,20 @@ cccccc	wr(73)=r_lh
 	wr(103)=Zdist_min_xx/100.
 	wr(104)=dist2/100.
 	wr(105)=dist1/100.
+ 
+       if(kpr.eq.1)print*,'from write_plasma =tt t_end2',tt,t_end2
+
+         if(tt.gt.t_end2)then
+           do i=3,34
+              wr(i)=0.
+           end do
+
+           do j=65,150
+              wr(j)=0.
+           end do
+        end if
+
+        dNB_xx(1)=pn0_tot   !!!!! N0 avr
         
         write(65,5002)(wr(i),i=1,105),dNB_xx
 
@@ -503,119 +416,6 @@ cccccc	wr(73)=r_lh
 
 	close (65)
 
-	
-	
-        wr_imas(1)=t
-        wr_imas(2)=tpl_imas*1000.
-        wr_imas(3)=rout/100.
-        wr_imas(4)=eu/100.
-        wr_imas(5)=eksk
-        wr_imas(6)=tri   !! %%% one needs to do it 
-        wr_imas(7)=v
-        wr_imas(8)=s
-        wr_imas(9)=s_plasma
-        wr_imas(10)=r_cur/100.
-        wr_imas(11)=z_cur/100.
-        wr_imas(12)=zvel
-        wr_imas(13)=rmag/100.
-        wr_imas(14)=zmag/100.
-        wr_imas(15)=rsep/100.
-        wr_imas(16)=zsep/100.
-        wr_imas(17)=q_95
-        wr_imas(18)=q_ax
-        wr_imas(19)=uli   !!! %%% one needs to divide into rout
-        wr_imas(20)=betpj
-        wr_imas(21)=pcch*1.d19
-        wr_imas(22)=gamma
-        wr_imas(23)=pion*1.d19
-        wr_imas(24)=tec
-        wr_imas(25)=te_ax/tec
-        wr_imas(26)=tqc
-        wr_imas(27)=tq_ax/tqc
-        wr_imas(28)=zeff_a
-        wr_imas(29)=uact_imas
-        wr_imas(30)=vs
-        wr_imas(31)=c_e_old
-        wr_imas(32)=psi_ext !!!! %%% one needs to need to add tcam to psi_pf 
-        wr_imas(33)=psi_pf_imas
-        wr_imas(34)=psi_ax_imas
-        wr_imas(35)=pf1_imas*1.d3
-        wr_imas(36)=pf2_imas*1.d3
-        wr_imas(37)=pf3_imas*1.d3
-        wr_imas(38)=pf4_imas*1.d3
-        wr_imas(39)=pf5_imas*1.d3
-        wr_imas(40)=pf6_imas*1.d3
-        wr_imas(41)=pf7_imas*1.d3
-        wr_imas(42)=pf8_imas*1.d3
-        wr_imas(43)=pf9_imas*1.d3
-        wr_imas(44)=pf10_imas*1.d3
-        wr_imas(45)=pf11_imas*1.d3
-        wr_imas(46)=zv1_imas*1.d3
-        wr_imas(47)=zv2_imas*1.d3
-        wr_imas(48)=zv3_imas*1.d3
-        wr_imas(49)=zv4_imas*1.d3
-        wr_imas(50)=zv5_imas*1.d3
-        wr_imas(51)=zv6_imas*1.d3
-        wr_imas(52)=zv7_imas*1.d3
-        wr_imas(53)=zv8_imas*1.d3
-        wr_imas(54)=zv9_imas*1.d3
-        wr_imas(55)=zv10_imas*1.d3
-        wr_imas(56)=zv11_imas*1.d3
-        wr_imas(57)=Curr_vs1_imas*1.d3
-        wr_imas(58)=Curr_vs2_imas*1.d3
-        wr_imas(59)=Curr_vs3*1.d3
-        wr_imas(60)=U_vs1_imas*1.d3
-        wr_imas(61)=U_vs2_imas*1.d3
-        wr_imas(62)=U_vs3*1.d3
-        wr_imas(63)=Ptotal*1.d6
-        wr_imas(64)=P_rg*1.d6   !!!!! we will do it later
-        wr_imas(65)=Pohm*1.d6     !!!! %%% one needs to add Ohmic power in MW
-        wr_imas(66)=wdop*1.d6
-        wr_imas(67)=w_alfa*1.d6
-        wr_imas(68)=w_fusion*1.d6
-        wr_imas(69)=gfus*(1.d6*3.6d3)
-        wr_imas(70)=qtep
-        wr_imas(71)=(wdop+w_alfa+Pohm)*1.d6   !!! take care about Pohm !
-        wr_imas(72)=p_hl*1.d6
-cccccc  wr_imas(73)=r_lh
-        wr_imas(73)=r_lh_new
-        wr_imas(74)=Emag*1.d6  !!! we will do it later
-        wr_imas(75)=pl_inductance !!! we will do it later 
-        wr_imas(76)=wen2*1000.
-        wr_imas(77)=wr_imas(29)/wr_imas(2)
-        wr_imas(78)=wr_imas(75)/wr_imas(77)
-
-        wr_imas(79)=coef_He
-        wr_imas(80)=coef_imp1
-        wr_imas(81)=coef_imp2
-        wr_imas(82)=coef_imp3
-        wr_imas(83)=coef_imp4
-        wr_imas(84)=wtor*1.d6
-        wr_imas(85)=qc*1.d6
-        wr_imas(86)=w_Be*1.d6
-        wr_imas(87)=w_W*1.d6
-        wr_imas(88)=w_Ar*1.d6
-        wr_imas(89)=w_Ne*1.d6
-        wr_imas(90)=w_imp*1.d6
-        wr_imas(91)=(w_imp+wtor+qc)*1.d6
-        wr_imas(92)=p_sep_tot*1.d6
-        wr_imas(93)=tene/1000.
-        wr_imas(94)=rsep2/100.
-        wr_imas(95)=zsep2/100.
-        wr_imas(96)=gaps(n_ga+1)/100. !dsep
-        wr_imas(97)=rsep2_r/100.
-        wr_imas(98)=zsep2_r/100.
-        wr_imas(99)=bz_left
-        wr_imas(100)=bz_right
-        wr_imas(101)=dist_min_xx/100.
-        wr_imas(102)=Rdist_min_xx/100.
-        wr_imas(103)=Zdist_min_xx/100.
-        wr_imas(104)=dist2/100.
-        wr_imas(105)=dist1/100.
-	
-        do i=1,24
-           wr_imas(105+i)=dNB_xx(i)
-        end do  
 
       if(kpr.eq.1)print*,'from write_plasma =wr(101)',wr(101)
 

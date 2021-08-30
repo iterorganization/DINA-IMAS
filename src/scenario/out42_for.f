@@ -10,6 +10,9 @@
 	write(6,'("",20(1pe12.5))'),
      *  (ygr(i),i=1,ng)
 
+
+!      print *,' out42_c== ng=',ng
+
 !	write(6,'("",a20,20(1pe12.5))'),
 !     *  name(1:num),(ygr(i),i=1,ng)
 

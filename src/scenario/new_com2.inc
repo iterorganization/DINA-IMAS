@@ -233,8 +233,7 @@ c  here Gen subroutine common blocks
 
 	common
      *  /c_con4/vps(npfc),kvert(npfc)
-     *  /c_con7/volt_c(kf)
-     *  /en9e/volt(npo)
+     *  /c_con7/volt(kf)
 
 c  here we start D3D control keys------
 	common
@@ -396,9 +395,6 @@ c** it is used in cur, dop_port.inc, victor.f
      *  /mid2_0/vi0(npo),pfi0(npo)
      *  /mid2e/vol(npo),spov(npo),pcur(npo)
      *  /mid3/GRA1(npo),GRA2(npo)
-	common
-     *  /mid6/bp_0(npo),a_m(npo),r_m(npo)
-     *  /mid7/bsq(npo),bsqi(npo),fasp(npo)
 
 
 	common

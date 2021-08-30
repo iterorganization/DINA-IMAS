@@ -98,7 +98,8 @@ c  saving for the next time_step...
            time1 = time
         end if
 
-	taup=5.*tay
+!	taup=5.*tay
+	taup=20.*tay
 
 	qqp = 0.5 * (time - time1)/taup
 
@@ -1976,9 +1977,6 @@ c 	parameter (ntime=20)
         common
      *  /ge5/kpr
 
-      common /c_emo_c7/t_t_c7(ntime),emoe_t_c7(ntime),emoq_t_c7(ntime),
-     *  n_t_c7
-
 
 	dimension t_t(ntime),emoe_t(ntime),emoq_t(ntime)
 
@@ -1988,28 +1986,27 @@ c 	parameter (ntime=20)
 
 	if(i_sh.eq.1)then
 c-------
-!           open (unit=41,file='emo.dat',form='formatted') 
-!           read (49,*) 
-!           read (49,*)n_t 
-           n_t=n_t_c7 
+           open (unit=41,file='emo.dat',form='formatted') 
+           read (41,*) 
+           read (41,*)n_t 
 
  	 if(kpr.eq.1)print *,' tt n_t===',tt,n_t 
            
-!           read (49,*) 
+           read (41,*) 
            do i=1,n_t 
-!              read (49,*)t_t(i),emoe_t(i),emoq_t(i)
-              t_t(i)=t_t_c7(i)
-              emoe_t(i)=emoe_t_c7(i)
-              emoq_t(i)=emoq_t_c7(i)
+              read (41,*)t_t(i),emoe_t(i),emoq_t(i)
               t_t(i)=t_t(i)*1000. 
            end do 
            
            apr='-t_t-' 
-c           if(kpr.eq.1)print 71,apr,(t_t(i),i=1,n_t) 
-!           close (unit=41) 
+           if(kpr.eq.1)print 71,apr,(t_t(i),i=1,n_t) 
+           apr='-emoe_t-' 
+           if(kpr.eq.1)print 71,apr,(emoe_t(i),i=1,n_t) 
+           close (unit=41) 
         end if
 71	FORMAT(20X,A8/,(6(1X,1PE10.3)))
 
+      t_coef=0.
       do i=2,n_t
       if( (tt-t_t(i-1))*(tt-t_t(i)).le.0.)then
 c==================
@@ -2018,6 +2015,9 @@ c
 	 emoe=emoe_t(i-1)+t_coef*(emoe_t(i)-emoe_t(i-1))
 	 emoq=emoq_t(i-1)+t_coef*(emoq_t(i)-emoq_t(i-1))
 
+	emoe1=emoe
+	emoq1=emoq
+
 	pnor=6.25e8
 	emoe=emoe*pnor
 	emoq=emoq*pnor
@@ -2025,6 +2025,8 @@ c
 	 end if
 
 	 end do
+	if(kpr.eq.1)print *,' from SHAPE tt t_coef',tt,t_coef
+	if(kpr.eq.1)print *,' from SHAPE emo1',emoe1,emoq1
 	if(kpr.eq.1)print *,' from SHAPE emo',emoe,emoq
 c	pause 'from shape_emo'
 
@@ -2086,7 +2088,6 @@ c	pause 'from shape_emo'
         common
      *  /ge5/kpr
 
-      common /c_pfres/t_t_c1(ntime),pf_t_c1(kf,ntime),n_t_c1,npf_c1
 
 	dimension t_t(ntime),pf_t(kf,ntime)
 
@@ -2098,20 +2099,15 @@ c	pause 'from shape_emo'
 
 	if(i_sh.eq.1)then
 c-------
-!           open (unit=41,file='pfres.dat',form='formatted') 
-!           read (49,*) 
-!           read (49,*)n_t 
-           n_t=n_t_c1 
+           open (unit=41,file='pfres.dat',form='formatted') 
+           read (41,*) 
+           read (41,*)n_t 
 
  	 if(kpr.eq.1)print *,' tt n_t===',tt,n_t 
-!           read (49,*) 
+           read (41,*) 
 
            do i=1,n_t 
-!              read (49,*)t_t(i),(pf_t(k,i),k=1,npf)
-              t_t(i)=t_t_c1(i)
-              do k=1,npf_c1
-              pf_t(k,i)=pf_t_c1(k,i)
-              end do
+              read (41,*)t_t(i),(pf_t(k,i),k=1,npf)
               t_t(i)=t_t(i)*1000. 
            end do 
 
@@ -2136,7 +2132,7 @@ c-------
            
            apr='-t_t-' 
 c           if(kpr.eq.1)print 71,apr,(t_t(i),i=1,n_t) 
-!           close (unit=41) 
+           close (unit=41) 
         end if
 71	FORMAT(20X,A8/,(6(1X,1PE10.3)))
 
@@ -2159,6 +2155,12 @@ c           if(kpr.eq.1)print 71,apr,(t_t(i),i=1,n_t)
 !	 if(kpr.eq.3.or.kpr.eq.1)call out42(n_pr,a_print,num,apr1)
 
       if( (tt-t1)*(tt-t2).le.0.)then
+
+
+	 n_pr=4
+	 apr1='t1 tt t2 tay'
+	 num=20
+	 if(kpr.eq.3.or.kpr.eq.1)call out42(n_pr,a_print,num,apr1)
 	 
 	 	 do k=1,npf
 	    pfres(k)=pf_t(k,i)
@@ -2180,7 +2182,15 @@ c           if(kpr.eq.1)print 71,apr,(t_t(i),i=1,n_t)
 	 n_pr=3
 	 apr1='k_inv t_inv tt'
 	 num=20
-	 if(kpr.eq.3.or.kpr.eq.1)call out42(n_pr,a_print,num,apr1)
+
+	 if(kpr.eq.1)print *,' npf kpr==',npf,kpr
+
+	 if(kpr.eq.3.or.kpr.eq.1)then
+	 if(kpr.eq.1)print *,' ++npf kpr==',npf,kpr
+	 call out42(n_pr,a_print,num,apr1)
+	 end if
+	 
+	 if(kpr.eq.1)print *,' k_inv2 t_inv tt',k_inv,t_inv,tt
 	 
 	 call inv_gen()
 
@@ -2196,7 +2206,7 @@ c           if(kpr.eq.1)print 71,apr,(t_t(i),i=1,n_t)
 
 	 end if
 	 
-	 if(kpr.eq.1)print *,' from SHAPE pfres'
+	 if(kpr.eq.1)print *,' from SHAPE k_in pfres',k_inv,pfres(3)
 
        return 
        end 

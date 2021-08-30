@@ -87,6 +87,7 @@ cDEC$ ATTRIBUTES ALIAS:'_t15_2_output2'::t15_2_output2
 !     	 print *,'EqTime,SimStep',EqTime,SimStep
       end if
       
+ !     stop
 
       k_in=15+123
       k_out=13

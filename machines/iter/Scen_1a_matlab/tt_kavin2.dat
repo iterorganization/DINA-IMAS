@@ -1,0 +1,27 @@
+tt_rampup
+ 5600  
+ t_nog3       dtpl_term_l       cIp_end
+ 25e3             15             -0.45 
+ Ics1_eob(kA)   rms_noise(m/s)
+ -16.          0.2         
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+tt_rampup
+ 5600  
+ dt_end_sim     dtpl_term_l   cIp_end
+ 50             15             -0.45 
+ Ics1_eob(kA)   rms_noise(m/s)
+ -16.8          0.2         
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+RupRd(1)=tt_rampup*1e-3 
+RupRd(2)=dtpl_term_l
+RupRd(3)=cIp_end
+RupRd(4)=dt_end_sim
+RupRd(5)=Ics1_eob(kA)
+RupRd(6)=rms_noise(m/s)
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+ 

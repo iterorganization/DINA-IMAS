@@ -249,7 +249,7 @@ C S_INTER3
       RETURN
       END
 c-------------------------------------------
-            subroutine ZRAD(nz,k,i1,Te, Xz)
+            subroutine ZRAD_old(nz,k,i1,Te, Xz)
 c.........Author: V.E.Zhogolev (20.11.2006)
 
           implicit none
@@ -283,16 +283,12 @@ c
       real*8 Z1,Z2,EE,Si,Sr,Rad
       real*4 T
       integer i
-      integer Kz
-      dimension Kz(1), Z1(1), Z2(1), EE(1), Si(1), Sr(1), Rad(1)
-
-      Kz(1) = nz+1
             do 1 i=1,i1
       T=Te(i)
-      call AReffm(nz,T,1,Kz,Z1,Z2,EE,Si,Sr,Rad,0.,0.,T)
-      if(k.eq.1)  Xz(i)=0.16*Rad(1)
-      if(k.eq.2)  Xz(i)=Z1(1)
-      if(k.eq.3)  Xz(i)=Z2(1)
+      call AReffm(nz,T,1,nz+1,Z1,Z2,EE,Si,Sr,Rad,0.,0.,T)
+      if(k.eq.1)  Xz(i)=0.16*Rad
+      if(k.eq.2)  Xz(i)=Z1
+      if(k.eq.3)  Xz(i)=Z2
     1 continue  
             return 
       end
@@ -359,12 +355,14 @@ c                  if(Ef(i).ge. 13.6) then
 c                  endif
             enddo
       call ATSV(Nz,3,0,IY,T10,Radf,Ds)
-            do k=1,Nk
+!            do k=1,Nk
+            do k=1,1
         Y(k)=0.
        Z1(k)=0.
        Z2(k)=0.
        EE(k)=0.
       Rad(k)=0.
+  !          print *,' k z1 z2==',k,z1(k),z2(k)
             enddo
       C=1.d0
       YY(1) = C
@@ -380,6 +378,9 @@ c                  endif
       i1=0
       Sr(1)=0.
             do i=1,IY
+            
+!            print *,' i k==',i,k
+            
        Y(k) =  Y(k) + YY(i)
       Z1(k) = Z1(k) + YY(i)*i1
       Z2(k) = Z2(k) + YY(i)*i1*i1
@@ -537,3 +538,278 @@ c                   by V.Zhogolev (03.2005)
       end
 c
 
+            subroutine ZRAD_test(nz,k,i1,Te, Xz)
+c.........Author: V.E.Zhogolev (20.11.2006)
+
+          implicit none
+      integer Nz,k,i1 
+      dimension Te(i1),Xz(i1)
+      real  Te,Xz 
+c Purpose: 
+c     To calculate the radial profile one of three effective 
+c     characteristics for the impurity element in coronal limit use ATSV. 
+c
+c Output:
+c     Xz(*) - array (profile) of an effective characteristics 
+c Input: 
+c     Te(*) - array (profile) of the electron temperatures [keV];
+c
+c     nz - the atomic number of impurity element (for Argon  nz=18)
+c     i1 - dimension of the profile arrays;
+c
+c     k -  integer parameter which specifies effective characteristic: 
+c  if k=1 then Xz  corresponds to  
+c           coefficient of energy losses [10**-38 MW*m**3],
+c  if k=2 then Xz corresponds to averaged charge <Z**1>,
+c  if k=3 then Xz corresponds to averaged charge <Z**2>.
+c
+c ADDITIONAL DATA
+c     Necessary data files sp* should be located 
+c     in the ./IMP or current directory.
+c
+c Use subroutine AReff
+c
+      real*8 Z1,Z2,EE,Si,Sr,Rad,
+     * tay_lo,n0_xx,n_e_xx,tay_lo_xx,tn_xx,alf_n_xx
+     
+      real*4 T,tn
+      
+      real RAJ,CDe
+      
+      integer i
+      RAJ=0.
+      
+      call get_param_test(n0_xx,n_e_xx,tay_lo_xx,tn_xx,alf_n_xx)
+      
+        print *,' n_e_xx n0_xx==',n_e_xx,n0_xx
+        print *,' tay_lo_xx alf_n_xx==',tay_lo_xx,alf_n_xx
+
+      CDe=n0_xx/n_e_xx*alf_n_xx
+!      CDe=n0_xx
+
+      tay_lo=tay_lo_xx*n_e_xx
+      
+      tn=tn_xx*1.e-3
+      
+      print *,'CDe tay_lo tn=',CDe,tay_lo,tn 
+      
+            do 1 i=1,i1
+      T=Te(i)
+      call AReffm_t(nz,T,1,nz+1,Z1,Z2,EE,Si,Sr,Rad,RAJ,CDe,tn,tay_lo)
+      if(k.eq.1)  Xz(i)=0.16*Rad
+      if(k.eq.2)  Xz(i)=Z1
+      if(k.eq.3)  Xz(i)=Z2
+    1 continue  
+            return 
+      end
+         subroutine AReffm_t(Nz,Te,Nk,Kz,Z1,Z2,EE,Si,Sr,Rad ,
+     *  RAJ,CDe,Ti,tay_lo)
+c................Author: V.E.Zhogolev (22.02.2007)
+        implicit none      
+      integer Nz,Nk, Kz(Nk) 
+      real Te ,RAJ,CDe,Ti
+      real*8 Z1(Nk),Z2(Nk),EE(Nk),Si(Nk),Sr(Nk),Rad(Nk)
+c
+c Purpose: 
+c     To calculate set of effective characteristics 
+c     of ions groups for reduced impurity model. 
+c Input: 
+c     Nz - the atomic number of impurity element (for Argon  Nz=18)
+c     Te - electron temperature [eV];
+c     Nk - total number of groups of ions;
+c     Kz(k) - is array of highest k-ion in the group + 1,
+c            k=1,Nk 
+c Output:
+c     Z1(k),Z2(k) - are averaged charges <Z**1> and <Z**2> ; 
+c     EE(k) - average ionization potential [eV];
+c     Si(k),Sr(k) - effective frequencies of ionization 
+c     and recombination at electron density 10**8 cm**(-3), [1/s]; 
+c     Rad(k) - effective coefficient of energy losses 
+c           [10**(-8) cm**3 eV/s].
+c 
+c Use subroutine ATSV
+c
+c ADDITIONAL DATA
+c     Necessary data files sp* should be located 
+c     in the ./IMP or current directory.
+c
+c           ms>max(Nz)
+      integer ms
+      parameter (ms=75)
+      real Ef(ms),Sif(ms),Srf(ms),Radf(ms),Ds(ms)
+      real*8 C,Y(ms),YY(ms)
+      real  ZSVCX, T10
+      integer IY, k,i,i1,kpr3
+	real *8 pr_i,pr_yy,pr_rad,pr_radf
+	
+	real *8 tay_lo,coef
+	 
+      save IY
+      data IY/0/      
+            if(IY.eq.0) then
+c  call SPNUL (the entry of ATSV for new it initialithaton)
+c      call SPNUL
+      IY=1
+            endif
+      IY=Nz+1
+      T10=1000.*TE
+      T10=alog10(T10)
+      call ATSV(Nz,0,0,IY,T10,  Ef,Ds)
+      call ATSV(Nz,2,0,IY,T10, Srf,Ds)
+      call ATSV(Nz,1,0,IY,T10, Sif,Ds)
+         if(RAJ.ne.0.) call ATSV(Nz,1,0,IY,5., Radf,Ds)
+            do i=1,Nz
+      Sif(i)=10.d0**Sif(i)
+         if(RAJ.ne.0.) 
+     # Sif(i)=Sif(i) + abs(RAJ)/480.*10.d0**( Radf(i) + Ds(i) )
+      Srf(i+1)=10.d0**Srf(i+1)
+
+!        print *,' i Ef(i) ZSVCX(=',i,Ef(i),ZSVCX(float(i),Ti,2.,2.*Nz)
+
+                  if(Ef(i).ge. 13.6) then
+         if(CDe.gt.0.) 
+     # Srf(i+1)=Srf(i+1)+1.e-5*CDe*ZSVCX(float(i),Ti,2.,2.*Nz)
+!     # Srf(i+1)=Srf(i+1)+1.e-5*CDe*ZSVCX(float(i+1),Ti,2.,2.*Nz)
+        
+!!!        print *,' i ZSVCX(=',i,ZSVCX(float(i),Ti,2.,2.*Nz)
+        
+!      Scx(j,k) = 1.e-5*ZSVCX( float(k1),TI,AMz,AMd)
+
+                  endif
+            enddo
+      call ATSV(Nz,3,0,IY,T10,Radf,Ds)
+!            do k=1,Nk
+            do k=1,1
+        Y(k)=0.
+       Z1(k)=0.
+       Z2(k)=0.
+       EE(k)=0.
+      Rad(k)=0.
+  !          print *,' k z1 z2==',k,z1(k),z2(k)
+            enddo
+      C=1.d0
+      YY(1) = C
+            do i=2,IY
+            coef=1.
+            if(i.eq.2)coef=1.
+      YY(i) = YY(i-1)*(Sif(i-1))/(Srf(i)+coef*1./tay_lo)
+      C = C + YY(i)
+            enddo
+            do i=1,IY
+      YY(i) = YY(i)/C
+      DS(i) = YY(i)
+            enddo
+      k=1
+      i1=0
+      Sr(1)=0.
+            do i=1,IY
+            
+!            print *,' i k==',i,k
+            
+       Y(k) =  Y(k) + YY(i)
+      Z1(k) = Z1(k) + YY(i)*i1
+      Z2(k) = Z2(k) + YY(i)*i1*i1
+      EE(k) = EE(k) + YY(i)*Ef(i)
+      Rad(k)= Rad(k)+ YY(i)*10.d0**Radf(i)
+
+	pr_i=i
+	pr_yy=yy(i)
+	pr_rad=rad(k)
+      pr_radf=10.d0**Radf(i)
+
+c	call print4('i yy rad radf==',pr_i,pr_yy,pr_rad,
+c     *  pr_radf)
+
+      kpr3=0
+      if(kpr3.eq.1)then
+      	write(6,'(" i yy rad z ",
+     *  i4,6(1pe11.4))'),
+     *  i,yy(i),rad(k)*1.6,z1(k)
+      end if
+      
+      i1=i
+                  if(i.eq.Kz(k)) then
+      Z1(k) = Z1(k)/Y(k)
+      Z2(k) = Z2(k)/Y(k)
+      EE(k) = EE(k)/Y(k)
+      Rad(k)=Rad(k)/Y(k)
+      Si(k) =Sif(i)*YY(i)/Y(k)
+      Sr(k) = Sr(k)/Y(k)
+      if(k.ne.Nk) Sr(k+1) =Srf(i+1)*YY(i+1)
+      
+
+      
+      k=k+1 
+                 endif
+            enddo
+      Sr(Nk) = Sr(Nk)/Y(Nk)
+      Si(Nk) =0.
+            return
+      end
+            subroutine ZRAD(nz,k,i1,Te, Xz)
+c.........Author: V.E.Zhogolev (20.11.2006)
+
+          implicit none
+      integer Nz,k,i1 
+      dimension Te(i1),Xz(i1)
+      real  Te,Xz 
+c Purpose: 
+c     To calculate the radial profile one of three effective 
+c     characteristics for the impurity element in coronal limit use ATSV. 
+c
+c Output:
+c     Xz(*) - array (profile) of an effective characteristics 
+c Input: 
+c     Te(*) - array (profile) of the electron temperatures [keV];
+c
+c     nz - the atomic number of impurity element (for Argon  nz=18)
+c     i1 - dimension of the profile arrays;
+c
+c     k -  integer parameter which specifies effective characteristic: 
+c  if k=1 then Xz  corresponds to  
+c           coefficient of energy losses [10**-38 MW*m**3],
+c  if k=2 then Xz corresponds to averaged charge <Z**1>,
+c  if k=3 then Xz corresponds to averaged charge <Z**2>.
+c
+c ADDITIONAL DATA
+c     Necessary data files sp* should be located 
+c     in the ./IMP or current directory.
+c
+c Use subroutine AReff
+c
+      real*8 Z1,Z2,EE,Si,Sr,Rad,
+     * tay_lo,n0_xx,n_e_xx,tay_lo_xx,tn_xx,alf_n_xx
+     
+      real*4 T,tn
+      
+      real RAJ,CDe
+      
+      integer i
+      RAJ=0.
+      
+      call get_param_test2(n0_xx,n_e_xx,tay_lo_xx,tn_xx,alf_n_xx)
+      
+!        print *,' n_e_xx n0_xx==',n_e_xx,n0_xx
+
+ !       print *,' tay_lo_xx alf_n_xx==',tay_lo_xx,alf_n_xx
+
+
+      
+      CDe=n0_xx/n_e_xx*alf_n_xx
+!      CDe=n0_xx
+
+      tay_lo=tay_lo_xx*n_e_xx
+      
+      tn=tn_xx*1.e-3
+      
+!      print *,'CDe tay_lo tn=',CDe,tay_lo,tn 
+      
+            do 1 i=1,i1
+      T=Te(i)
+      call AReffm_t(nz,T,1,nz+1,Z1,Z2,EE,Si,Sr,Rad,RAJ,CDe,tn,tay_lo)
+      if(k.eq.1)  Xz(i)=0.16*Rad
+      if(k.eq.2)  Xz(i)=Z1
+      if(k.eq.3)  Xz(i)=Z2
+    1 continue  
+            return 
+      end

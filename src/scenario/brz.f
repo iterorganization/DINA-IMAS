@@ -15,9 +15,6 @@
 	include 'double.inc'
 	dimension  vec_br(*),vec_bz(*)
 	
-	return
-	
-	
 	open (unit=41,file='tok.bz',form='formatted')
 
 	read (41,*)

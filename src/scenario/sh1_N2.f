@@ -519,15 +519,15 @@ c--
 
 	if(i_sh.eq.1)then
 c-------
-!           open (unit=41,file='dens.dat',form='formatted') 
-           read (49,*) 
-           read (49,*)n_t 
-           read (49,*) 
+           open (unit=41,file='dens.dat',form='formatted') 
+           read (41,*) 
+           read (41,*)n_t 
+           read (41,*) 
 
  	 if(kpr.eq.1)print *,' tay tt n_t===',tay,tt,n_t 
 
            do i=1,n_t 
-              read (49,*)t_t(i),den_t(i)
+              read (41,*)t_t(i),den_t(i)
               t_t(i)=t_t(i)*1000. 
            end do 
            
@@ -537,7 +537,7 @@ c-------
            apr='-den_t-' 
            if(kpr.eq.1)print 71,apr,(den_t(i),i=1,n_t) 
 
-!           close (unit=41) 
+           close (unit=41) 
         end if
 
 71	FORMAT(20X,A8/,(6(1X,1PE10.3)))
@@ -1152,8 +1152,6 @@ c   ---- rref ----
 	include 'double.inc'
  	include 'parf_mike' 
 
-      common /c_dens_c8/t_t_c8(ntime),den_t_c8(ntime),n_t_c8
-
         common
      *  /ge5/kpr
 
@@ -1166,18 +1164,15 @@ c   ---- rref ----
 
 	if(i_sh.eq.1)then
 c-------
-!           open (unit=41,file='dens.dat',form='formatted') 
-!           read (49,*) 
-!           read (49,*)n_t 
-           n_t=n_t_c8 
-!           read (49,*) 
+           open (unit=41,file='dens.dat',form='formatted') 
+           read (41,*) 
+           read (41,*)n_t 
+           read (41,*) 
 
  	 if(kpr.eq.1)print *,' tay tt n_t===',tay,tt,n_t 
 
            do i=1,n_t 
-!              read (49,*)t_t(i),den_t(i)
-              t_t(i)=t_t_c8(i)
-              den_t(i)=den_t_c8(i)
+              read (41,*)t_t(i),den_t(i)
               t_t(i)=t_t(i)*1000. 
            end do 
            
@@ -1187,7 +1182,7 @@ c-------
            apr='-den_t-' 
            if(kpr.eq.1)print 71,apr,(den_t(i),i=1,n_t) 
 
-!           close (unit=41) 
+           close (unit=41) 
         end if
 
 71	FORMAT(20X,A8/,(6(1X,1PE10.3)))

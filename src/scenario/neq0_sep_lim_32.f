@@ -220,13 +220,13 @@ c!!!	if(abs(del_r).gt.1.e-1)call bound_hcoor()
 c	if(abs(del_r).gt.1.e-1.and.ntay.gt.0)
 c     *  call bound_h2()
 
-      	call psi_pl_test(f,pspl)
+!      	call psi_pl_test(f,pspl)
 
 	   do i=1,nwnh   
 	      pspl(i)=0.5d0*(pspl_temp(i)+pspl(i))
          end do
 
-      	call psi_pl_test(f,pspl)
+!      	call psi_pl_test(f,pspl)
 
 	do i=1,nr
 	do j=1,nz

@@ -45,8 +45,7 @@ c----------------------
 	common /c_imp_out2/qlos_e,qlos_imp,qloss_ion
 
 	common /c_neut1/p_n0
-
-      common /c_init_c6/p_c6,T_e_c6,T_i_c6,gam_c6,g_gain_c6
+	common /c_neut2/pn_prog
 
        dimension denz(2),
      * rin_zog(2),rre_zog(2),rcx_zog(2)
@@ -84,48 +83,47 @@ c      U=100.
 
 c	print *,' file in.dat is reading'
 
-!	open (unit=41,file='in.dat',form='formatted')
-        U=15.d0
-        tay_ee=0.d0
-        tay_ei=0.d0
-        alf_n=0.84
-        p=1.d-3
-        R=5.68d0 
-        a=1.6d0 
-        R_ves=6.2d0
-        a_ves=2.09d0 
-        e_ves=1.9d0
-        Z=0.d0
-        psi_n=0.99d0
-        I_p=1.d-3
-        T_e=2.d-3 
-        T_i=2.d-3 
-        gam=5.d-2
-        elong=1.d0
-        Bt=4.9d0
-        i_temp=1 
-        alfa_loss=1.d0
-        g_gain=50.d0
-        tay_lo=2.000d5
+	open (unit=41,file='in.dat',form='formatted')
+        read (41,*)U
+        read (41,*)tay_ee
+        read (41,*)tay_ei
+        read (41,*)alf_n
+        read (41,*)p
+        read (41,*)R
+        read (41,*)a
+        read (41,*)R_ves
+        read (41,*)a_ves
+        read (41,*)e_ves
+        read (41,*)Z
+        read (41,*)psi_n
+        read (41,*)I_p
+        read (41,*)T_e
+        read (41,*)T_i
+        read (41,*)gam
+        read (41,*)elong
+        read (41,*)Bt
+        read (41,*)i_temp
+        read (41,*)alfa_loss
+        read (41,*)g_gain
+        read (41,*)tay_lo
 
 
 	t_a=tay_ei
 	 
 
-!        close (41)
+        close (41)
 
-!	open (unit=41,file='init.dat',form='formatted')
-!        read (49,*)p
-        p=p_c6
-!        read (49,*)T_e
-        T_e=T_e_c6
-!        read (49,*)T_i
-        T_i=T_i_c6
-!        read (49,*)gam
-        gam=gam_c6
-!        read (49,*)g_gain
-        g_gain=g_gain_c6
-!        close (41)
+      i_new=0
+      if(i_new.eq.1)then
+	open (unit=41,file='init.dat',form='formatted')
+        read (41,*)p
+        read (41,*)T_e
+        read (41,*)T_i
+        read (41,*)gam
+        read (41,*)g_gain
+        close (41)
+      end if
+      
 
 
 
@@ -178,7 +176,6 @@ c      e_ves=3.
 c------------------------------------
 
       V_v=2.*pi*R_ves*pi*a_ves**2*e_ves
-        print *,' pi r_ves a_ves e_ves=',pi,r_ves,a_ves,e_ves
 
 c	print *,' r a elong ==',r,a,elong
 
@@ -438,6 +435,7 @@ c-------------------------------------
 
 	p_lambda=v0/(n_e*S_iz*1.e7)
 
+      if(kpr.eq.1)print *,' v0  p_lambda',v0,p_lambda
 
 	x=2.d0*p_lambda/a
 
@@ -549,10 +547,11 @@ c	 print *,' tay1 tay2 ',tay_ee1,tay_ee2
 
 	if(i_min.eq.0)then
 !      tay_ee=dmax1(tay_ee1,tay_ee2)
-!      q_10=10.d0
-      q_10=3.d0
 
-      d_q=1.d0
+       q_10=10.d0
+!      q_10=3.d0
+
+      d_q=1.d-1
 !      d_q=2.d0
 
 
@@ -578,8 +577,10 @@ c	 print *,' tay1 tay2 ',tay_ee1,tay_ee2
 !!!	tay_ee=tay_ee*( I_p/1.5d0 )**0.25
 	end if
 
+      if(kpr.eq.1)	write(6,'(" q_b,tay_ee,tay_ee1,tay_ee2",
+     *  6(1pe12.5))'),
+     *  q_b,tay_ee,tay_ee1,tay_ee2
 
-      
 
  !!!     if(tay_ee.gt.0.07)tay_ee=0.07
 
@@ -755,8 +756,6 @@ c      print *,' s_0 s1_ s_2 s_3 ',s_0,s_1,s_2,s_3
      *  den_e,den_n,denz,
      *  qlos_e,qloss_ion,qloss_rad,qloss_rec,qloss_ch)
 
-
-
 	qlos_e=qlos_e*alfa_rus
 	qloss_ion=qloss_ion*alfa_rus
 	qloss_rad=qloss_rad*alfa_rus
@@ -782,16 +781,11 @@ c     *  i,qloss_ion,qloss_rad,qloss_rec,qloss_ch
        call rates_zog(te_inp,tn_inp,nz_inp,
      *  rin_zog,rre_zog,rcx_zog)
 
+      c_ion=svie(te_inp,den_e)
+      c_rec=svr(te_inp,den_e)
 
-
-!      c_ion=svie(te_inp,den_e)
-
-!      c_rec=svr(te_inp,den_e)
-
-!	c_ex=rcx_o(tn_inp,nz_inp)
-!	c_ex_zog=rcx_zo(tn_inp,nz_inp)
-
-      if(kpr.eq.1)print *,'HYI4  '
+	c_ex=rcx_o(tn_inp,nz_inp)
+	c_ex_zog=rcx_zo(tn_inp,nz_inp)
 
       s_ion= S_iz
 	 s_cxc=S_cx
@@ -832,7 +826,6 @@ c   Energy....
 	do i=1,n_imp_tot
 	qlos_imp=qlos_imp+sel(i)*1.d-1
 	end do
-
 
 
 c      delta=0.
@@ -971,12 +964,12 @@ c      stop
 
 
 
-      subroutine en_000()
+      subroutine en_00()
       include 'double.inc'
       include 'new_com.inc'
       include 'br_com.inc'
 
-      call en_000_c(n_rad,
+      call en_00_c(n_rad,
      * tay,kpr,n_e,n_e0,n_d,n_d0,n0,n00,T_e,T_e0,T_i,T_i0,
      * pi,a_min,R_maj,tt,n_i,n_i0,
      * I_p,I_p0,p_oh,p_cx,p_ioniz,p_rad,q_ech,z_eff,v_v0,v_p,
@@ -990,7 +983,7 @@ c----------------------
 
       return
       end
-      subroutine en_000_c(n,
+      subroutine en_00_c(n,
      * tay_old,kpr,n_e,n_e0,n_d,n_d0,n0,n00,T_e,T_e0,T_i,T_i0,
      * pi,a,R,tt,n_i,n_i0,
      * I_p,I_p0,p_oh,p_cx,p_ioniz,p_rad,q_ech,z_eff,v_v0,v_p,
@@ -2108,7 +2101,7 @@ c	n_rad=n
      *  te_a,ti_a,pw_e,kpr,
      *  pi,vi,ha,
      *  T_e0,T_i0,
-     *  z_eff,zeff,g_v)
+     *  z_eff,zeff,g_v,n_e)
 
         return
         end
@@ -2120,7 +2113,7 @@ c	n_rad=n
      *  te_a,ti_a,pw_e,kpr,
      *  pi,vi,ha,
      *  T_e0,T_i0,
-     *  z_eff,zeff,g_v)
+     *  z_eff,zeff,g_v,n_e)
 
         include 'double.inc'
 
@@ -2139,6 +2132,9 @@ c	n_rad=n
 
 	te_b=1.d0
 	ti_b=1.d0
+
+	te_b=0.5d0
+	ti_b=0.5d0
 
 c--------------------
 
@@ -2189,7 +2185,9 @@ c	call pau()
               den_neut(i)=n0*10.d0
               den(i)=n_d*10.d0
 
-			pne(i)=den(i)
+			pne(i)=n_e*10.d0
+
+!			pne(i)=den(i)
 			pd0(i)=den(i)
 !			pt0(i)=0.5d0*den(i)
 
@@ -2383,6 +2381,7 @@ c	call out42(n_pr,a_print,num,apr)
 
 	character *30 apr                                                      
 	dimension a_print(200)
+	
 
 
 	a_print(1)=c2(n)
@@ -2430,12 +2429,18 @@ c	call out42(n_pr,a_print,num,apr)
      *	/ng_igr1/ng
 
 	common /c_imp_out1/den_imp_neut(10)
+	common /c_neut2/pn_prog
 
 	common /c_imp_out2/qlos_e,qlos_imp,qloss_ion
 
       common /c_te_av/te_av
       common /c_s_plas/s_plas,alfa2_avr
       common /c_s_plas1/alf_b,bet_b,x1_b,dm_b
+
+      common /c_ch/q_ch(10)
+      common /c_ion/q_ion(10)
+      common /c_zrad/q_zrad(10)
+     *  /c_imas4/pn0_tot
 
 	character *12 yy(iy)
 	character *50 tmp
@@ -2447,7 +2452,7 @@ c	call out42(n_pr,a_print,num,apr)
 
 	i_en=i_en+1
 
-      if(kpr.eq.1)print *,'  P_cx ==',P_cx
+      if(kpr.eq.1)print *,'  P_cx  sel(1)*0.1 ==',sel(1)*0.1
 c      print*,'den_imp_neut=',(den_imp_neut(j),j=1,n_imp_tot)
 c      read(*,*)
 
@@ -2484,10 +2489,10 @@ c      read(*,*)
 	print *,' den_imp_neut-----',den_imp_neut(1),den_imp_neut(2)
 	end if
 
-
+      pn0_tot=n0*10.*1.
 
       include 'dop_br_0.inc'
-!!!      include 'dop_br_1.inc'
+!!!      include 'dop_br_2.inc'
 
 
 	tmp='na_br'
@@ -2504,6 +2509,10 @@ c      read(*,*)
 c       print*,'n0 n_e I_p',n0,n_e,I_p
 c       read(*,*)
 
+	call get_data_in_time(pcch,tene,wdop,
+     *  p_sum,p_loss)
+
+	if(kpr.eq.1)print *,' -++p_loss= ',p_loss
 
 	return
 	end
@@ -2715,7 +2724,12 @@ c		print *,'n_rad==== ',n_rad
 	dimension
      *  den_neut(*)
 
+      common /c_ch/q_ch(10)
+      common /c_ion/q_ion(10)
+      common /c_zrad/q_zrad(10)
+      
 	 real te_rad(1),xz(1),res(1)
+
 
 	c_ion_h=1.
 	c_rec_h=1.
@@ -2778,14 +2792,14 @@ c  Neutrals Temperature .. tn=ti?
 
 	q_bal=qloss_ion+qloss_rad-qloss_rec
 
-c	write(6,'(" i qlos_e,q_bal",
-c     *  i4,6(1pe11.4))'),
-c     *  i,qlos_e,q_bal
+	write(6,'(" i qlos_e,q_bal",
+     *  i4,6(1pe11.4))'),
+     *  i,qlos_e,q_bal
 
 
-c	write(6,'(" i q_ion,q_rad,q_rec,q_ch",
-c     *  i4,6(1pe11.4))'),
-c     *  i,qloss_ion,qloss_rad,qloss_rec,qloss_ch
+	write(6,'(" i q_ion,q_rad,q_rec,q_ch",
+     *  i4,6(1pe11.4))'),
+     *  i,qloss_ion,qloss_rad,qloss_rec,qloss_ch
 
 
 c----------------------------------
@@ -2812,9 +2826,14 @@ c----------------------------------
 	k=1
 	te_rad(1)=te_inp*1.d-3
 
-      call ZRAD(nz_inp,k,i1,te_rad, Xz)
+!      call ZRAD(nz_inp,k,i1,te_rad, Xz)
+      call ZRAD_test(nz_inp,k,i1,te_rad, Xz)
 
 	q_im=xz(1)*den_e*den_im
+
+      call ZRAD(nz_inp,k,i1,te_rad, Xz)
+
+	q_im2=xz(1)*den_e*den_im
 
 	if(kpr.eq.-3)then
 	call print3('qlos_e qloss_rad te_inp ==',
@@ -2834,11 +2853,15 @@ c----------------------------------
 	end if
 
 	if(kpr.eq.1)then
-	write(6,'(" xz den_e den_im q_im ",
+	write(6,'(" xz den_e den_n den_im q_im ",
      *  6(1pe11.4))'),
-     *  xx_z,den_e,den_im,q_im*10.d0
+     *  xx_z,den_e,den_n,den_im,q_im*10.d0
 	end if
-
+	
+      q_zrad(j)=q_im*10.d0
+      
+      q_zrad(j+2)=q_im2*10.d0
+      
 c-----------------------------
 
 
@@ -2869,6 +2892,11 @@ c	den_e2=den_e
 
 	sel(j)=sel(j)*c_coef
 
+      q_ch(j)=qloss_ch*c_coef
+      q_rad(j)=q_rad(j)*c_coef
+      q_ion(j)=qloss_ion*c_coef
+      
+      
         do k=1,n_imp(j)
            d_imp=den_imp(j,k,i)
          if(kpr.eq.-1)print *,' j k d_imp=',j,k,d_imp
@@ -2896,7 +2924,20 @@ c	print *,' den_e1 den_e2 ',den_e1,den_e2
         end do
         end do
 
-        	if(kpr.eq.1)print *,'sel1 sel2   ',sel(1),sel(2)
+        if(kpr.eq.1)print *,'sel1 sel2 ',
+     *  sel(1),sel(2)
+        if(kpr.eq.1)print *,'q_zrad1 q_zrad2 ',
+     *  q_zrad(1),q_zrad(2)
+
+        if(kpr.eq.1)print *,'-q_zrad1 -q_zrad2 ',
+     *  q_zrad(3),q_zrad(4)
+
+        if(kpr.eq.1)print *,'q_ch1 q_ch2 ',
+     *  q_ch(1),q_ch(2)
+        if(kpr.eq.1)print *,'q_ion1 q_ion2 ',
+     *  q_ion(1),q_ion(2)
+        if(kpr.eq.1)print *,'q_rad1 q_rad2 ',
+     *  q_rad(1),q_rad(2)
 
         return
         end
@@ -2992,15 +3033,15 @@ c
 
 	if(i_sh.eq.1)then
 c-------
-!           open (unit=41,file='n_d.dat',form='formatted') 
-           read (49,*) 
-           read (49,*)n_t 
-           read (49,*) 
+           open (unit=41,file='n_d.dat',form='formatted') 
+           read (41,*) 
+           read (41,*)n_t 
+           read (41,*) 
            
            if(kpr.eq.1)print *,' tay tt n_t===',tay,tt,n_t 
            
            do i=1,n_t 
-              read (49,*)t_t(i),pn_d_t(i)
+              read (41,*)t_t(i),pn_d_t(i)
 !!!              t_t(i)=t_t(i)*1000. 
            if(kpr.eq.1)print *,' i t_t n_d_t==',i,t_t(i),pn_d_t(i)
            end do 
@@ -3012,7 +3053,7 @@ c-------
            if(kpr.eq.1)print 71,apr,(pn_d_t(i),i=1,n_t) 
 
 
-!           close (unit=41) 
+           close (unit=41) 
         end if
 
 
@@ -3051,7 +3092,6 @@ c	stop
      *       gamma_z,tt,kpr,nz_imp)
      
         coef_imp1=gamma_z
-
         n_imp(1)=nz_imp
 
 	return
@@ -3064,9 +3104,6 @@ c	stop
 
       include 'double_break1.inc'
 
-      common /c_gamma_z_c4/t_t_c4(ntime),pn_d_t_c4(ntime),
-     *  n_t_c4,nz_imp_c4
-
 	dimension t_t(ntime),pn_d_t(ntime)
 	
 	character *12 apr
@@ -3075,20 +3112,16 @@ c	stop
 
 	if(i_sh.eq.1)then
 c-------
-!           open (unit=41,file='gamma_z.dat',form='formatted') 
-!           read (49,*) 
-!           read (49,*)n_t,nz_imp 
-           n_t=n_t_c4
-           nz_imp=nz_imp_c4 
-!           read (49,*) 
+           open (unit=41,file='gamma_z.dat',form='formatted') 
+           read (41,*) 
+           read (41,*)n_t,nz_imp 
+           read (41,*) 
            
            if(kpr.eq.1)print *,' tay tt n_t nz_imp===',
      *  tay,tt,n_t,nz_imp
            
            do i=1,n_t 
-!              read (49,*)t_t(i),pn_d_t(i)
-              t_t(i)=t_t_c4(i)
-              pn_d_t(i)=pn_d_t_c4(i)
+              read (41,*)t_t(i),pn_d_t(i)
 !!!              t_t(i)=t_t(i)*1000. 
            if(kpr.eq.1)print *,' i t_t n_d_t==',i,t_t(i),pn_d_t(i)
            end do 
@@ -3100,7 +3133,7 @@ c-------
            if(kpr.eq.1)print 71,apr,(pn_d_t(i),i=1,n_t) 
 
 
-!           close (unit=41) 
+           close (unit=41) 
         end if
 
 
@@ -3427,6 +3460,7 @@ c	Nz_inp=10
 	coef1=1.d8
 
 	coef_o=16.d0/(coef*coef1)
+!     coef_o=1.6
 
 	alf_inp=0.0
 	YRA_inp=0.0
@@ -4279,7 +4313,7 @@ c      real  *8 Sion(N,*), Srec(N,*), Qlos(N,*), Qrad(N,*),Scx(N,*)
       real ZSVCX,amd
       integer N, Nz,IY, j,k,k1,ICOL,kpr
 
-	real *8 t_e,t_i
+	real *8 t_e,t_i, cc1, cc2
 
 c	common /ge5/kpr
 
@@ -4422,10 +4456,34 @@ c      total energy loss including radiation and ionization
 
        Qlos(j,k) = Sq(k)
 
+
             C = 10.**Sq(k) + Erec*10.**Sr(k)-Eion(k)*10.**Si(k) 
+
+           Cc1 = 10.**Sq(k) 
+           Cc2 = Eion(k)*10.**Si(k) 
+
+
 
        Qrad(j,k) = dlog10(C)
 
+
+
+      if(cc1.lt.cc2)then
+      
+
+      write(6,'(" iy nz Tev10 TE10(j)", 2i4,8(1pe11.4))'),
+     *  iy,nz,Tev10,TE10(j)
+      
+      write(6,'(" j k Sq Eion Si cc1 cc2", 2i4,8(1pe11.4))'),
+     *  j,k,Sq(k),Eion(k),Si(k),cc1,cc2
+      write(6,'(" j k Sq Sr Eion Si Erec c qrad", 2i4,8(1pe11.4))'),
+     *  j,k,Sq(k),Sr(k),Eion(k),Si(k),Erec,c,Qrad(j,k)
+      
+      stop
+            
+      end if
+      
+!      print *,' xyu'
 
        eee=eion(k)*10.**Si(k)
 	eee_r=Erec*10.**Sr(k)
@@ -4486,6 +4544,9 @@ c	stop
 
 
       Scx(j,k) = 1.e-5*ZSVCX( float(k1),TI,AMz,AMd)
+
+!!!        print *,' k1 ZSVCX(=',k1,ZSVCX( float(k1),TI,AMz,AMd)
+        
       DScx(j,k) = ZSVCX(-float(k1),TI,AMz,AMd)
 c
       Srec(j,k) =      10.d0**Srec(j,k)
@@ -5022,8 +5083,6 @@ c	   print *,' n_e n_i v_v0==',n_e,n_i,v_v0
       include 'double.inc'
  	include 'parf_mike' 
 
-      common /c_ech_c2/t_t_c2(ntime),udd_sol_t_c2(ntime),n_t_c2
-
 	dimension t_t(ntime),udd_sol_t(ntime)
       character * 30 apr
 
@@ -5032,17 +5091,14 @@ c	   print *,' n_e n_i v_v0==',n_e,n_i,v_v0
 
 	if(i_sh.eq.1)then
 c-------
-!           open (unit=41,file='ech.dat',form='formatted') 
-!           read (49,*) 
-!           read (49,*)n_t 
-           n_t=n_t_c2 
-!           read (49,*) 
+           open (unit=41,file='ech.dat',form='formatted') 
+           read (41,*) 
+           read (41,*)n_t 
+           read (41,*) 
 
 
            do i=1,n_t 
-!              read (49,*)t_t(i),udd_sol_t(i)
-              t_t(i)=t_t_c2(i)
-              udd_sol_t(i)=udd_sol_t_c2(i)
+              read (41,*)t_t(i),udd_sol_t(i)
               t_t(i)=t_t(i)*1000. 
            end do 
            
@@ -5052,7 +5108,7 @@ c-------
            apr='-ech_t-' 
       if(kpr.eq.1)print 71,apr,(udd_sol_t(i),i=1,n_t) 
 
-!           close (unit=41) 
+           close (unit=41) 
         end if
 
 
@@ -5337,12 +5393,6 @@ c	   print *,' n_e n_i v_v0==',n_e,n_i,v_v0
 !	n_imp_tot=1
 	n_imp_tot=2
 
-      dens_imp_neut(1)=1.e-16
-
-           apr=' dens_imp_neut1'
-        if(kpr.eq.1)print 71,apr,(dens_imp_neut(j),j=1,1)
-
-      return
 
 	i_sh=i_sh+1
 
@@ -5457,14 +5507,6 @@ c	   print *,' n_e n_i v_v0==',n_e,n_i,v_v0
 !	n_imp_tot=1
 	n_imp_tot=2
 
-      dens_imp_neut(2)=1.e-6
-
-           apr=' dens_imp_neut2'
-        if(kpr.eq.1)print 71,apr,(dens_imp_neut(j),j=1,2)
-  
-      return
-      
-      
 
 	i_sh=i_sh+1
 
@@ -6694,8 +6736,6 @@ c     *  i,f_h(i),f_imp(i)
 
       include 'double_break1.inc'
 
-      common /c_nd_c3/t_t_c3(ntime),pn_d_t_c3(ntime),n_t_c3
-
 	dimension t_t(ntime),pn_d_t(ntime)
 	character *12 apr
 
@@ -6703,18 +6743,15 @@ c     *  i,f_h(i),f_imp(i)
 
 	if(i_sh.eq.1)then
 c-------
-!           open (unit=41,file='n_d.dat',form='formatted') 
-!           read (49,*) 
-!           read (49,*)n_t 
-           n_t=n_t_c3 
-!           read (49,*) 
+           open (unit=41,file='n_d.dat',form='formatted') 
+           read (41,*) 
+           read (41,*)n_t 
+           read (41,*) 
            
            if(kpr.eq.1)print *,' tay tt n_t===',tay,tt,n_t 
            
            do i=1,n_t 
- !             read (49,*)t_t(i),pn_d_t(i)
-              t_t(i)=t_t_c3(i)
-              pn_d_t(i)=pn_d_t_c3(i)
+              read (41,*)t_t(i),pn_d_t(i)
               t_t(i)=t_t(i)*1000. 
            if(kpr.eq.1)print *,' i t_t n_dd_t==',i,t_t(i),pn_d_t(i)
            end do 
@@ -6726,7 +6763,7 @@ c-------
            if(kpr.eq.1)print 71,apr,(pn_d_t(i),i=1,n_t) 
 
 
-!           close (unit=41) 
+           close (unit=41) 
         end if
 
 
@@ -6752,4 +6789,741 @@ c	stop
         
 	return
 	end
+
+         subroutine kin_imp_testt(j_x)
+
+         include 'double.inc'
+
+         include 'new_com.inc'
+         include 'br_com.inc'
+
+         include 'par_imp.inc'
+         include 'new_imp.inc'
+
+    !     gamma_z2=1.e-3
+    !         tay_lo=1.d10
+
+         call kin_imp_testt_c(j_x,
+     *   n_imp_tot,n_imp,
+     *   den_imp,den0_imp,
+     *   den_imp_n,den0_imp_n,den_neut,
+     *   tempe,tempi,den,tay,
+     *   z_imp,dens_imp_neut,alf_n,tay_lo,v_n,v_p,kpr,
+     *   ratio_imp,ratio_imp2,gamma_z,gamma_z2)
+
+         return
+         end
+
+
+         subroutine kin_imp_testt_c(j_x,
+     *   n_imp_tot,n_imp,
+     *   den_imp,den0_imp,
+     *   den_imp_n,den0_imp_n,den_neut,
+     *   tempe,tempi,den,tay,
+     *   z_imp,dens_imp_neut,alf_n,tay_lo,v_n,v_p,kpr,
+     *   ratio_imp,ratio_imp2,gamma_z,gamma_z2)
+
+         include 'double.inc'
+
+         include 'par_imp.inc'
+         include 'parf0'
+
+         dimension tempe(*),tempi(*),den(*)
+
+         dimension  den_imp(nimp,nimp,*),den0_imp(nimp,nimp,*)
+
+         dimension  den_imp_n(nimp,*),den0_imp_n(nimp,*),den_neut(*)
+
+         dimension z_imp(*),n_imp(*)
+
+         include 'parrc1.inc'
+c Local arrays
+         dimension a_imp(njp,njp),f_imp(njp),
+     *   d_imp(njp),d_imp0(njp),den_temp(njp)
+
+         dimension tay_h(njp),f_h(njp),den_im(njp)
+
+        dimension rin_zog(njp),rre_zog(njp),rcx_zog(njp)
+
+	dimension dens_imp_neut(*),tay_loss(njp),
+     *  f_imp1(njp),f_imp2(njp),d_imp1(njp),d_imp2(njp)
+
+ 	   tay_help=tay*1.d+3  !  In Microsecons
+
+	i_test=0
+	if(i_test.eq.1)then
+	
+	do kk=1,500
+	
+	te=kk
+	tn=1.
+
+	write(6,'("  T_e ",
+     *  6(1pe12.5))'),
+     *  te
+
+      n=n_imp(1)
+	nz_inp=n
+       call rates_zog(te,tn,nz_inp,
+     *  rin_zog,rre_zog,rcx_zog)
+
+       do i=1,n+1
+
+	write(6,'("  ##  i  I R ",
+     *  i4,6(1pe12.5))'),
+     *  i,rin_zog(i)*1.d-6,rre_zog(i)*1.d-6
+
+      end do
+	end do
+	stop
+
+	end if
+
+
+
+
+
+	
+!!!	gamma_z2=1.d-5
+
+
+c	read (*,*)
+
+	alf_c=1.d0
+
+!!!	call tay_ee_calc(tay_los)
+
+! 	   tay_loss=5.d3  !  In Microsecons
+c 	   tay_loss=10.d3  !  In Microsecons
+
+c	tay_lo=2000.d3  ! 2000 msec
+		
+c	print *,' tay_loss==',tay_loss
+
+c         kpr=1
+
+
+!!!	tay_lo=tay_los
+
+
+       te=tempe(j_x)
+       
+	 d_avr=0.02
+
+
+c  Neutrals Density ... den_n=1 temporarily
+
+      den_n=den_neut(j_x)*alf_n
+
+	if(kpr.eq.1)print *,' j_x d_n den_neut_imp=',j_x,den_n,dens_imp_neut(1)
+
+c	call n0_filter(den_n)
+
+c	den_n=0.d0
+
+c  Ions Density ... den_i
+
+       den_i=den(j_x)
+
+c	call n_i_filter(den_i)
+
+
+
+!!!       call w_filter(den_i)
+
+c  Neutral Impurity  Density ... den_im=1 temporarily
+
+	do jj=1,n_imp_tot
+
+	den_imp_n(jj,j_x)=dens_imp_neut(jj)
+
+c	print *,' jj den_imp_n=',jj,den_imp_n(jj,j_x)
+
+c	if(den_imp_n(jj,j_x).le.1.d-9)den_imp_n(jj,j_x)=1.d-9
+	end do
+
+
+c
+	do jj=1,n_imp_tot
+         den_im(jj)=den_imp_n(jj,j_x)*alf_c
+	end do
+
+
+c  Neutrals Temperature .. tn=ti?
+
+         tn=tempi(j_x)
+
+         ti=tn
+c	if(kpr.eq.1)write(6,'(" n_imp_tot j_x te  tn",
+c     *  2i4,6(1pe12.5))'),
+c     *  n_imp_tot,j_x,te,tn
+
+
+	if(kpr.eq.1)write(6,'(" den_n den_i den_im.1 2. ",
+     *  6(1pe12.5))'),
+     *  den_n,den_i,(den_im(jj),jj=1,n_imp_tot)
+
+c         n_imp=6
+
+      den_e=den_i
+
+c      Begin calculation for each impurity jj=1:n_imp_tot
+
+!      print *,' n_imp===',(n_imp(jj),jj=1,n_imp_tot)
+
+	do jj=1,n_imp_tot
+
+
+         n=n_imp(jj)
+
+C  i=1,6 are Carbon Charge states  jj=1
+
+C  i=1,8 are Oxigen Charge states  jj=2
+
+
+       do i=1,n+1
+	    tay_h(i)=tay_help
+!		tay_loss(i)=1.d3*z_imp(i)**2*alf1
+!		tay_loss(i)=1.d3*z_imp(i)**3*alf1
+		tay_loss(i)=tay_lo
+
+c	if(jj.eq.2.and.i.eq.n)tay_loss(i)=0.1d-0*tay_lo/z_imp(i)
+
+c	tay_loss(i)=1.d-1*tay_loss(i)
+c	if(i.eq.6)tay_loss(i)=tay_loss(i)*100.d0
+
+
+	 end do
+
+         do i=1,n
+            d_imp(i)=den_imp(jj,i,j_x)
+            d_imp0(i)=den0_imp(jj,i,j_x)
+
+c            print *,' i z_imp',i,z_imp(i)
+
+            den_e=den_e+z_imp(i)*d_imp(i)
+
+         end do
+
+
+c	te=1.
+c	tn=1.
+
+      do i=1,n+1
+	jz=i-1
+
+c            rin_zog(i)=rin(te,jz)
+c            rre_zog(i)=rre(te,jz)
+c            rcx_zog(i)=rcx(tn,jz)
+
+c	write(6,'("  n i c_ion c_rec c_ex ",
+c     *  2i4,6(1pe12.5))'),
+c     *  n,i,rin_zog(i),rre_zog(i),rcx_zog(i)
+
+      end do
+
+	nz_inp=n
+       call rates_zog(te,tn,nz_inp,
+     *  rin_zog,rre_zog,rcx_zog)
+
+      if(jj.eq.1)then
+      kpr=1
+      else
+      kpr=0
+      end if
+      
+
+      if(kpr.eq.1)then
+      do i=1,n+1
+	write(6,'("  i c_ion c_rec c_ex ",
+     *  i4,6(1pe12.5))'),
+     *  i,rin_zog(i),rre_zog(i),rcx_zog(i)
+      end do
+      end if
+      
+      
+!      stop
+
+
+!!!	rin_zog(3)=rin_zog(3)*0.5
+
+       do i=1,n+1
+
+	 s_ex=3.6d-1*(i-1)*sqrt(ti*1.d-3)
+
+c	write(6,'("  ## n i  c_ex s_ex",
+c     *  2i4,6(1pe12.5))'),
+c     *  n,i,rcx_zog(i),s_ex
+
+!!!	rcx_zog(i)=s_ex
+
+c            rre_zog(i)=0.
+c            rcx_zog(i)=0.
+
+
+
+
+      end do
+
+
+	i_int=0
+
+1	continue
+c	stop
+
+c	read (*,*)
+
+         do j=1,n
+            do i=1,n
+               a_imp(i,j)=0.
+            end do
+         end do
+
+
+         do i=1,n
+            a_imp(i,i)=1.d0/tay_h(i)
+
+c   Impurity loss term
+            a_imp(i,i)=a_imp(i,i)+1.d0/tay_loss(i)
+
+            f_imp(i)=d_imp0(i)/tay_h(i)
+
+         end do
+
+         do i=1,1
+         
+               c_ion=rin_zog(i)
+
+               f_imp(i)=f_imp(i)+c_ion*den_im(jj)*den_e
+               f_imp2(i)=c_ion*den_e
+
+	c_ion_11=c_ion*den_im(jj)*den_e
+
+	if(kpr.eq.1)write(6,'("  i c_ion f_imp den_im den_e ",
+     *  i4,6(1pe12.5))'),
+     *  i,c_ion,f_imp(i),den_im(jj),den_e
+
+         end do
+
+
+         do i=1,n
+
+            if(i.ne.1)then
+               j=i-1
+               jz=j
+               c_ion=rin_zog(jz+1)
+               a_imp(i,j)=a_imp(i,j)-c_ion*den_e
+
+	if(kpr.eq.1)write(6,'(" i j c_ion ",
+     *  2i4,6(1pe12.5))'),
+     *  i,j,c_ion
+
+            end if
+
+            if(i.ne.n)then
+
+            j=i
+            jz=j
+            c_ion=rin_zog(jz+1)
+            c_rec=rre_zog(jz+1)
+            c_ex=rcx_zog(jz+1)
+
+            a_imp(i,j)=a_imp(i,j)+(c_ion+c_rec)*den_e+c_ex*den_n
+
+	if(kpr.eq.1)write(6,'("  i j c_ion c_rec c_ex ",
+     *  2i4,6(1pe12.5))'),
+     *  i,j,c_ion,c_rec,c_ex
+
+
+            else
+
+c            c_rec=rre(te,jz)
+c            c_ex=rcx(tn,jz)
+
+            j=i
+            jz=j
+            c_rec=rre_zog(jz+1)
+            c_ex=rcx_zog(jz+1)
+
+            a_imp(i,j)=a_imp(i,j)+c_rec*den_e+c_ex*den_n
+	if(kpr.eq.1)write(6,'("  i j  c_rec c_ex ",
+     *  2i4,6(1pe12.5))'),
+     *  i,j,c_rec,c_ex
+
+            end if
+
+            if(i.ne.n)then
+            j=i+1
+            jz=j
+
+            c_rec=rre_zog(jz+1)
+            c_ex=rcx_zog(jz+1)
+
+
+            a_imp(i,j)=a_imp(i,j)-c_rec*den_e-c_ex*den_n
+
+ 	if(kpr.eq.1)write(6,'("  i j c_rec c_ex ",
+     *  2i4,6(1pe12.5))'),
+     *  i,j,c_rec,c_ex
+     
+           end if
+
+         end do  ! i loop
+
+         kpr=1
+
+         call mat_prim(a_imp,f_imp,n)
+
+         isol=0
+         call solve_prim(isol,d_imp)
+
+
+        do i=1,n
+	  
+	  f_imp1(i)=f_imp(i)-f_imp2(i)*den_im(jj)
+
+	f_h(i)=0.d0
+	  do k=1,n
+	f_h(i)=f_h(i)+a_imp(i,k)*d_imp(k)
+		end do
+		
+c	  write(6,'(" i f_h f_imp",
+c     *  i4,6(1pe12.5))'),
+c     *  i,f_h(i),f_imp(i)
+
+
+        end do
+
+
+         call f_prim(f_imp1,n)
+
+         isol=1
+         call solve_prim(isol,d_imp1)
+
+         call f_prim(f_imp2,n)
+
+         isol=1
+         call solve_prim(isol,d_imp2)
+
+
+        do i=1,n
+
+	f_h(i)=0.d0
+	  do k=1,n
+	f_h(i)=f_h(i)+a_imp(i,k)*(d_imp1(k)+d_imp2(k)*den_im(jj))
+		end do
+
+	if(kpr.eq.-1)then		
+	  write(6,'(" -- i f_h f_imp",
+     *  i4,6(1pe12.5))'),
+     *  i,f_h(i),f_imp(i)
+	end if
+
+
+        end do
+c 
+
+	  sum1=0.d0
+	  sum2=0.d0
+
+      do k=1,n
+	  sum1=sum1+d_imp1(k)
+	  sum2=sum2+d_imp2(k)
+	end do
+
+	if(jj.eq.1)gamma_zz=gamma_z
+	if(jj.eq.2)gamma_zz=gamma_z2
+
+!!!	sum3=gamma_zz*den_e
+	sum3=gamma_zz*den_i
+
+
+	sum33=sum1+sum2*den_im(jj)
+	
+	dens_neut_new=(sum3-sum1)/(1.d0+sum2)
+
+	if(kpr.eq.1)then			
+	  write(6,'(" sum1 sum2 sum3 sum33",
+     *  6(1pe12.5))'),
+     *  sum1,sum2,sum3,sum33
+
+	  write(6,'(" dens_neut_new den_im(jj)",
+     *  6(1pe12.5))'),
+     *  dens_neut_new,den_im(jj)
+	end if
+
+	if(dens_neut_new.lt.1.d-14)dens_neut_new=0.d0
+
+	dens_imp_neut(jj)=dens_neut_new
+	den_im(jj)=dens_neut_new
+
+      do i=1,n
+	  d_imp(i)=(d_imp1(i)+d_imp2(i)*den_im(jj))
+	end do
+
+      sum1=0.d0
+      do k=1,n
+	  sum1=sum1+d_imp(k)
+	end do
+
+!!!	sum33=(sum1+den_im(jj))/den_e
+	sum33=(sum1+den_im(jj))/den_i
+
+	if(jj.eq.1)ratio_imp=sum33
+	if(jj.eq.2)ratio_imp2=sum33
+
+	if(kpr.eq.1)write(6,'(" r_imp r_imp2 g_z g_z2 ",
+     *  6(1pe12.5))'),
+     *  ratio_imp,ratio_imp2,gamma_z,gamma_z2
+
+	if(kpr.eq.-3)write(1,'(" r_imp r_imp2 g_z g_z2 ",
+     *  6(1pe12.5))'),
+     *  ratio_imp,ratio_imp2,gamma_z,gamma_z2
+
+
+
+c	stop
+
+	den_im_sum=0.d0
+	den_im_sum0=0.d0
+
+        do i=1,n
+        den_imp(jj,i,j_x)=d_imp(i)
+
+
+	   den_im_sum=den_im_sum+d_imp(i)
+	   den_im_sum0=den_im_sum0+d_imp0(i)
+
+
+
+c	if(kpr.eq.1)write(6,'(" i d_imp d_imp0 sum0",
+c     *  i4,6(1pe12.5))'),
+c     *  i,d_imp(i),d_imp0(i),den_im_sum0
+
+        end do
+
+      do i=1,n
+	if(kpr.eq.-1)then
+	write(6,'("  jj i tay_l d_imp  yy ",
+     *  2i4,6(1pe12.5))'),
+     *  jj,i,tay_loss(i),d_imp(i),d_imp(i)/(den_im_sum+1.d-8)
+	end if
+      end do
+
+
+c  Equations for impurity neutrals
+
+
+	if(jj.eq.1)den_im_sum_1=den_im_sum
+
+
+  	end do
+
+
+	jj=1
+	i_en=i_en+1
+	
+	if(i_en.eq.1)then
+	den_imp_tot=den_im(jj)
+
+	den_imp_tot=1.d-3
+
+	end if
+
+	if(kpr.eq.1)print *,' den_im den_im_sum=',den_im(jj),den_im_sum
+
+c	if(kpr.eq.1)print *,'  n_imp_tot den_imp_tot==',
+c     *  n_imp_tot,den_imp_tot
+
+
+
+c	pause 'her'
+
+
+
+        return
+        end
+
+
+        subroutine into_impu_test()
+
+        include 'double.inc'
+ 
+        include 'new_com.inc'
+        include 'br_com.inc'
+
+        include 'par_imp.inc'
+        include 'new_imp.inc'
+ 
+        call into_impu_test_c(
+     *  n0,den_neut,
+     *  n_d,den,T_e0,T_i0,
+     *  T_e,T_i,tempe,tempi,n_rad,kpr)
+
+        return
+        end
+
+        subroutine into_impu_test_c(
+     *  n0,den_neut,
+     *  n_d,den,T_e0,T_i0,
+     *  T_e,T_i,tempe,tempi,n_rad,kpr)
+
+        include 'double.inc'
+
+        dimension
+     *  den_neut(*),den(*),tempe(*),tempi(*)
+
+        character * 20 apr
+
+      include 'double_break1.inc'
+
+
+c	n_rad=n
+
+		if(kpr.eq.1)print *,'n_rad==== ',n_rad
+      i_en=i_en+1
+      
+      n0=n0+d_n0
+      n_d=n_d+d_n0
+ !     T_e=T_e+d_te
+ !     T_i=T_i+d_te
+      
+      if(i_en.eq.1)then
+         
+ !        n0=1.e-14
+ !        d_n0=1.e-15
+
+         n0=1.e-15
+ !        n0=0.e-5
+ 
+!         d_n0=1.e-10
+         d_n0=0.e-10
+
+
+!         n_d=0.0016
+!         n_d=0.006
+
+!         n_d=0.016
+         n_d=1.
+         
+         T_e=0.1
+         T_i=0.1
+         
+!         T_e=0.5
+!         T_i=0.5
+
+         T_e=0.25
+         T_i=0.25
+
+         T_e=0.02
+         T_i=0.02
+
+!         T_e=0.0005
+!         T_i=0.0005
+         
+      end if
+         
+         
+           do i=1,n_rad
+              den_neut(i)=n0*10.d0
+              den(i)=n_d*10.d0
+              tempe(i)=T_e*1.d3
+              tempi(i)=T_i*1.d3
+
+        apr=' den_neut '
+       if(kpr.eq.1)print 71,apr,den_neut(i)
+        apr=' den '
+       if(kpr.eq.1)print 71,apr,den(i)
+       apr=' tempe '
+       if(kpr.eq.1)print 71,apr,tempe(i)
+       apr=' tempi '
+       if(kpr.eq.1)print 71,apr,tempi(i)
+
+		end do
+
+ 
+
+71	FORMAT(5X,A10/,(2x,6(1PE11.3)))
+
+        return
+        end
+
+
+        subroutine get_param_test(n0_xx,n_e_xx,tay_lo_xx,
+     *  tn_xx,alf_n_xx)
+
+        include 'double.inc'
+ 
+        include 'new_com.inc'
+        include 'br_com.inc'
+
+        include 'par_imp.inc'
+        include 'new_imp.inc'
+
+        real*8 n0_xx,n_e_xx,tay_lo_xx,tn_xx,alf_n_xx
+
+        n0_xx=n0
+        n_e_xx=n_e
+        tay_lo_xx=tay_lo
+        
+        tn_xx=tempi(1)
+        
+        alf_n_xx=alf_n
+
+!        print *,' n_e n0==',n_e,n0
+!        print *,' n_e_xx n0_xx==',n_e_xx,n0_xx
+
+        
+
+        return
+        end
+        subroutine get_param_test2(n0_xx,n_e_xx,tay_lo_xx,
+     *  tn_xx,alf_n_xx)
+
+        include 'double.inc'
+ 
+        include 'new_com.inc'
+        include 'br_com.inc'
+
+        include 'par_imp.inc'
+        include 'new_imp.inc'
+
+        real*8 n0_xx,n_e_xx,tay_lo_xx,tn_xx,alf_n_xx
+
+        n0_xx=n0
+        n_e_xx=n_e
+        tay_lo_xx=tay_lo
+        
+        tn_xx=tempi(1)
+        
+        alf_n_xx=alf_n
+
+!        print *,' n_e n0==',n_e,n0
+!        print *,' ----n_e_xx n0_xx==',n_e_xx,n0_xx
+
+        
+
+        return
+        end
+
+        subroutine put_param_test2(n0_xx,n_e_xx,tn_xx,tay_lo_xx)
+
+        include 'double.inc'
+ 
+        include 'new_com.inc'
+        include 'br_com.inc'
+
+        include 'par_imp.inc'
+        include 'new_imp.inc'
+
+        real*8 n0_xx,n_e_xx,tay_lo_xx,tn_xx,alf_n_xx
+
+        n0=n0_xx*0.1
+        n_e=n_e_xx*0.1
+        tempi(1)=tn_xx
+        tay_lo=tay_lo_xx
+!        print *,' +++n_e_xx n0_xx ==',n_e_xx,n0_xx
+
+        return
+        end
 

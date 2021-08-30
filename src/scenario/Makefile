@@ -15,11 +15,11 @@ DINASRC = \
 		camloop.f camlxt.f con_fil.f con_mike.f\
 		ddunew0.f disr.f diter_1.f\
 		dop_imp_new.f dop_pet.f edf.f efi_fil.f efi_ves.f elem_i.f eni_ae.f\
-		eni_imp_H.f  fit.f flux_pl.f\
+		eni_imp.f  fit.f flux_pl.f\
 		forces_for_control.f g_gaps_rus.f gen.f gr_psi_d_pc.f\
-		green_br_N.f green_d.f inh.f map.f\
+		green_br_N.f green_d.f inh.f imp_new2.f map.f\
 		min_distance_1cm_w.f min_distance_pfw_1cm.f\
-		move.f n_matlab_kav.f n_matlab_kav2.f ndop1_new2_400.f neut_dif3.f\
+		move.f n_matlab_kav.f n_matlab_kav2.f ndop1_new2_400.f neut_dif3.f neut_dif.f\
 		ndop_4.f neq0_sep_lim_32.f neqm.f obrm.f oosep_4.f\
 		out42_for.f pet.f pf_t.f pfsvd11x.f pid.f pp0.f progonu.f\
 		read_por.f sh.f sh1_N2.f sh_astra_dt_beam.f  solpsz2_vic.f\

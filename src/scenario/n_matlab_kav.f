@@ -1,11 +1,4 @@
-!> equil is a subroutine to produce the DINA modeling in one time step
-!> with energy and particle 1D transport modules if time > tt_kavin
-
-
-!> equil is the main subroutine to produce the DINA modeling in one time step
-!> if time > tt_kavin
-
-
+                                                                        
 	subroutine equil()                                                     
       include 'double.inc'
 
@@ -186,11 +179,8 @@
 
       common 
      * /c_imas_t_end2/t_end2
-  
-       common /c_imas_time_eq/time_eq
 
 	common /c_data_in_time2/i_c_data,i_c_data1       
-      common /c_tran2/k_ener_ext,k_dens_ext,k_ajb_ext
 
 	dimension df_help(npo),dm_help(npo),uk_help(ntet),
 
@@ -212,10 +202,9 @@
 c______________________________                                         
 
 
-	n_graf=1
-	
-      if(kp.eq.1)print *,'k_ener_ext=',k_ener_ext
+      
 
+	n_graf=1
 
 	if(n_pas.ne.0)i_ktm=1
 
@@ -232,18 +221,20 @@ c______________________________
 
         if(kpr.eq.1)print *,' i_en2==key_equil kpr ',i_en2,key_equil,kpr
 
-!        open (unit=1,file='kpr.dat',form='formatted')
-!        read (1,*)
-!        read (1,*)kpr
+        open (unit=1,file='kpr.dat',form='formatted')
+        read (1,*)
+        read (1,*)kpr
 
-!        if(kpr.eq.1)print *,' i_en2==key_equil kpr ',i_en2,key_equil,kpr
+
+        if(kpr.eq.1)print *,' i_en2==key_equil kpr ',i_en2,key_equil,kpr
         
 !              i_con=3
 
-!        close ( unit=1)       
+        close ( unit=1)       
 	end if
 
 c	print *,' HYU!!!!'
+
 
         if(kpr.eq.1)print *,' i_en2==key_equil kpr ',i_en2,key_equil,kpr
 
@@ -258,27 +249,27 @@ c	print *,' HYU!!!!'
 	coef=10.d0/(4.d0*pi)                                                       
 	amu0=0.4*pi
 
-!	call read_data() 
+	call read_data() 
 
 
 	                                                       
 !	tt=0.
 
-!           open (unit=41,file='t_end.dat',form='formatted') 
-!           read (41,*)
-           t_end=1.2d3 
-!           read (41,*)
-           tt_br=101.99d0
-           
-!           read (41,*)
-           time_end=2.5d5
+           open (unit=41,file='t_end.dat',form='formatted') 
+           read (41,*)
+           read (41,*)t_end 
+           read (41,*)
+           read (41,*)tt_br
+           read (41,*)
+           read (41,*)time_end
 
 	      next_in=1
 
-!           read (41,*)
-           next_in=2
+           read (41,*)
+           read (41,*)next_in
 
-!		 close (41)
+
+		 close (41)
 
 	     tpl_init=tpl
 	     tpl_init1=tpl
@@ -331,19 +322,12 @@ c	print *,' HYU!!!!'
 	if(kpr.eq.1)print *,' rmag eu elong vol==',
      *  rmag,eu,elong,vol
 
-
-!       call gamma_z1_read()
-!       call gamma_z2_read()
-!       call gamma_z3_read()
-!       call gamma_z4_read()
-
 c	stop
 
       i_flat_ext=0
       
 !      print *,' i_flat==',i_flat_ext
-      
-      
+       
       if(i_flat_ext.eq.1)then
         call flat_ext()
 
@@ -356,8 +340,7 @@ c	stop
       end if
       
 
-	CALL TOK_new()
-       ! call tok()
+	CALL TOK()
 
 	call cam_t()   
 
@@ -386,6 +369,11 @@ c	stop
 
 
 	call v_sec()
+
+
+!	call vic_br_bz()
+!	call vic_br_bz_psi()
+
 
       return
 
@@ -427,9 +415,8 @@ c	if(ntay.gt.5)ntay=5
 	call ptoke0() 
 
 c     following reading necessary only once for impurity
-
-!	  call readmc_y
-!        call readehr1_y 
+	  call readmc_y
+        call readehr1_y 
 
 	tt1=0
 	ksteps=1
@@ -455,11 +442,57 @@ c     following reading necessary only once for impurity
 c         call alf_n_read()
 
           call in_neut_0d()
-		call in_imp_0d()
+	   call in_imp_0d()
+
+
+	   i_test=0
+	   if(i_test.eq.1)then
+         tpl=1.e3
+         tt_help=tt
+         tt=1600.
+         call n_dd_read()
+         call gamma_z_read()
+         call gamma_z2_read()
+
+         tt=tt_help
+
+
+	   call en_01()
+	   call en_01_min()
+         call into_impu()
+
+         i=1
+!         do kk=1,200
+         do kk=1,2
+         tt=tt+tay
+         ntay=ntay+1
+         call into_impu_test()
+         call den_imp_bal()
+         call kin_imp_testt(i)
+         call to_0d()
+	   call en_loss()
+
+         call into_imp_kav()
+
+        	call dopp_00()
+	  call DOPP_kav()                                                            
+	  call time_out()
+	  call time_out_kav()
+
+            call time_step_00()
+     	      call imp_time_step()
+	      call neut_time_step()
+
+            end do
+            
+
+         stop
+         end if
+         
+
 
 	   do kk=1,1
 
-!	   call en_01_he()
 	   call en_01()
 	   call en_01_min()
          call into_impu()
@@ -473,10 +506,6 @@ c         call alf_n_read()
 	   end do
 
          call into_imp_kav()
-         if(k_dens_ext.eq.1)call dens_corr()
-	if(k_ajb_ext.eq.1)CALL ajb_corr()
-	if(k_ener_ext.eq.1)CALL ENERGY_corr()
-      if(k_dens_ext.eq.1)call dens_corr()
 
  		call dopp_00()
 
@@ -562,7 +591,6 @@ c	   call den_imp_0d()
 c	   call en_loss()
 c         call to_0d()
 
-!	   call en_01_he()
 	   call en_01()
 	   call en_01_min()
          call into_impu()
@@ -576,10 +604,6 @@ c         call to_0d()
 
 
       call into_imp_kav()
-         if(k_dens_ext.eq.1)call dens_corr()
-	if(k_ajb_ext.eq.1)CALL ajb_corr()
-	if(k_ener_ext.eq.1)CALL ENERGY_corr()
-      if(k_dens_ext.eq.1)call dens_corr()
 
 c         call dif_s_imp_n()
 
@@ -620,6 +644,8 @@ c         call to_0d()
 
       call loopflux()
       call probefield()
+
+!	call vic_br_bz()
 
 	call time_gen()                                                       
 	call time_step()
@@ -802,7 +828,7 @@ c        call psi_wr()
       rref=rmag
       zref=zmag
 
-      call brz_vec_r()
+!      call brz_vec_r()
 
 
 	int=0
@@ -833,10 +859,6 @@ c        call psi_wr()
 	num=20
 
 	if(kpr.eq.3.or.kpr.eq.1)call out42(n_pr,a_print,num,apr)
-
-	if(kpr.eq.1)print *,' --kzref krref',
-     *  kzref,krref           
-
 
 
 1	continue                                                              
@@ -879,6 +901,7 @@ c        call psi_wr()
 
          call  write_surf()
          call write_prof0()
+         call write_prof4()
 
 c 	call print1(' -- eu==',eu)
 
@@ -1048,6 +1071,24 @@ c	if(k_ener.eq.1)	CALL ENERGY(N)
 	end if
 
 
+!	  call prof_astra_HL()
+!        call prof_astra_bs_hl()
+
+!        stop
+
+        if(k_ener.eq.0)then
+!	   if(tt.le.tt_HL_xx)call prof_astra()
+!	   if(tt.gt.tt_HL_xx)call prof_astra_HL()
+cc	   if(tt.le.tt_dw)call prof_astra()
+cc	   if(tt.gt.tt_dw)call prof_astra_HL()
+
+ 	call dopp_00()
+	call DOPP_kav()                                                            
+	call time_out()
+	call time_out_kav()
+	end if
+
+
 
         call q_calc()
 
@@ -1146,6 +1187,7 @@ c	if(kpr.eq.3)call out42(n_pr,a_print,num,apr)
 
       call  write_surf()
       call write_prof0()
+      call write_prof4()
 
 	call index_calc()                                                     
  
@@ -1157,6 +1199,8 @@ c 	call print1(' ** eu==',eu)
 !      call wr_rpp()
 !      call wr_zpp()
 
+!      call prof_astra()
+!      stop
 
 	return
 
@@ -1284,7 +1328,13 @@ c	call p_emo1()
 c	call p_emo2() 
 c	end if
 
-!	if(ntay.eq.ngra*(ntay/ngra))call write_prof_tcv()
+	if(ntay.eq.ngra*(ntay/ngra))then
+	
+!	call write_tok
+	
+	end if
+	
+	
 
 c	call tem_con_d()
 
@@ -1632,6 +1682,8 @@ c----------------
 
 	if(it1.ne.0) go to 2005
 
+
+
 	tpl=tpl_help
 
       call ppx_pffx_save(1)
@@ -1691,9 +1743,11 @@ c	print *,' eps_vel===',eps_vel
         print *,' ZVEL Zmag d_zvel eps_vel INT_2000 ',
      *  zvel,zmag,d_zvel,eps_vel,int_2000
 
+        print *,' brad bvert  ',
+     *  brad,bvert
+
         print *,' key_eq int_200 it1  ',
      *  key_eq,int_2000,it1
-
 
 
 	end if
@@ -1812,6 +1866,14 @@ c           print *,' j uk vk  ',j,uk(j),vk(j)
 !      fdd0=fdd+udd*tay*100.d0
 	end if
 
+        if(k_ener.eq.0)then
+!	   if(tt.le.tt_HL_xx)call prof_astra_bs()
+!	   if(tt.gt.tt_HL_xx)call prof_astra_bs_HL()
+cc	   if(tt.le.tt_dw)call prof_astra_bs()
+cc	   if(tt.gt.tt_dw)call prof_astra_bs_HL()
+	end if
+
+      if(kpr.eq.1)print *,' tpl_calc'
 	tpl_in=tpl
 	call tpl_cal()
 !	call tpl_cal_kav()
@@ -1835,89 +1897,9 @@ c           print *,' j uk vk  ',j,uk(j),vk(j)
                                                                         
 	if(it1.ne.0)go to 2000                                                 
 
-          goto 63
+	eps2=eps20                                                             
 
-
-            kz_help=kzref
-           kr_help=krref
-
-          goto 33
-       
-            eps2=eps20
-
-           	rref=rmag
-           	zref=zmag
-
-           	kzref=1
-           	krref=4
-
-      niter=0            
-21	continue          
-
-	niter=niter+1                                                          
-                                                                       
-	call ptoke1()                                                          
-                                                                        
-	if(kpr.eq.1)print *,' --um vm--niter it1',
-     *  um,vm,niter,it1           
-                                                                        
-	if(it1.ne.0.and.niter.lt.20)go to 21      
-
-      if(tt.ge.time_eq-0.5d0*tay.and.tt.lt.time_eq+0.5d0*tay)then
-           call write_equil()
-      end if
-      
-33	continue       
-
-        if(i_en2.eq.-22)then
-      
-        kpr=1
- 
-           	kzref=0
-           	krref=0
-   	     call ptoke1()       
-
-        	call read_data() 
-
-
-            call read_equil()
-
-            brad=0.d0
-            bvert=0.d0
-
-   	       call ptoke0()       
-
-           	kzref=1
-           	krref=1
-
-           	rref=rmag
-           	zref=zmag
-      niter=0            
-31	continue          
-
-	niter=niter+1                                                          
-                                                                       
-	call ptoke1()                                                          
-                                                                        
-	if(kpr.eq.1)print *,' --um vm--niter it1',
-     *  um,vm,niter,it1           
-                                                                        
-	if(it1.ne.0.and.niter.lt.20)go to 31      
-
-         eps2=1.d-6
-         call stab(ich,i_graph)
-         call write_surf()
-         stop
-
-
-      end if
-
-         kzref=kz_help
-         krref=kr_help 
-
-63	continue       
-
-
+!	call vic_br_bz()
 
 	call trian()
 
@@ -2009,7 +1991,7 @@ c
 
 	end do                                                                 
 
-!	if(kpr.eq.1)print *,' -----k_ener t_dop---',k_ener,t_dop              
+	if(kpr.eq.1)print *,' -----k_ener t_dop---',k_ener,t_dop              
 
          tpl_help=tpl
 
@@ -2056,7 +2038,6 @@ c
 	   do kk=1,3
 
 	  
-!	   call en_01_he()
 	   call en_01()
 	   call en_01_min()
          call into_impu()
@@ -2068,13 +2049,11 @@ c
 	   call en_loss()
 	
 	   end do
+	   
+
 
          call into_imp_kav()
-         if(k_dens_ext.eq.1)call dens_corr()
-	if(k_ajb_ext.eq.1)CALL ajb_corr()
-      	if(k_ener_ext.eq.1)CALL ENERGY_corr()
-         if(k_dens_ext.eq.1)call dens_corr()
-
+      
       tpl=tpl_help
       
  	call dopp_00()
@@ -2094,8 +2073,19 @@ c
 c--------------------------
 	end if
 
+      
+        if(k_ener.eq.0)then
+!	   if(tt.le.tt_HL_xx)call prof_astra()
+!	   if(tt.gt.tt_HL_xx)call prof_astra_HL()
+cc	   if(tt.le.tt_dw)call prof_astra()
+cc	   if(tt.gt.tt_dw)call prof_astra_HL()
 
-	if(k_ener.ne.1)call enit_kav(n)                                            
+ 	call dopp_00()
+	call DOPP_kav()                                                            
+	call time_out()
+	call time_out_kav()
+	end if
+	
 
 c	call trian()
 	do i=1,n
@@ -2149,8 +2139,6 @@ c	a_print(i)=ajb(i)
 c	call out42(n_pr,a_print,num,apr)
 
       call write_fc()
-        call kpl_out()
-
       call ppx_pffx_save(0)
       call pet_tab_wr()
       
@@ -2162,7 +2150,7 @@ c	call out42(n_pr,a_print,num,apr)
        write (40,*)(tcam_help(i),i=1,ncam)
        close (40)
 
-
+      
 	call time_gen() 
 	                                                      
 	do i=1,n
@@ -2184,6 +2172,7 @@ c	call con_time_step()
       if(ntay.eq.n_graf*(ntay/n_graf))then 
       call  write_surf()
       call write_prof0()
+      call write_prof4()
       end if
                                                        
                                                                        
@@ -2411,237 +2400,93 @@ c	if(dabs(delzmag).ge.3.)then
 	common
      *  /ef_0/key_ef
      
-      common /c_for002_kav/tay_c,rs0_c,bt0_c,key_t11_c
        
 
-!     	open(unit=2,file='for002_kav',form='formatted')
+     	open(unit=2,file='for002_kav',form='formatted')
         if(kpr.eq.1)print *,' begin for002_kav reading'
 
-!	read (49,*)
-	n=50
-	m=90
-	next=1
-	
-!	read (49,*)
-	tt=0.d0
-	tay=2.d0
-	t_end=700.d5
-	rs0=620.d0
-	psend=-1.d4
-	
-!	read (49,*)
-	i_graph=0	
-	
-!	read (49,*)
-	alfa0=4.d-2
-	beta=0.1d0
-	alfa1=-1.d0
-	omega=0.33d0
-	
-!	read (49,*)
-	iread=0 
-	kzero=0
-	iwrite=0
-	kefit=2
-	
-	
-!	read (49,*)
-	alfax(1)=1.00d0
-	alfax(2)=-1.22145d0 
-	betax(1)=17.4468d0
-	betax(2)=-21.31107d0
-
-
-!	read (49,*)
-	pw_1=4.d0
-	pw_2=0.8d0
-         
-!	read (49,*)
-	te_a=956.471d0
-	ti_a=214.0269d0
-	te_b=10.d0 
-	ti_b=10.d0 
-	pw_e=2.d0
-
-
-!	read (49,*)
-	pd0_a=0.3d0
-	pt0_a=0.3d0
-	pd0_b=0.2d0
-	pt0_b=0.2d0 
-	pw_p=3.d0
-	
-!	read (49,*)
-	zeff_a=1.8d0
-	zeff_b=1.8d0
-	
-!	read (49,*)
-	sig0=5.3715d3
-	
-!	read (49,*)
-	zhib=4.5d-1
-	tego=100.d0
-	zalfa= 4.d0 
-	talfa= 500.d0
-	alp1=1.d0
-	
-                      
-	
-!	read (49,*)
-	ktp=1
-	kpin=1
-	ken=0
-	ken1=0
-	ken2=1
-	kd2=0
-	nal=1
-	
-	
-	
-!	read (49,*)
-	edop=20.d0
-	ppp= 1.d-0
-	eee=40.d3 
-	dd=1.d0
-	dt=0.d0
-	dh=0.d0
-	df= 0.d0
-                          
-
-!	read (49,*)
-	lt=3
-	ld=3
-	lh=1 
-	ll=1
-	lm=3
-	it=1
-	id=1
-	ih=0
-	
-	
-!	read (49,*)
-	eps0=1.d-8
-	eps1=1.d-3 
-	eps2=1.d-5
-	
-!	read (49,*)
-	anom_e=1.d0
-	anom_i=1.0d0
-	key_t11=1
-	kcchp=1
-                  
-	
-!	read (49,*)
-	emoe=0.2d0
-	emoq=0.0d0
-    
-	
-!	read (49,*)
-	udd=0.d0
-	
-!	read (49,*)
-	k_ener=1
-	k_uv=1
-	
-	
-!	read (49,*)
-	t_dop=5.d0
-
-!	read (49,*)
-	r0=588.d0
-	z0=0.d0
-	zref=0.d0
-
-	
-!	read (49,*)
-	kzref=1
-	krref=1
-	key_b=2
-	i_pf=5
-	
-!	read (49,*)
-	i_c=0
-	
-	
-!	read (49,*)
-	q_vde=3.0d0
-	
-!	read (49,*)
-	tay_00=0.1d0
-	tay_th=0.05d0
-	t_disr=4.d0
-	
-!	read (49,*)
-	d_tpl=6.d0
-	tpl_end=1500.d0
-
-	
-!	read (49,*)
-	c_h=1.d0
-	d_halo=10.d0
-	
-!	read (49,*)
-	kmaj=-1
-	li_drop=99999
-	ndisrup= -16
-	n_dif=0
-	nmix=13
-	
-!	read (49,*)
-	hpart=1.1d0
-	te_h=0.5d0
-
-!	read (49,*)
-	i_d3d=0
-	i_iter=1
-	i_smal=0
-	
-!	read (49,*)
-	ngra=50
-	i_ramp=0
-	i_v=1
-	i_con=0
-	
-!	read (49,*)
-	tpl=1.d0
-	bt0=53.0d0
-	eu=160.d0
-	eksk=1.d0
-	
-!	read (49,*)
-	e_sep=5.d-3
-	
-!	read (49,*)
-	i_beta=0
-	i_gap5=0
-	
-!	read (49,*)
-	i_br=0
-	
-!	read (49,*)
-	ind_r(1)=15
-	ind_r(2)=16 
-	ind_z(1)=13
-	ind_z(2)=14 
-	
-!	read (49,*)
-	key_ef=0
-	
-!	read (49,*)
-	res_coef=1.d0
-	
-!	read (49,*)
-	n_polar=2
-
-
-!	read (49,*)
-!	read (49,*)tay,rs0,key_t11,bt0
-	tay=tay_c
-	rs0=rs0_c
-	key_t11=key_t11_c
-	bt0=bt0_c
-
-      if(kpr.eq.1)print *,' n_polar==',n_polar
+	read (2,*)
+	read (2,*)n,m,next
+	read (2,*)
+	read (2,*)tt,tay,t_end,rs0,psend
+	read (2,*)
+	read (2,*)i_graph
+	read (2,*)
+	read (2,*)alfa0,beta,alfa1,omega
+	read (2,*)
+	read (2,*)iread,kzero,iwrite,kefit
+	read (2,*)
+	read (2,*)alfax,betax
+	read (2,*)
+	read (2,*)pw_1,pw_2
+	read (2,*)
+	read (2,*)te_a,ti_a,te_b,ti_b,pw_e
+	read (2,*)
+	read (2,*)pd0_a,pt0_a,pd0_b,pt0_b,pw_p
+	read (2,*)
+	read (2,*)zeff_a,zeff_b
+	read (2,*)
+	read (2,*)sig0
+	read (2,*)
+	read (2,*)zhib,tego,zalfa,talfa,alp1
+	read (2,*)
+	read(2,*)ktp,kpin,ken,ken1,ken2,kd2,nal
+	read (2,*)
+	read(2,*)edop,ppp,eee,dd,dt,dh,df
+	read (2,*)
+	read(2,*)lt,ld,lh,ll,lm,it,id,ih
+	read (2,*)
+	read(2,*)eps0,eps1,eps2
+	read (2,*)
+	read (2,*)anom_e,anom_i,key_t11,kcchp
+	read (2,*)
+	read (2,*)emoe,emoq
+	read (2,*)
+	read (2,*)udd
+	read (2,*)
+	read (2,*)k_ener,k_uv
+	read (2,*)
+	read (2,*)t_dop
+	read (2,*)
+	read (2,*)r0,z0,zref
+	read (2,*)
+	read (2,*)kzref,krref,key_b,i_pf
+	read (2,*)
+	read (2,*)i_c
+	read (2,*)
+	read (2,*)q_vde
+	read (2,*)
+	read (2,*)tay_00,tay_th,t_disr
+	read (2,*)
+	read (2,*)d_tpl,tpl_end
+	read (2,*)
+	read (2,*)c_h,d_halo
+	read (2,*)
+	read (2,*)kmaj,li_drop,ndisrup,n_dif,nmix
+	read (2,*)
+	read (2,*)hpart,te_h
+	read (2,*)
+	read (2,*)i_d3d,i_iter,i_smal
+	read (2,*)
+	read (2,*)ngra,i_ramp,i_v,i_con
+	read (2,*)
+	read (2,*)tpl,bt0,eu,eksk
+	read (2,*)
+	read (2,*)e_sep
+	read (2,*)
+	read (2,*)i_beta,i_gap5
+	read (2,*)
+	read (2,*)i_br
+	read (2,*)
+	read (2,*)ind_r,ind_z
+	read (2,*)
+	read (2,*)key_ef
+	read (2,*)
+	read (2,*)res_coef
+	read (2,*)
+	read (2,*)n_polar
+c	read (2,*)
+c        read (2,*)k_ion,pow_el,pow_ion
 
 
 	if(kpr.eq.1)then
@@ -2653,6 +2498,12 @@ c	if(dabs(delzmag).ge.3.)then
 	   print *,' pow_el pow_ion===',pow_el,pow_ion
 	   print*,'tt=',tt
 	   print*,'tpl=',tpl
+ 	   print *,' -----k_ener t_dop---',k_ener,t_dop    
+ 	             
+	   print *,' ken2===',ken2
+
+ 	   print *,' -----ind_r---',ind_r              
+ 	   print *,' -----ind_z---',ind_z              
 
 	   print *,' end for002 reading'
 	end if
@@ -2670,7 +2521,7 @@ c        read (*,*)
 	ndh=1
 
 
-!	close(2)
+	close(2)
 
 c##	mp=(m-2)/2+2
 	mp=m
@@ -2687,13 +2538,27 @@ c	read (*,*)
 
 	if(kpr.eq.1)print *,' um vm eu elong',um,vm,eu,eksk
 
- !    	open(unit=2,file='time',form='formatted')
-        if(kpr.eq.1)print *,' begin time reading'
-!	read (49,*)
-        t_vde=1700.d5 
- 	  time_disr=9999.d5
+        if(kmaj.eq.1)then
 
+     	open(unit=2,file='halo',form='formatted')
+        if(kpr.eq.1)print *,' begin halo reading'
+
+	read (2,*)
+	read (2,*)w_h0,te_h0
+        if(kpr.eq.1)print *,' w_h0  te_h0==',w_h0,te_h0
+	close(2)
+
+        end if
+
+
+     	open(unit=2,file='time',form='formatted')
+        if(kpr.eq.1)print *,' begin time reading'
+
+	read (2,*)
+	read (2,*)t_vde,time_disr
         if(kpr.eq.1)print *,' t_vde time_disr',t_vde,time_disr
+
+	close(2)
 
 	return
 	end
@@ -3306,19 +3171,18 @@ c	delzl=0.5d0*(delzl+delzl0)
 
                                                        
 
-!	      ddrr=delrl/nstp                      
+	      ddrr=delrl/nstp                      
 
-!	      ddzz=delzl/nstp                      
-
-            al1=0.5*dllim/dll 
+	      ddzz=delzl/nstp                      
 
 
-	      ddrr=delrl*al1                      
 
-	      ddzz=delzl*al1                      
+	      if(nstp.ge.5)nstp=5
 
+c	      if(nstp.ge.2)nstp=2
 
-             nstp =1
+c	      if(nstp.ge.50)nstp=50
+
 
 
 	      do  istep=1,nstp                  
@@ -3415,8 +3279,7 @@ c	if(i_graph.eq.1)call graphic(it1,n)
 
 	      zl=zl0+ delzl
 
-            if(kpr.eq.1)print *,' RL RL0=',rl,rl0
-            if(kpr.eq.1)print *,' ZL ZL0=',zl,zl0
+
 
 	      it1=1
 
@@ -3513,7 +3376,7 @@ c	ceps=ceps*0.5
 	if(kpr.eq.3.or.kpr.eq.1)call out42(n_pr,a_print,num,apr)
 
 c	if(abs(crz).gt.1.d-5.and.iter.le.25)go to 1000
-	if(abs(crz).gt.1.d-5.and.iter.le.95)go to 1000
+	if(abs(crz).gt.1.d-5.and.iter.le.10)go to 1000
 
 c	if(abs(crz).gt.1.d-5)go to 1000
 
@@ -3548,6 +3411,7 @@ c	stop
 	return
 
 	end
+
 
 
 

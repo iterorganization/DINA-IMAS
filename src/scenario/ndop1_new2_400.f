@@ -4738,4 +4738,82 @@ c	 implicit real *8 (a-h,o-z)
 	return
 	end
 
+	subroutine dens_prog_n0()
+        include 'double.inc'
+	include 'new_com.inc'
+      include 'par_imp.inc'
+      include 'new_imp.inc'
+
+	call dens_prog_n0_c(
+     *  ntay,pd0_p,pt0_p,prog_n0)
+
+
+	return
+	end
+
+
+
+	subroutine dens_prog_n0_c(
+     *  ntay,pd0_p,pt0_p,prog_n0)
+
+        include 'double.inc'
+	include 'parf0'
+	common
+     *	/n_m/n,m,mp
+	common
+     *  /mid2/vi(npo),spo(npo)
+	common
+     *  /en1/PNE(npo),PD0(npo),PT0(npo),PH0(npo),PDN(npo),
+     *  PTN(npo),PHN(npo)
+     *	/ge3/AI(npo),A0(npo),HA2(npo),a(npo),ha(npo)
+     *  /ge5/kpr
+     *  /ge8/pcch
+     *  /ge8e/pcchp
+     *  /en33/anom_e,anom_i,key_t11,kcchp
+	character *12 apr
+71	FORMAT(20X,A8/,(6(1X,1PE10.3)))
+
+
+
+      Pd0(n)=0.1
+ 
+      PP_d=0.d0
+      PP_t=0.d0
+
+	ppch=0.
+	vv=0.
+	
+	do i=2,n
+      VV=VV+VI(I)*HA(I)
+      p_ion_d=0.5*(Pd0(I)+Pd0(I-1))
+      p_ion_t=+0.5*(Pt0(I)+Pt0(I-1))
+
+      PP_d=PP_d+p_ion_d*VI(I)*HA(I)
+      PP_t=PP_t+p_ion_t*VI(I)*HA(I)
+
+	end do
+        pp_d=PP_d/VV
+        pp_t=PP_t/VV
+        
+	if(kpr.eq.1)print *,'===1 pp_d pd0_p=kcchp===',pp_d,pd0_p,kcchp
+	if(kpr.eq.1)print *,'===1 pp_t pt0_p=kcchp===',pp_t,pt0_p,kcchp
+
+!!!	if(ntay.lt.2)pcchp=pcch
+
+
+	al1_d=pd0_p/pp_d
+	if(pp_t.gt.1.d-8)then
+	al1_t=pt0_p/pp_t
+	else
+	al1_t=0.d0
+	end if
+	if(kpr.eq.1)print *,'===1 pp_d pd0_p=al1_d===',pp_d,pd0_p,al1_d
+	if(kpr.eq.1)print *,'===1 pp_t pt0_p=al1_t===',pp_t,pt0_p,al1_t
+      
+      
+      prog_n0=prog_n0*al1_d
+	if(kpr.eq.1)print *,'===1 prog_n0=al1_d===',prog_n0,al1_d
+
+	return
+	end
 

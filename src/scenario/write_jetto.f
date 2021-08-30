@@ -334,10 +334,22 @@ c     *  form='unformatted')
         
         include 'new_com.inc'
 
+!      if(kpr.eq.1)print *,' pn0==',(pn0(i),i=1,n)
+	character *20 apr
+71	FORMAT(5X,A10/,(2x,6(1PE11.3)))
+!      if(kpr.eq.1)print *,' pn0==',(pn0(i),i=1,n)
+
+	apr='pd0'
+	if(kpr.eq.1)print 71,apr,(pd0(i),i=1,n)
+
         call write_prof0_c(n,
      *  ai,eu,tt,
-     *  tok1,pd0,ajb,p,q,pne,tq0,te0)
+!     *  tok1,pd0,ajb,p,q,pne,tq0,te0)
+     *  tok1,pne,pd0,tq0,te0,pn0,w_imp_pr,w_imp_pr2)
+!     *  tok1,pd0,ajb,p,ppx,pffx,ppxd,pffxd)
 !     *  tok1,aj0,sigma_dina,p,q,pne,ajb,te0)
+
+      
 
 
         return
@@ -369,7 +381,8 @@ c     *  tok1,aj0,ajb,p,q,pne,tq0,te0)
 c
            k=i
 
-           xcur(i)=ai(i)*eu
+!           xcur(i)=ai(i)*eu
+           xcur(i)=ai(i)
 
 
 	end do
@@ -470,7 +483,172 @@ c$
 	close (61)
         end if
 
-5000    format (6(1pe14.6))
+5000    format (6(1pe14.6e3))
+
+	return
+	end
+c
+
+	subroutine write_prof4()
+	include 'double.inc'
+        include 'new_com.inc'
+
+         include 'par_imp.inc'
+         include 'new_imp.inc'
+
+	character *20 apr
+71	FORMAT(5X,A10/,(2x,6(1PE11.3)))
+!      if(kpr.eq.1)print *,' pn0==',(pn0(i),i=1,n)
+
+	apr='pt0'
+	if(kpr.eq.1)print 71,apr,(pt0(i),i=1,n)
+	apr='den_neut0'
+	if(kpr.eq.1)print 71,apr,(den_neut0(i),i=1,n)
+	apr='den_neut1'
+	if(kpr.eq.1)print 71,apr,(den_neut1(i),i=1,n)
+	apr='p_lambda0'
+	if(kpr.eq.1)print 71,apr,(p_lambda0(i),i=1,n)
+	apr='p_lambda1'
+	if(kpr.eq.1)print 71,apr,(p_lambda1(i),i=1,n)
+!p_lambda0(npo),p_lambda1
+        call write_prof4_c(n,
+     *  ai,eu,tt,
+!     *  tok1,pd0,ajb,p,q,pne,tq0,te0)
+     *  tok1,pne,pd0,pt0,den_neut0,den_neut1,p_lambda0,p_lambda1)
+!     *  tok1,pd0,ajb,p,ppx,pffx,ppxd,pffxd)
+!     *  tok1,aj0,sigma_dina,p,q,pne,ajb,te0)
+
+      
+
+
+        return
+        end
+
+
+        subroutine write_prof4_c(n,
+     *  ai,eu,tt,
+c     *  tok1,aj0,ajb,p,q,pne,tq0,te0)
+     *  tok1,aj0,ajb,p,q,pne,tq0,te0)
+
+	include 'double.inc'
+
+        dimension ai(*)
+
+        dimension tok1(*),aj0(*),ajb(*),te0(*),
+     *  tq0(*),pne(*),q(*),p(*)
+
+        include 'parf0'
+
+     	dimension xcur(2*npo),torcur(2*npo)
+     	dimension pgraf(2*npo),qgraf(2*npo),tgraf(2*npo)
+	dimension tok_ohm(2*npo)
+
+	character *20 apr
+
+        
+        do i=1,n
+c
+           k=i
+
+!           xcur(i)=ai(i)*eu
+           xcur(i)=ai(i)
+
+
+	end do
+
+	iprof=n
+
+71	format(20x,a6/,(6(1pe10.3)))
+
+	if(kpr.eq.1)print *,'tt eu iprof n',tt,eu,iprof,n
+
+	call write_graf4(iprof,tt,
+c     *  xcur,tok1,qgraf,aj0_b,aj0_uv,aj0_lh,aj0_ech,ajb,te0)
+!!!     *  xcur,tok1,qgraf,aj0_b,tok_ohm,aj0_lh,aj0_ech,ajb,te0)
+
+     *  xcur,tok1,aj0,ajb,p,q,pne,tq0,te0)
+
+
+	return
+	end
+c
+c
+	subroutine write_graf4(iprof,ttt,
+     *  xcur,y1,y2,y3,y4,y5,y6,y7,y8)
+
+	include 'double.inc'
+
+        common
+     *  /ge5/kpr
+
+	dimension
+     *  xcur(*),y1(*),y2(*),y3(*),y4(*),y5(*),y6(*),
+     *  y7(*),y8(*)
+
+c----------- write  graphics data ---
+	ntay=ntay+1
+
+        i_form=1
+
+        if(i_form.eq.0)then
+
+c        open (unit=61,file='p_data1',access='append',
+c     *  form='unformatted')
+
+          if(ntay.le.1)then
+              open (unit=61,file='p_data2',
+     *             form='unformatted')
+           end if
+
+           if(ntay.gt.1)then
+              open (unit=61,file='p_data2',access='append',
+     *             form='unformatted')
+           end if
+c$
+
+	write (61)iprof,ttt
+	write (61)(xcur(i),i=1,iprof)
+	write (61)(y1(i),i=1,iprof)
+	write (61)(y2(i),i=1,iprof)
+	write (61)(y3(i),i=1,iprof)
+	write (61)(y4(i),i=1,iprof)
+	write (61)(y5(i),i=1,iprof)
+	write (61)(y6(i),i=1,iprof)
+	write (61)(y7(i),i=1,iprof)
+	write (61)(y8(i),i=1,iprof)
+
+	close (61)
+
+        else
+c        open (unit=61,file='p_data1',access='append',
+c     *  form='formatted')
+
+           if(ntay.le.1)then
+              open (unit=61,file='p_data2',
+     *             form='formatted')
+           end if
+
+           if(ntay.gt.1)then
+              open (unit=61,file='p_data2',
+     *  access='append',form='formatted')
+           end if
+c$
+
+        write (61,*)iprof,ttt
+        write (61,5000)(xcur(i),i=1,iprof)
+        write (61,5000)(y1(i),i=1,iprof)
+        write (61,5000)(y2(i),i=1,iprof)
+        write (61,5000)(y3(i),i=1,iprof)
+        write (61,5000)(y4(i),i=1,iprof)
+        write (61,5000)(y5(i),i=1,iprof)
+        write (61,5000)(y6(i),i=1,iprof)
+        write (61,5000)(y7(i),i=1,iprof)
+        write (61,5000)(y8(i),i=1,iprof)
+
+	close (61)
+        end if
+
+5000    format (6(1pe14.6e3))
 
 	return
 	end

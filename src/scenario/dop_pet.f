@@ -9,8 +9,6 @@
      * rmag,xleft,xright,tec,tqc,pcch,pion,psi_pf,vs_pf,vs_tot,
      * zvconverter,u_kd,tpl)
 
-
-
 	return
 	end
 
@@ -50,12 +48,8 @@ c
 	common /c_data_in_time2/i_c_data,i_c_data1
      *  /vic_psi_av/psipl_av,psiext_av
      * /ge7/eu,rout,zout,elong
-     
-      common /c_teit_98/teit_98
-
+     *  /c_imas4/pn0_tot
 	                                         
-
-
 	character *30 apr                                                      
 	character *12 yy(iy)                                                   
 	character *50 tmp                                                      
@@ -182,6 +176,8 @@ c     *  volume,z_tok,tokc)
       END                                                               
                                                                         
                                                                         
+
+
                                                                         
       SUBROUTINE DOPP_kav()
      	include 'double.inc'
@@ -369,12 +365,13 @@ c
 	common /c_data_in_time2/i_c_data,i_c_data1
                                                                         
 	common /c_imp_out4/p_ohm0,p_loss0,qen2_0
+     *  /c_imas4/pn0_tot
 
 	common
      *  /c_kav2/epol,vol_pl
      *  /c_vs3/Pvs3, P_rg
-c*********************************************************
-     *  /maksim_01/tqc,Emag
+       common
+     *  /vic_012/pion2,palf,w_imp2,w_imp3,w_imp4,w_imp5
 
       dimension dNB_xx(24)
 
@@ -447,8 +444,11 @@ c------
       WNET=0.                                                           
       PPch=0.                                                           
 	pion=0.                                                                
+
 	pion_d=0.
 	pion_t=0.
+
+
       VV=0.                                                             
 	wtec=0.                                                                
 	wtqc=0.                                                                
@@ -497,8 +497,10 @@ c	wtqc=wtqc+dqd*(tq0(i)+tq0(i-1))*0.5*(pne(i)+pne(i-1))
       PPch=PPch+PI*(PNE(I)+PNE(I-1))*VI(I)*HA(I)                        
 	pion=pion+dqd*(pd0(i)+pd0(i-1)+pt0(i)+pt0(i-1)                         
      *+ph0(i)+ph0(i-1))                                                 
+
 	pion_d=pion_d+dqd*(pd0(i)+pd0(i-1))
 	pion_t=pion_t+dqd*(pt0(i)+pt0(i-1))
+
 	pist=pist+dqd*2.*(sd0(i)+st0(i)+sh0(i))                                
         en_ae=en_ae+ajae(i)*2.*pi*vi(i)*ha(I)                           
    11 VV=VV+VI(I)*HA(I)                                                 
@@ -523,8 +525,6 @@ c	tqc=wtqc/ppch
       SUMN=SUMN+TAY*WNET*1.E-3          
                                       
       WEN2=WEN2/PNOR  
-      
-      WEN2=WEN2*.1e-3
 
 
 
@@ -616,8 +616,14 @@ c here balance of heat---(wen2-wen1)/tay=qen2-wel-wio
 c	if(kpr.eq.1)print *,' welt welp wiot wiop==',welt,welp,wiot,wiop      
 c	if(kpr.eq.1)print *,' wen2 wen1 tay=======',wen2,wen1,tay             
 c	if(kpr.eq.1)print *,' qen2 wel wio=======',qen2,wel,wio               
-c	if(kpr.eq.1)print *,' wb_l wb_r ken2=======',wb_l,wb_r,ken2           
-	wsum=wnet+wel+wio+wtor+qc+prim                                         
+
+	if(kpr.eq.1)print *,' wb_l wb_r ken2=======',wb_l,wb_r,ken2   
+        
+	wsum=wnet+wel+wio+wtor+qc+prim        
+
+	if(kpr.eq.1)print *,' wtor qc=======',wtor,qc           
+	
+	                                 
 	wl=wtor+qc+prim                                                        
 	wa=wae+waq                                                             
 	wtp=wel+wio                                                            
@@ -760,6 +766,8 @@ c!!!!!!!        p_sep=qen2-(wen2-wen1)/tay
         p_sep=qen2
 
       p_sep=qen2_0
+      
+      p_sep_tot=p_sep
 
 !	call print3(' qen2_0 p_ohm0 p_loss0==',
 !     *  qen2_0,p_ohm0,p_loss0)
@@ -774,6 +782,11 @@ c!!!!!!!        p_sep=qen2-(wen2-wen1)/tay
 	if(kpr.eq.1)print *,' wen2 wen1 tay=======',wen2,wen1,tay
 	if(kpr.eq.1)print *,' qen2 wel wio=======',qen2,wel,wio
 	if(kpr.eq.1)print *,' wb_l wb_r ken2=======',wb_l,wb_r,ken2
+	if(kpr.eq.1)print *,' +tec tqc=======',tec,tqc
+	if(kpr.eq.1)print *,' +pcch vv=======',pcch,vv*1.e-6
+      if(kpr.eq.1)print*,'+p_sep_tot  ',p_sep_tot
+
+
 	wsum=wnet+wel+wio+wtor+qc+prim
 	wl=wtor+qc+prim
 	wa=wae+waq
@@ -1059,7 +1072,8 @@ c##        if(k_it89.eq.1)tepr=teit_l
 c
 
 c-----                                                                  
-	if(ntay.lt.3)tepr=teoh                                                 
+	if(ntay.lt.3)tepr=teoh       
+	
 	if(tepr.le.1)tepr=1.                                          
                                                                         
         zhib0=zhib                                                      
@@ -1076,7 +1090,6 @@ c	if(key_ext.eq.0)then
         if(zhib.gt.100.)zhib=100.
         
         if(kpr.eq.1)print *,' zhib tene_e tepr ==',zhib,tene_e,tepr
-
 
         zhib0=zhib
 
@@ -1153,6 +1166,10 @@ c	if(kpr.eq.3)call out42(n_pr,a_print,num,apr)
 	vs=vs_res
 
       vs_start=vs
+
+	if(kpr.eq.1)print *,' ** vs_start',
+     *  vs_start
+
       
 	a_print(1)=vs_pf
 	a_print(2)=vs_pl
@@ -1165,588 +1182,33 @@ c	if(kpr.eq.3)call out42(n_pr,a_print,num,apr)
 	num=30
 	if(kpr.eq.3)call out42(n_pr,a_print,num,apr)
 
-c********************* 00 **********************************
-
-	igr=1
-
-c       ------I plasma---------
-	ygr(1,igr)=tpl/1.e3
-	yy(1)='I_pl[MA]'
-c       ----beta p(2) --
-	ygr(2,igr)=betpj
-	yy(2)='BETAp'
-c       ------a minor-----
-	ygr(3,igr)=eu
-	yy(3)='a[cm]'
-c       -----L(3)----
-	ygr(4,igr)=uli
-	yy(4)='l_i(3)'
-c*********************************************************
-c       ---- rmag ------
-	ygr(5,igr)=rmag
-	yy(5)='Rmag[cm]'
-c	ygr(5,igr)=r_cur
-c	yy(5)='Rcur[cm]'
-c	----Zmag-----
-	ygr(6,igr)=zmag
-	yy(6)='Zmag[cm]'
-c	ygr(6,igr)=z_cur
-c	yy(6)='Zcur[cm]'
-c       ---- vessel current ------
-c	ygr(7,igr)=tokc
-c	yy(7)='Ivv[kA]'
-c*** Power across separatrix with thermoconductivity + dQ/dt, MW
-	ygr(7,igr)=p_sep
-	yy(7)='Psep[MW]'
-c       ---- elong ------
-	ygr(8,igr)=eksk
-c	yy(8)='k_99'
-	yy(8)='k_bnd'
-c*******************************************************
-c       -------ne average-----
-	ygr(9,igr)=pcch/10.
-	yy(9)='Ne_avr[20]'
-c       ---- gamma ------
+	w_pf=0.
+	do i=1,npf
+	w_pf=w_pf+vchopper(i)*pf(i)*1.e3*1.e-6
+	end do
 	gamma=(pcch/10.)*pi*eu**2*1.e-4/(tpl/1.e3)
-	ygr(10,igr)=gamma
-	yy(10)='Gamma'
-c       -------Zeff_a-----
-	ygr(11,igr)=zeff_a
-	yy(11)='Zeff_a'
-c       -------Zeff_b-----
-c	ygr(12,igr)=zeff_b
-c	yy(12)='Zeff_b'
-c	ygr(12,igr)=teoh
-c	yy(12)='TAYoh,ms'
-c	ygr(12,igr)=psipl_av
-c	yy(12)='psipl_av,vs'
-	ygr(12,igr)=psiext_av
-	yy(12)='psiext_av,vs'
-c********************************************************
-c       -----te average-----
-	ygr(13,igr)=tec
-	yy(13)='Te_avr[eV]'
-c       -----ti average----
-	ygr(14,igr)=tqc
-	yy(14)='Ti_avr[eV]'
-c       -----te axis-----
-	ygr(15,igr)=te0(1)
-	yy(15)='Te_ax[eV]'
-c       -----ti axis-----
-	ygr(16,igr)=tq0(1)
-	yy(16)='Ti_ax[eV]'
-c***********************************************************
-c       ---- wdop ------
-        wdop=wde+wdq
-ccc	wdop=wdop+wpe+wpq
-	ygr(17,igr)=wdop
-	yy(17)='P_aux,MW'
-c       -----q bound---
-c	ygr(13,igr)=q(n)
-c	yy(13)='q_bn'
-	ygr(18,igr)=q_95
-	yy(18)='q_95'
-c       ---- q_ax ------
-	ygr(19,igr)=q(2)
-	yy(19)='q_ax'
-c       ---- uact ------
-	ygr(20,igr)=vs
-	yy(20)='VS_res[Wb]'
-c*********************************************************
-c	---- tay_e -----
-	ygr(21,igr)=tene
-	yy(21)='Tay_E[ms]'
-c       ---- rsep ------
-c	ygr(23,igr)=rsep
-c	yy(23)='Rsep[cm]'
-c       ---- zsep ------
-	ygr(22,igr)=zsep
-	yy(22)='Zsep[cm]'
 c	---- Ce -----
 c!!!!!	c_e=vs/(0.1*4*pi*rmag*1.e-2*tpl*1.e-3)
 	ce_0=0.25
 	if(ntay.eq.next)vs_0=ce_0*(0.1*4*pi*rmag*1.e-2*tpl*1.e-3)
 	c_e_old=(vs_0+vs)/(0.1*4*pi*rmag*1.e-2*tpl*1.e-3)
 	c_e_new=vs/(0.1*4*pi*rmag*1.e-2*tpl*1.e-3)
-	ygr(23,igr)=c_e_old
-	yy(23)='C_Ejima'
-c       ---- W_sum ------
-	w_pf=0.
-	do i=1,npf
-	w_pf=w_pf+vchopper(i)*pf(i)*1.e3*1.e-6
-	end do
-c	ygr(24,igr)=w_pf
-c	yy(24)='P_PF[MW]'
-        pmag_out=pmag*1.e-5*2.*pi
-	ygr(24,igr)=pmag_out
-	yy(24)='Pmag[Vs]'
-c************************************************************
-c           if(tt.gt.t_end)then
-c              print*,'!!!tt t_end',tt,t_end
-c	      print*,'d_gaps pf'
-c	      do mmm=9,20
-c	      print*,d_gaps(mmm),pf(mmm)/1.e3
-c	      end do
-c	   end if
 
-	ygr(25,igr)=d_gaps(1)
-	yy(25)='error_01'
+       pmag_out=pmag*1.e-5*2.*pi
 
-	ygr(26,igr)=d_gaps(2)
-	yy(26)='error_02'
-
-	ygr(27,igr)=d_gaps(3)
-	yy(27)='error_03'
-
-	ygr(28,igr)=d_gaps(4)
-	yy(28)='error_04'
-c***********************************************
-	ygr(29,igr)=d_gaps(5)
-	yy(29)='error_05'
-
-	ygr(30,igr)=d_gaps(6)
-	yy(30)='error_06'
-
-	ygr(31,igr)=d_gaps(7)
-	yy(31)='error_07'
-
-	ygr(32,igr)=d_gaps(8)
-	yy(32)='error_08'
-c***********************************************
-	ygr(33,igr)=d_gaps(9)
-	yy(33)='error_09'
-
-	ygr(34,igr)=d_gaps(10)
-	yy(34)='error_10'
-
-	ygr(35,igr)=d_gaps(11)
-	yy(35)='error_11'
-
-	ygr(36,igr)=d_gaps(12)
-	yy(36)='error_12'
-c***********************************************
-	ygr(37,igr)=d_gaps(13)
-	yy(37)='error_13'
-
-	ygr(38,igr)=d_gaps(14)
-	yy(38)='error_14'
-
-	ygr(39,igr)=d_gaps(15)
-	yy(39)='error_15'
-
-	ygr(40,igr)=d_gaps(16)
-	yy(40)='error_16'
-c***********************************************
-	ygr(41,igr)=d_gaps(17)
-	yy(41)='error_17'
-
-	ygr(42,igr)=d_gaps(18)
-	yy(42)='error_18'
-
-	ygr(43,igr)=d_gaps(19)
-	yy(43)='error_19'
-
-	ygr(44,igr)=d_gaps(20)
-	yy(44)='error_20'
-c***********************************************
-	i=1
-	ggg=gaps(i)-gaps0(i)
-	ygr(45,igr)=ggg
-	yy(45)='del_g1[cm]'
-
-	i=2
-	ggg=gaps(i)-gaps0(i)
-	ygr(46,igr)=ggg
-	yy(46)='del_g2[cm]'
-
-	i=3
-	ggg=gaps(i)-gaps0(i)
-	ygr(47,igr)=ggg
-	yy(47)='del_g3[cm]'
-
-	i=4
-	ggg=gaps(i)-gaps0(i)
-	ygr(48,igr)=ggg
-	yy(48)='del_g4[cm]'
-c************************************************
-	i=5
-	ggg=gaps(i)-gaps0(i)
-	ygr(49,igr)=ggg
-	yy(49)='del_g5[cm]'
-
-	i=6
-	ggg=gaps(i)-gaps0(i)
-	ygr(50,igr)=ggg
-	yy(50)='del_g6[cm]'
-
-	ygr(51,igr)=pf(1)/1.e3
-	yy(51)='CS3U[MA]'
-
-	ygr(52,igr)=vchopper(1)
-	yy(52)='V_CS3U[V]'
-c************************************************
-	ygr(53,igr)=pf(2)/1.e3
-	yy(53)='CS2U[MA]'
-
-	ygr(54,igr)=vchopper(2)
-	yy(54)='V_CS2U[V]'
-
-	ygr(55,igr)=pf(3)/1.e3
-	yy(55)='CS1[MA]'
-
-	ygr(56,igr)=vchopper(3)
-	yy(56)='V_CS1[V]'
-c************************************************************
-	ygr(57,igr)=pf(4)/1.e3
-	yy(57)='CS2L[MA]'
-
-	ygr(58,igr)=vchopper(4)
-	yy(58)='V_CS2L[V]'
-
-	ygr(59,igr)=pf(5)/1.e3
-	yy(59)='CS3L[MA]'
-
-	ygr(60,igr)=vchopper(5)
-	yy(60)='V_CS3L[V]'
-c************************************************************
-	ygr(61,igr)=pf(6)/1.e3
-	yy(61)='PF1[MA]'
-
-	ygr(62,igr)=vchopper(6)
-	yy(62)='V_1[V]'
-
-	ygr(63,igr)=pf(7)/1.e3
-	yy(63)='PF2[MA]'
-
-	ygr(64,igr)=vchopper(7)
-	yy(64)='V_2[V]'
-c*************************************************************
-	ygr(65,igr)=pf(8)/1.e3
-	yy(65)='PF3[MA]'
-
-	ygr(66,igr)=vchopper(8)
-	yy(66)='V_3[V]'
-
-	ygr(67,igr)=pf(9)/1.e3
-	yy(67)='PF4[MA]'
-
-	ygr(68,igr)=vchopper(9)
-	yy(68)='V_4[V]'
-c*************************************************************
-	ygr(69,igr)=pf(10)/1.e3
-	yy(69)='PF5'
-
-	ygr(70,igr)=vchopper(10)
-	yy(70)='V_5[V]'
-
-	ygr(71,igr)=pf(11)/1.e3
-	yy(71)='PF6[MA]'
-
-	ygr(72,igr)=vchopper(11)
-	yy(72)='V_6[V]'
-c***********************************************************
-	ygr(73,igr)=pf(12)/1.e3
-	yy(73)='I_VS[MA]'
-
-	ygr(74,igr)=vchopper(12)
-	yy(74)='V_VS[V]'
-
-	ygr(75,igr)=zvconverter(1)*pf_turns(1)
-	yy(75)='zvc(1)[V]'
-
-	ygr(76,igr)=zvconverter(2)*pf_turns(2)
-	yy(76)='zvc(2)[V]'
-c************************************************************
-	ygr(77,igr)=zvconverter(3)*pf_turns(3)
-	yy(77)='zvc(3)[V]'
-
-	ygr(78,igr)=zvconverter(4)*pf_turns(4)
-	yy(78)='zvc(4)[V]'
-
-	ygr(79,igr)=zvconverter(5)*pf_turns(5)
-	yy(79)='zvc(5)[V]'
-
-	ygr(80,igr)=zvconverter(6)*pf_turns(6)
-	yy(80)='zvc(6)[V]'
-c***********************************************
-	ygr(81,igr)=zvconverter(7)*pf_turns(7)
-	yy(81)='zvc(7)[V]'
-
-	ygr(82,igr)=zvconverter(8)*pf_turns(8)
-	yy(82)='zvc(8)[V]'
-
-	ygr(83,igr)=zvconverter(9)*pf_turns(9)
-	yy(83)='zvc(9)[V]'
-
-	ygr(84,igr)=zvconverter(10)*pf_turns(10)
-	yy(84)='zvc(10)[V]'
-c*****************************************************
-	ygr(85,igr)=zvconverter(11)*pf_turns(11)
-	yy(85)='zvc(11)[V]'
-
-	ygr(86,igr)=zvconverter(12)*pf_turns(12)
-	yy(86)='zvc(12)[V]'
-
-	ygr(87,igr)=u_1(1)
-	yy(87)='u_1(1)[V]'
-
-	ygr(88,igr)=u_1(2)
-	yy(88)='u_1(2)[V]'
-c*****************************************************
-	ygr(89,igr)=u_1(3)
-	yy(89)='u_1(3)[V]'
-
-	ygr(90,igr)=u_1(4)
-	yy(90)='u_1(4)[V]'
-c******************************************************
-	ygr(91,igr)=u_1(5)
-	yy(91)='u_1(5)[V]'
-
-	ygr(92,igr)=u_1(6)
-	yy(92)='u_1(6)[V]'
-
-	ygr(93,igr)=u_1(7)
-	yy(93)='u_1(7)[V]'
-
-	ygr(94,igr)=u_1(8)
-	yy(94)='u_1(8)[V]'
-c*****************************************************
-	ygr(95,igr)=u_1(9)
-	yy(95)='u_1(9)[V]'
-
-	ygr(96,igr)=u_1(10)
-	yy(96)='u_1(10)[V]'
-
-	ygr(97,igr)=u_1(11)
-	yy(97)='u_1(11)[V]'
-
-	ygr(98,igr)=u_1(12)
-	yy(98)='u_1(12)[V]'
-c*****************************************************
-	ygr(99,igr)=u_kd(1)
-	yy(99)='u_kd(1)[V]'
-
-	ygr(100,igr)=u_kd(2)
-	yy(100)='u_kd(2)[V]'
-
-	ygr(101,igr)=u_kd(3)
-	yy(101)='u_kd(3)[V]'
-
-	ygr(102,igr)=u_kd(4)
-	yy(102)='u_kd(4)[V]'
-c**********************************************************
-	ygr(103,igr)=u_kd(5)
-	yy(103)='u_kd(5)[V]'
-
-	ygr(104,igr)=u_kd(6)
-	yy(104)='u_kd(6)[V]'
-
-	ygr(105,igr)=u_kd(7)
-	yy(105)='u_kd(7)[V]'
-
-	ygr(106,igr)=u_kd(8)
-	yy(106)='u_kd(8)[V]'
-c*****************************************************
-	ygr(107,igr)=u_kd(9)
-	yy(107)='u_kd(9)[V]'
-
-	ygr(108,igr)=u_kd(10)
-	yy(108)='u_kd(10)[V]'
-
-	ygr(109,igr)=u_kd(11)
-	yy(109)='u_kd(11)[V]'
-
-	ygr(110,igr)=u_kd(12)
-	yy(110)='u_kd(12)[V]'
-c****************************************************
-	ygr(111,igr)=rsep
-	yy(111)='Rsep[cm]'
-
-	ygr(112,igr)=teit_95
-	yy(112)='tay_L[ms]'
-	
-	ygr(113,igr)=teit_98
-	yy(113)='tay_H[ms]'
-	
-	ygr(114,igr)=r_lh
-	yy(114)='r_LH'
-	
-c*****************************************************
 	if(ksepa.eq.0)then
 		ell=eksk
 	else
 		ell=elong_sep
 	end if		
-	ygr(115,igr)=ell
-	yy(115)='k_sep'
 
-	ygr(116,igr)=u_ffw(1)
-	yy(116)='u_ffw(1)[V]'
-
-	ygr(117,igr)=u_ffw(2)
-	yy(117)='u_ffw(2)[V]'
-
-	ygr(118,igr)=u_ffw(3)
-	yy(118)='u_ffw(3)[V]'
-c*****************************************************
-	ygr(119,igr)=u_ffw(4)
-	yy(119)='u_ffw(4)[V]'
-
-	ygr(120,igr)=u_ffw(5)
-	yy(120)='u_ffw(5)[V]'
-
-	ygr(121,igr)=u_ffw(6)
-	yy(121)='u_ffw(6)[V]'
-
-	ygr(122,igr)=u_ffw(7)
-	yy(122)='u_ffw(7)[V]'
-
-c***************************************************
-	ygr(123,igr)=u_ffw(8)
-	yy(123)='u_ffw(8)[V]'
-
-	ygr(124,igr)=u_ffw(9)
-	yy(124)='u_ffw(9)[V]'
-
-	ygr(125,igr)=u_ffw(10)
-	yy(125)='u_ffw(10)[V]'
-
-	ygr(126,igr)=u_ffw(11)
-	yy(126)='u_ffw(11)[V]'
-c***************************************************
-	i=1
-	ygr(127,igr)=gaps(i)
-	yy(127)='gap_1[cm]'
-
-	i=1
-	ygr(128,igr)=gaps0(i)
-	yy(128)='gap0_1[cm]'
-
-	i=2
-	ygr(129,igr)=gaps(i)
-	yy(129)='gap_2[cm]'
-
-	i=2
-	ygr(130,igr)=gaps0(i)
-	yy(130)='gap0_2[cm]'
-c************************************************
-	i=3
-	ygr(131,igr)=gaps(i)
-	yy(131)='gap_3[cm]'
-
-	i=3
-	ygr(132,igr)=gaps0(i)
-	yy(132)='gap0_3[cm]'
-
-	i=4
-	ygr(133,igr)=gaps(i)
-	yy(133)='gap_4[cm]'
-
-	i=4
-	ygr(134,igr)=gaps0(i)
-	yy(134)='gap0_4[cm]'
-c************************************************
-	i=5
-	ygr(135,igr)=gaps(i)
-	yy(135)='gap_5[cm]'
-
-	i=5
-	ygr(136,igr)=gaps0(i)
-	yy(136)='gap0_5[cm]'
-
-	i=6
-	ygr(137,igr)=gaps(i)
-	yy(137)='gap_6[cm]'
-
-	i=6
-	ygr(138,igr)=gaps0(i)
-	yy(138)='gap0_6[cm]'
-c************************************************
-        ygr(139,igr)=qc
-	yy(139)='qc,MW'
-
-        ygr(140,igr)=wtor
-	yy(140)='wtor,MW'
-
-        ygr(141,igr)=w_imp
-	yy(141)='w_imp,MW'
-
-        ygr(142,igr)=coef_imp
-	yy(142)='coef_imp'
-c*******************************************
-        ygr(143,igr)=wae+waq
-	yy(143)='W_alpha,MW'
-
-c	call s_calc()
-        ygr(144,igr)=s_plasma/1.e4
-	yy(144)='s_plasma,m2'
-
-        ygr(145,igr)=qtep
-	yy(145)='Q'
-
-        w_fusion=wnet+wae+waq
-        ygr(146,igr)=w_fusion
-	yy(146)='Wfus,MW'
-c****************************************************
 	p_sum=wae+waq+wdop
-	    ygr(147,igr)=p_sum
-		yy(147)='Psum,MW'
 
 	P_HL=0.082/2.5*(pcch/10.)**0.73*5.3**0.74*(s_plasma/1.e4)**0.98
-	    ygr(148,igr)=P_HL
-		yy(148)='P_HL,MW'
 
-!!!	pmag_out_1=dm0(1)*1.e-5
-
-!	dm0_1_help=dm0(1)
-
-      if(abs(dm0(1)).le.1.e-5)dm0(1)=vs_tot*1.e5
-      
-c	   ygr(149,igr)=pmag_out_1
-c		yy(149)='Pmag Tr'
-
-c	    ygr(148,igr)=zvel
-c		yy(148)='zvel'
-
-c**************************************************
-	    ygr(149,igr)=dist_min_xx
-		yy(149)='dist_min'
-
-	    ygr(150,igr)=Rdist_min_xx
-		yy(150)='Rdist_min'
-
-	    ygr(151,igr)=Zdist_min_xx
-		yy(151)='Zdist_min'
-
-	    ygr(152,igr)=Zdist_min_xx
-		yy(152)='Zdist_min'
+c********************* 00 **********************************
 
 
-        do i=112,176
-        ygr(i,igr)=0.
-        end do
-
-
-        do i=153,176
-        yy(i)='   '
-        end do
-        
-	tgr(igr)=tt
-
-!		ng=152
-		ng=176
-
-      if(kpr.eq.1)print *,' ng1=igr =',ng1,igr
-
-	tmp='na_ramp'
-	if(i_en.eq.1)then
-	open (unit=41, file=tmp,form='formatted')
-	write (41,*)ng
-	do i=1,ng
-	write (41,*)yy(i)
-	end do
-	close (41)
-	end if
 
 
 c
@@ -1763,18 +1225,23 @@ c	shape_out(32)=vs_ext
 	call get_data_in_time(pcch,tene,wdop,
      *  p_sum,p_loss)
 
+
       wde=wdop
       wdq=0.
 
-      call get_start_data(wdop,tene,wdh)
+      call get_start_data(wdop,tene,wdh,w_imp2,w_imp3)
+	if(kpr.eq.1)print *,'w_imp2,w_imp3=====',w_imp2,w_imp3
+
+      w_imp_sum=w_imp2+w_imp3
 
       wde=wdop
       wdq=0.
 
 	if(kpr.eq.1)print *,' pion_d ==pion_t=====',pion_d,pion_t
+	
 	if(kpr.eq.1)print *,' pion==wdop=====',pion,wdop
 	if(kpr.eq.1)print *,' tene,wdh====',tene,wdh
-	if(kpr.eq.1)print *,' ++p_loss====',p_loss
+	if(kpr.eq.1)print *,' ++p_loss= w_imp_sum===',p_loss,w_imp_sum
 
 	open (unit=41,file='te_ti.dat',
      *	form='formatted')
@@ -1882,12 +1349,37 @@ c	if(kpr.eq.3)call out42(n_pr,a_print,num,apr)
 	if(kpr.eq.1)print *,' tec te0=======',tec,te0(1)
 !	stop
       end if
+
+!      call write_data_in_time(
+!     *	tt,tpl,betpj,eu,uli,r_cur,z_cur,p_sep,wel,wio,eksk,
+!     *	pcch,zeff_a,tec,te0(1),tqc,tq0(1),tene,zsep,rsep,c_e_old,c_e_new,
+!     *  rmag,gamma,vs,q_95,q(2),zvel*10.,psi_pf,pmag_out_1,uact,
+!...
+!     *  r_lh,wdop,qtep,w_fusion,wae+waq,s_plasma/1.e4,p_sum,P_HL,zmag,
+!     *  wtp,wtor,qc,w_imp,gfus,p_sep_tot,
+!...
+
+      w_imp=p_loss
       
+      prim=p_loss
       
       
 
+	igr=1
+	tgr(igr)=tt
+	if(kpr.eq.1)print *,' IGR   TT ------------------------',tt
 
 	include 'dop_vs_pfw_1.inc'
+
+	tmp='na_ramp'
+	if(i_en.eq.1)then
+	open (unit=41, file=tmp,form='formatted')
+	write (41,*)ng
+	do i=1,ng
+	write (41,*)yy(i)
+	end do
+	close (41)
+	end if
 
 !	dm0(1)=dm0_1_help
 
@@ -2069,7 +1561,8 @@ c	read(*,*)
 	end
 
 
-      subroutine get_start_data(wdop_xx,tene_xx,wdh_xx)
+      subroutine get_start_data(wdop_xx,tene_xx,wdh_xx,
+     *  w_imp1_xx,w_imp2_xx)
       include 'double.inc'
       include 'new_com.inc'
       include 'br_com.inc'
@@ -2083,6 +1576,10 @@ c	read(*,*)
 	wdop_xx=q_ech
 	tene_xx=tay_ee
 	wdh_xx=P_oh*v_p
+      w_imp1_xx=(sel(1)*0.1)*v_p
+      w_imp2_xx=(sel(2)*0.1)*v_p
 
 	return
 	end
+
+

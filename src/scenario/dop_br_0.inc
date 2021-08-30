@@ -42,9 +42,6 @@ c*************************************************
 	ygr(12,igr)=dens_imp(4)*0.1
 	yy(12)='n i4,20'
 
-!	ygr(12,igr)=qlos_e*v_p
-!	yy(12)='qloss'
-
 c*************************************************
 	ygr(13,igr)=dens_imp(5)*0.1
 	yy(13)='n i5,20'
@@ -52,12 +49,18 @@ c*************************************************
 	ygr(14,igr)=dens_imp(6)*0.1
 	yy(14)='n i6,20'
 
+	ygr(13,igr)=q_ch(1)*0.1*v_p
+	yy(13)='P ch1 MW'
 
-	ygr(13,igr)=he1*0.1
-	yy(13)='n He1,20'
 
-	ygr(14,igr)=he2*0.1
-	yy(14)='n He2,20'
+	ygr(14,igr)=q_ch(2)*0.1*v_p
+	yy(14)='P ch2 MW'
+
+
+	    if(kpr.eq.1)print *,'+sel1 sel2 ',
+     *  sel(1),sel(2)
+        if(kpr.eq.1)print *,'+q_ch1 q_ch2 ',
+     *  q_ch(1),q_ch(2)
 
 
 	ygr(15,igr)=z_eff
@@ -73,9 +76,14 @@ c*** r_pl is plasma resistence in mikro-Om
 !	ygr(16,igr)=tay_lo*1.d-6
 !	yy(16)='tay lo'
 
+	
 
 	ygr(16,igr)=g_v
 	yy(16)='Flux neut'
+
+!	ygr(16,igr)=(q_zrad(1)*0.1)*v_p
+!	yy(16)='q zrad1'
+
 
 c**************************************************
 	ygr(17,igr)=n0
@@ -87,9 +95,6 @@ c**************************************************
 	ygr(19,igr)=den_imp_neut(1)*0.1
 	yy(19)='nimp01,20'
 
-	ygr(19,igr)=qlos_e*v_p
-	yy(19)='qloss'
-
 c	  print*,'n0 nd nimp',n0,n_d,den_imp_neut(1)*0.1
 c	  read(*,*)
 
@@ -97,6 +102,8 @@ c	  read(*,*)
 	  ddd=ygr(19,igr)+ygr(9,igr)+ygr(10,igr)+ygr(11,igr)+
      &    ygr(12,igr)+ygr(13,igr)+ygr(14,igr)
 
+	  if(kpr.eq.1)print*,'19 9 10 11 12 13 14',ygr(19,igr),ygr(9,igr),
+     *(ygr(k,igr),k=10,14)	  
 	  if(kpr.eq.1)print*,'ddd z_eff',ddd,z_eff
 
 c	  read(*,*)
@@ -104,11 +111,12 @@ c	  read(*,*)
 c	ygr(18,igr)=qlos_e*v_p
 c	yy(18)='qloss'
 
-	if(kpr.eq.1)print *,' qlos_imp v_p==',qlos_imp,v_p
 
 	ygr(20,igr)=(sel(1)*0.1)*v_p
 
-	qlos_imp=(sel(1)*0.1)*v_p
+	qlos_imp=(sel(1)*0.1)
+
+	if(kpr.eq.1)print *,' 00 qlos_imp v_p==',qlos_imp,v_p
 
 !	ygr(20,igr)=qlos_imp*v_p
 	yy(20)='Plos imp1,MW'
@@ -189,6 +197,26 @@ c
 
 	ygr(32,igr)=dens_imp(8+kk)*0.1
 	yy(32)=' n w8'
+
+	ygr(27,igr)=(q_zrad(1)*0.1)*v_p
+	yy(27)=' Pzrad imp1,MW'
+
+	ygr(28,igr)=(q_zrad(2)*0.1)*v_p
+	yy(28)='Pzrad imp2,MW'
+
+
+	ygr(29,igr)=(q_ion(1)*0.1)*v_p
+	yy(29)=' Pion imp1,MW'
+
+	ygr(30,igr)=(q_ion(2)*0.1)*v_p
+	yy(30)='Pion imp2,MW'
+
+
+	ygr(31,igr)=(q_rad(1)*0.1)*v_p
+	yy(31)=' Prad imp1,MW'
+
+	ygr(32,igr)=(q_rad(2)*0.1)*v_p
+	yy(32)='Prad imp2,MW'
 
 	ygr(33,igr)=den_imp_neut(2)*0.1
 	yy(33)='nimp02,20'
@@ -292,8 +320,8 @@ c
 	ygr(55,igr)=x1_b
 	yy(55)='x1 b'
 
-	ygr(56,igr)=dm_b
-	yy(56)=' dm b'
+	ygr(56,igr)=pn_prog
+	yy(56)=' pn_prog'
 
 	ng=56
 

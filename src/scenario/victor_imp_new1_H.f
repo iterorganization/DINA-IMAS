@@ -119,44 +119,15 @@ c******************************************
 
 	if(i_sh.eq.1)then
 c-------
-
-      n_t=9
-      
-      t_t(1)=-0.01
-      zeff_a_t(1)=1.
-      zeff_b_t(1)=1.
-
-      t_t(2)=0.e-5
-      zeff_a_t(2)=1.
-      zeff_b_t(2)=1.
-      t_t(3)=1100.e-3
-      zeff_a_t(3)=1.
-      zeff_b_t(3)=1.
-      t_t(4)=1850.e-3
-      zeff_a_t(4)=3.
-      zeff_b_t(4)=3.
-      t_t(5)=2950.e-3
-      zeff_a_t(5)=4.
-      zeff_b_t(5)=4.
-      t_t(6)=3.5
-      zeff_a_t(6)=2.018
-      zeff_b_t(6)=2.018
-      t_t(7)=12.0
-      zeff_a_t(7)=1.95
-      zeff_b_t(7)=1.95
-      t_t(8)=50.0
-      zeff_a_t(8)=1.86
-      zeff_b_t(8)=1.86
-      t_t(9)=1000.
-      zeff_a_t(9)=1.86 
-      zeff_b_t(9)=1.86 
-
-!           open (unit=41,file='zeff.dat',form='formatted') 
+           open (unit=41,file='zeff.dat',form='formatted') 
+           read (41,*) 
+           read (41,*)n_t 
+           read (41,*) 
            
            if(kpr.eq.1)print *,' tay tt n_t===',tay,tt,n_t 
            
            do i=1,n_t 
-!              read (41,*)t_t(i),zeff_a_t(i),zeff_b_t(i)
+              read (41,*)t_t(i),zeff_a_t(i),zeff_b_t(i)
               t_t(i)=t_t(i)*1000. 
            end do 
            
@@ -169,6 +140,7 @@ c-------
            apr='-zeff_b_t-' 
            if(kpr.eq.1)print 71,apr,(zeff_b_t(i),i=1,n_t) 
 
+           close (unit=41) 
         end if
 
 71	FORMAT(20X,A8/,(6(1X,1PE10.3)))
@@ -345,17 +317,26 @@ c*******************************************************
         dimension te0(*),tq0(*)
 
 
+              te0(n)=0.5
+              tq0(n)=te0(n)
+      
+      return
+      
+
 	i_sh=i_sh+1
 
 	if(i_sh.eq.1)then
 c-------
-!	   open (unit=41,file='g_edge.dat',form='formatted') 
-           g_edge1=0.1
-           g_edge2=0.3 
+	   open (unit=41,file='g_edge.dat',form='formatted') 
+           read (41,*) 
+           read (41,*)g_edge1,g_edge2 
+           close (41)
 
-!         open (unit=41, file='scale.dat',form='formatted')
-         scale=1.
+         open (unit=41, file='scale.dat',form='formatted')
+         read (41,*)
+         read (41,*)scale
 	 if(kpr.eq.1)print *,'scale',scale
+         close (41)
         end if
 
 	g_edge=g_edge1
@@ -494,26 +475,16 @@ c************************************
      *  /ge5/kpr
 
       dimension pf_turns(*)
-      dimension pf_data(17)
-      DATA (pf_data(I), I=1,17)/554., 554., 554. ,554., 554. ,248.6,
-     *  115.2, 185.9, 169.9, 216.8, 459.4, 1., 1., 1., 1., 1., 1./
 
-	character *12 apr
-
-71	FORMAT(20X,A8/,(6(1X,1PE10.3)))
-
-
-!      open (unit=41, file='turn.dat',form='formatted')
-!      read (41,*)
-!      read (41,*)(pf_turns(i),i=1,npf)
-       do i=1,npf
-       pf_turns(i)=pf_data(i)
-       end do
-            
-!      close (41)
- 	apr='-pf_turns-' 
-	if(kpr.eq.1)print 71,apr,(pf_turns(i),i=1,npf) 
-     
+      open (unit=41, file='turn.dat',form='formatted')
+      read (41,*)
+      read (41,*)(pf_turns(i),i=1,npf)
+      
+c      if(kpr.eq.1)print*,(pf_turns(i),i=1,npf)
+c      pause 'from vic_turn'
+      
+      close (41)
+      
       return
       end
 c*******************************************************
@@ -1013,31 +984,21 @@ c*******************************************************
      *       n_ga,x_gaps,y_gaps)
 
 	include 'double.inc'
-      include 'parf1'
-      
         common
      *  /ge5/kpr
-
-      common /c_gaps_data_ramp/x_gaps_c(mu),y_gaps_c(mu),n_ga_c
 
         dimension x_gaps(*),y_gaps(*)
 
 
 c
-!	open(unit=40,status='old',file='gaps_data_ramp',form='formatted')
-!	read (49,*)
-!	read (49,*)n_ga
-	n_ga=n_ga_c
-      do i=1,n_ga
-!	read (49,*)
-!	read (49,*)(x_gaps(i),i=1,n_ga)
-	x_gaps(i)=x_gaps_c(i)
-!	read (49,*)
-!	read (49,*)(y_gaps(i),i=1,n_ga)
-	y_gaps(i)=y_gaps_c(i)
-	end do
-	
-!        close (40)
+	open(unit=40,status='old',file='gaps_data_ramp',form='formatted')
+	read (40,*)
+	read (40,*)n_ga
+	read (40,*)
+	read (40,*)(x_gaps(i),i=1,n_ga)
+	read (40,*)
+	read (40,*)(y_gaps(i),i=1,n_ga)
+        close (40)
 c
 
 c        if(kpr.eq.1)print*,(x_gaps(i),i=1,n_ga)
@@ -1147,16 +1108,10 @@ c***************************************************
      *       tay_simul,tt_1,tt_2)
 
 	include 'double.inc'
-      common /c_tay_simul_c13/tay_simul_c13
-
-!           open (unit=41,file='tay_simul.dat',form='formatted') 
-!           read (49,*) 
-!           read (49,*)tay_simul
-           tay_simul=tay_simul_c13
-           
-           tt_1=2500000.
-           tt_2=2700000. 
-!           close (41)
+           open (unit=41,file='tay_simul.dat',form='formatted') 
+           read (41,*) 
+           read (41,*)tay_simul,tt_1,tt_2 
+           close (41)
 
         return
         end
@@ -2135,12 +2090,12 @@ c----------------------------
 	i_sh=i_sh+1
 
 	if(i_sh.eq.1)then
-!           open (unit=40,file='dt_term.dat',form='formatted') 
-           dt=100.e3
-           dt_1=4.e3
+           open (unit=40,file='dt_term.dat',form='formatted') 
+           read (40,*) 
+           read (40,*)dt,dt_1
+           close (40)
              del_emo_0=0.
 	end if
-
 
 c	dt=100.e3
 c	dt=80.e3
@@ -2481,8 +2436,7 @@ c--------------------------
 	subroutine error_corr(error_xx,num_gaps_xx)
 	include 'double.inc' 
 	include 'new_com.inc'
-	dimension error_xx(*)
-
+	
 	call error_corr_c(error_xx,num_gaps_xx,
      * tt,t_end,zvel,tpl)
 
@@ -2737,7 +2691,6 @@ c
 	include 'double.inc'
         common
      *  /ge5/kpr
-      common /c_pcchp_end_c15/pcchp_end_c15
 
 
 
@@ -2759,20 +2712,17 @@ c=================================
 
 	if(i_sh.eq.1)then
 c-------
-!           open (unit=40,file='dt_term.dat',form='formatted') 
-           dt=100.e3
-           dt_1=4.e3
+           open (unit=40,file='dt_term.dat',form='formatted') 
+           read (40,*) 
+           read (40,*)dt,dt_1
+           close (40)
 
-!           open (unit=40,file='pcchp_end.dat',form='formatted') 
-!        read (49,*)
-!        read (49,*)pcchp_end
-        pcchp_end=pcchp_end_c15
-!           pcchp_end=4.
-      if(kpr.eq.1)print*,'pcchp_end is read',pcchp_end
+           open (unit=40,file='pcchp_end.dat',form='formatted') 
+           read (40,*) 
+           read (40,*)pcchp_end
+           close (40)
+
         end if
-
-
-       
 
 c******* H to L at tt_dw time moment!!!!
 	if(kpr.eq.1)print*,'tt tt_dw dt_term_h key_gamma',tt,tt_dw,
@@ -2866,41 +2816,3 @@ c	read(*,*)
         return
         end
 
-     	subroutine vic_prof_chg2()
-	include 'double.inc'
-	include 'new_com.inc'
-
-	call vic_prof_chg2_c(
-     *  n,pd0_a,pt0_a,pd0_b,pt0_b,a,pd0,pt0,pne,tt)
-
-	return
-	end
-
-	subroutine vic_prof_chg2_c(
-     *  n,pd0_a,pt0_a,pd0_b,pt0_b,a,pd0,pt0,pne,tt)
-	include 'double.inc'
-
-	dimension a(*),pd0(*),pt0(*),pne(*)
-
-
-	alfa=1.d0
-	beta=1.d0
-      pd0_b=0.25*pd0_a
-      pt0_b=0.25*pt0_a
-
-	do i=1,n
-           psix=a(i)
-           pd0(i)=pd0_b+((1.-psix**alfa))**beta*(pd0_a-pd0_b)
-           pt0(i)=pt0_b+((1.-psix**alfa))**beta*(pt0_a-pt0_b)
-	   pne(i)=pd0(i)+pt0(i)
-	end do
-
-c	print*,'!!!alfa beta=',alfa,beta
-
-	print*,'!!!pd0 pd0_a pd0_b tt=',tt,pd0_a,pd0_b
-	print*,(pd0(i),i=1,n)
-	print*,'!!!pt0 pt0_a pt0_b tt=',tt,pt0_a,pt0_b
-	print*,(pt0(i),i=1,n)
-
-	return
-	end

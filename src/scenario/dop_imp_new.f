@@ -106,10 +106,8 @@ c
      *  /vic_016/tt_rampup
      *  /vic_017/w_fusion
      *  /vic_018/r_lh_new
-c************************************************
-     *  /maksim_01/tqc,emag
-     *  /c_ener5/tene,ptot_dop
- 
+
+
 	character *10 mgr(iy),mt(iy)
 	character *70 apr
 	character *12 yy(iy)
@@ -214,44 +212,26 @@ c
      *  /halo5e/pshalo
      *  /halo6/thalo,thalo0
 c
-
-	common /c_temp1/v_neout
-	common /c_temp3/zhib_dif
-	common /c_temp4/wdrp
-!     *  /c_temp5/YTe,YTi,YGsep,Yne,YGsol
-!     *  /c_temp6/YPsol,Ycnim,YSeng,Yqpk,Yndt
-
-     *  /c_temp5/YMU,YPsol,YPalp,YSeng,YdNdt,YAim,Ycnim,YPedPi,
-     .	YGdt,YGpuf,YGpel,YGhe,YGsol,YGsep,
-     .	Ypn,Yqpk,Yndt,YnHe,Yne,YTe,YTi,
-     .	yGELM,yGLFS
-
-	common /c_temp6/wdr_d,wdr_t,WEL,wio
-      common /c_teit_98/teit_98
-        common /maksim_02/qtep,gfus,gamma
-
-	character *70 apr2
-
 4010    format(6e12.3)
 
 
       i_en=i_en+1
       if(i_en.eq.1)then
-!         open (unit=41, file='scale.dat',form='formatted')
-         scale=1.
-	 if(kpr.eq.1)print *,'scale',scale
-!         close (41)
-         
+         open (unit=41, file='scale.dat',form='formatted')
+         read (41,*)
+         read (41,*)scale
+         close (41)
+
+
       zhib=0.45
 !      zhib=0.15
 	 if(kpr.eq.1)print *,'scale zhib',scale,zhib
-         
-         
+	 
+
       end if
 
 
-      wdr_d=WD0(N)*2.*PI
-      wdr_t=WT0(N)*2.*PI
+
 
 ccccc      WDR=(WD0(N)+WT0(N)+WH0(N))*2.5
 	wdre=0.
@@ -413,6 +393,9 @@ c        read(*,*)
 c--------------------------
 c*** [wen2] is in kJ >>>>>>>>> [qen2] is in MW
 c here balance of heat---(wen2-wen1)/tay=qen2-wel-wio
+
+      if(i_en.eq.1)WEN1=WEN2
+
 	wb_l=(wen2-wen1)/tay
 	wb_r=qen2-wel-wio
 
@@ -424,10 +407,12 @@ c here balance of heat---(wen2-wen1)/tay=qen2-wel-wio
 	if(kpr.eq.1)print *,' qen2 wel wio=======1)',qen2,wel,wio
 	if(kpr.eq.1)print *,' wb_l wb_r ken2=======',wb_l,wb_r,ken2
 	if(kpr.eq.1)print *,' anom_zeff prim=======',anom_zeff,prim
+	if(kpr.eq.1)print *,' w_imp prim=======',w_imp,prim
 
 	if(kpr.eq.1)print *,' palf pion ',palf,pion
 
 !      if(ntay.gt.next)zeff_a=zeff_avr
+
       zeff_a=zeff_avr
 	if(kpr.eq.1)print *,' zeff_a zeff_avr',zeff_a,zeff_avr
 
@@ -435,7 +420,7 @@ c here balance of heat---(wen2-wen1)/tay=qen2-wel-wio
 c*** Power across separatrix with thermoconductivity + dQ/dt, MW
 c!!!!!!!        p_sep=qen2-(wen2-wen1)/tay
         p_sep=qen2
-        p_sep_tot=p_sep-(wen2-wen1)/tay
+
 
 c*** Here in MW ***
 	wsum=wnet+wel+wio+wtor+qc+prim
@@ -447,8 +432,9 @@ c*** Here in MW ***
 
         if(kpr.eq.1)print*,'wae waq',wae,waq
 
-
+      
         WEN1=WEN2
+        
 c$
         tene=1.
         tene_e=1.
@@ -526,14 +512,9 @@ c==========================================================================
 
 c---->  ITER (Scaling L-mode,95) tay95=0.023*Ip**0.96*R**1.89*a**(-0.06)*
 c   n_e**0.4*B_t0**0.03*k**0.64*A_i**0.2*P**(-0.73)
-  	
-  	  p_sep_a=abs(p_sep)
-  	  
-        if(ntay.lt.3)then
-        p_sep_a=1.d0
-        end if
 
         if(ntay.gt.30)then
+	p_sep_a=abs(p_sep)
         teit_95=0.023*(tpl*1.e-3)**(0.96)*(rs*1.e-2)**(1.83)*
      *  (eu/rs)**(-0.06)*(pcch)**(0.4)*(bt*0.1)**(0.03)*
      *  eksk**(0.64)*pot**(0.2)/(p_sep_a)**0.73*1000.
@@ -613,42 +594,65 @@ c#####           if(ntay.gt.31)tepr=(f_t/teoh**2+1./teit**2)**(-0.5)
 
 
 
-		if(key_t11.eq.2.or.key_t11.eq.3)then
 
-		if(r_lh_new.ge.1.d0.and.tt.gt.tt_rampup)then
-		k_r_lh_new=1
-		end if
-
-		if(k_r_lh_new.eq.1)then
-		tepr=teit_98
-		else
-!		tepr=teit_95
-        tepr=0.5d0*teit_98
-        end if
-
-        p_aux=(wde+wdq)
-
-		if(k_r_lh_new.eq.1.and.p_aux.le.1.d0)then
-!		tepr=teit_95
-        tepr=0.5d0*teit_98
-        end if
+c     tay_ee     Bohm   3.e-3*a**2*Bt/Te	[s, m, T, keV]
 
 
-        print*,' r_lh_new k_r_lh_new p_aux',
-     *  r_lh_new,k_r_lh_new,p_aux
+!	tay_ee1=3.e-3*a**2*Bt/T_e
+	tay_ee1=3.e-3*(eu*1.e-2)**2*(Bt*0.1)/(Tec*1.e-3)*1.e3
 
-        print*,' teit_98 teit_95 tepr',
-     *  teit_98,teit_95,tepr
+c ITER-98 L-mode confinement scaling [6] is
 
-        end if
+c     tay_ee =0.023*IP**0.96*Bt**0.073*ne**0.4*Ai**0.2*R**1.83*e**-0.06*k**0.64/Qabs**0.73 
+c	  [s,MA,T,1019 m-3,AMU,m,MW].
 
-  		if(ntay.le.30)tepr=teoh
+!	eps=a/R
+
+!	Qabs=dabs(P_oh*V_p+q_ech)
+
+!	tay_ee2=0.023*I_p**0.96*Bt**0.073*(n_e*10.)**0.4*a_d**0.2*
+!     *  R**1.83*eps**(-0.06)*elong**0.64/Qabs**0.73
+
+      tay_ee2=teoh
       
+	 if(kpr.eq.1)print *,' tay_ee1 tay_ee2 ',tay_ee1,tay_ee2
+
+!      tay_ee=dmax1(tay_ee1,tay_ee2)
+
+       q_10=10.d0
+!      q_10=3.d0
+
+      d_q=1.d-1
+!      d_q=2.d0
+
+      q_b=q(n)
+
+      if(q_b.gt.q_10+d_q)tay_ee=tay_ee1
+      if(q_b.lt.q_10-d_q)tay_ee=tay_ee2
+!      if(q_b.lt.1.d0)tay_ee=tay_ee1
+
+
+      if(q_b.ge.q_10-d_q.and.q_b.le.q_10+d_q)then 
+!!!      fbq=5.5d0-0.5d0*q_b
+
+!!!    f2(q) = (q0 + dq – q)/2/dq ;
+      fbq=(q_10+d_q-q_b)/2.d0/d_q
+
+      tay_ee=(1.d0-fbq)/tay_ee1+fbq/tay_ee2
+      tay_ee=1.d0/tay_ee
+      end if
+      
+      tepr=tay_ee
+
+
+
 c!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         if(kpr.eq.1)print*,'ntay tt',tt,ntay
         if(kpr.eq.1)print*,'ppch',ppch
         if(kpr.eq.1)print*,'p_sep p_lh',p_sep,p_lh
         if(kpr.eq.1)print*,'p_sep_a ptot_ion',p_sep_a,ptot_ion
+	if(kpr.eq.1)print *,' tec tqc=======',tec,tqc
+	if(kpr.eq.1)print *,' pcch vv=======',pcch,vv*1.e-6
 
         if(kpr.eq.1)print*,'teoh r_lh teit_95 teit_98 tepr'
         if(kpr.eq.1)print*,teoh,r_lh,teit_95,teit_98,tepr
@@ -673,6 +677,9 @@ c!!!!!!        tepr=teit_95
 c        tepr=teit
 
 	tepr=tepr/anom_e
+
+	if(kpr.eq.1)print *,' ** tene tepr anom_e**',
+     *  tene,tepr,anom_e
         
         
 	if(kpr.eq.1)print *,' ** teit teit_l teit_95 teoh**',
@@ -681,13 +688,26 @@ c        tepr=teit
 c!       if(tepr.gt.teoh)tepr=teoh
 
 c-----
-	if(ntay.lt.1)tepr=teoh
-
+	if(ntay.lt.1)then 
+	tepr=teoh
+	tene=teoh
+      end if
+      
         if(tene.le.0)then
            tene=tepr
            tene_e=tepr
         end if
 
+        if(q_b.lt.8)then
+        call w_filter(tene)
+        end if
+        
+	if(kpr.eq.1)print *,' ** q_b zhib **',
+     *  q_b,zhib
+        
+
+	if(kpr.eq.1)print *,' ** tene tepr  **',
+     *  tene,tepr
 
         zhib0=zhib
 
@@ -702,61 +722,10 @@ c###        zhib=zhib*tene_e/tepr
         zhib=0.5*(zhib0+zhib)
         end if
 
-        if(ntay.gt.1.and.k_ener.eq.1.and.key_t11.eq.2)then
-c!!!        zhib=zhib*(0.5+0.5*tene/tepr)
-
-c        zhib=zhib*(0.5+0.5*tene_e/tepr)
-        zhib=zhib*(0.5+0.5*tene/tepr)
-
-c###        zhib=zhib*tene_e/tepr
-
-        zhib=0.5*(zhib0+zhib)
-        end if
-        
-        if(ntay.gt.1.and.k_ener.eq.1.and.key_t11.eq.3)then
-c!!!        zhib=zhib*(0.5+0.5*tene/tepr)
-
-c        zhib=zhib*(0.5+0.5*tene_e/tepr)
-        zhib=zhib*(0.5+0.5*tene/tepr)
-
-c###        zhib=zhib*tene_e/tepr
-
-        zhib=0.5*(zhib0+zhib)
-        end if
-
-
-
-
-        print *,' ntay k_ener key_t11==',ntay, k_ener, key_t11
-        print *,' tene tepr zhib zhib0 ==',tene,tepr,zhib,zhib0
-
-
-        if(kpr.eq.1)print *,' i_en zhib ==',i_en,zhib
+        if(kpr.eq.1)print *,' alf_zhib zhib ==',alf_zhib,zhib
 
         if(kpr.eq.1)print *,' te_ax ti_ax  ==',te0(1),tq0(1)
         if(kpr.eq.1)print *,' p_dop p_oh ==',ptot-wdh,wdh
-
-
-
-
-         if(i_en.eq.1)then
-         open (unit=1,file='tau98.dat',form='formatted')
-          apr2='tt[s]	tau_e tau_95 tau_98'
-          write (1,*)apr2
-         end if
-         if(i_en.gt.1)then
-         open (unit=1,file='tau98.dat',access='append',form='formatted')
-         end if
-         
-         
-      write (1,*)tt*1.e-3,tene,teit_95,teit_98
-      close(1)
-   
-
-
-
-
-
 
 55      continue
         wznam=(Wde+Wdq+Wpe+wpq+wdh)
@@ -781,6 +750,10 @@ c        read(*,*)
 
 	if(ntay.gt.2)vs=vs+uact*tay*1.e-3
         CAL=ptot/(WTOR+qc+WEL+WIO)
+        
+      	if(kpr.eq.1)print *,' vs vs_start',
+     *  vs,vs_start
+
 c$
 	udd_dif=-(dm0(n)-dmn(n))/(tay*100.)
         vsur=udd_dif
@@ -789,20 +762,22 @@ c#
 72 	FORMAT(5X,A60/,(1x,6(1pE11.3)))
 
 
-        call w_filter(qen2)
+!        call w_filter(qen2)
 
         TENE_G=WEN2/ptot
 
 !	if(ntay.lt.next) return
 
-         
 
 c***** We are calculating Nimp to obtain zeff_a we need
          nz_imp=2
-!         nz_imp1=4
-!         nz_imp2=74
-!         nz_imp3=18
-!         nz_imp4=10
+
+          goto 5    
+ 
+ !        nz_imp1=4
+ !        nz_imp2=74
+ !        nz_imp3=18
+ !        nz_imp4=10
         
         te_zrad(1)=tec*1.e-3
 
@@ -849,10 +824,11 @@ c*** [w_imp]=MW
      
 c        read(*,*)
 
+5     continue
 
 ccc!!!!!!!       if(ksepa.eq.1)then 
-        call  min_dist(dist_min_xx,Rdist_min_xx,Zdist_min_xx)
-        call min_dist_pfw(dNB_xx)
+!        call  min_dist(dist_min_xx,Rdist_min_xx,Zdist_min_xx)
+!        call min_dist_pfw(dNB_xx)
 c!!!!!!!!!        end if
 
 	igr=1
@@ -864,8 +840,29 @@ c	include 'dop_tsp.inc'
 c	tmp='na_smal'
 c	include 'dop_ramp.inc'
 
-      YPsol=p_sep_a
+        if(kpr.eq.1)print*,'i_en ntay ',i_en,ntay
+        if(kpr.eq.1)print*,'pcch,tene ',pcch,tene
 
+       if(i_en.le.2)then
+
+        p_sep_tot=p_sep
+
+        if(kpr.eq.1)print*,'p_sep_tot qen2 ',p_sep_tot,qen2
+
+      	call get_data_in_time(pcch2,tene,wdop2,
+     *  p_sum2,p_loss2)
+
+        if(kpr.eq.1)print*,'pcch2,tene ',pcch2,tene
+	  
+	  tene=tene*1.d3
+
+       else
+
+        p_sep_tot=p_sep-(wen2-wen1)/tay
+
+        if(kpr.eq.1)print*,'p_sep_tot qen2 ',p_sep_tot,qen2
+       end if
+      
 	include 'dop_vs_pfw_1.inc'
 
 !	include 'dop_vs2.inc'
@@ -899,6 +896,9 @@ c%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 	end do
 	close (41)
 	end if
+
+!        WEN1=WEN2
+
 
       RETURN
       END

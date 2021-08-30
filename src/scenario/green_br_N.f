@@ -517,9 +517,13 @@ c	implicit real*8 (a-h,o-z)
 	DO I=1,npf
 	read(41,*)
 	read(41,*)nmx(i),turn(i)
-c!!!        if(kpr.eq.1)print *,' i nmx turn',i,nmx(i),turn(i)
+	if(kpr.eq.1)print *,' i nmx turn',i,nmx(i),turn(i)
 
 	read(41,*)(R(J,I),Z(J,I),J=1,nmx(i))
+
+      j=1
+	if(kpr.eq.1)print *,' R Z ',R(J,I),Z(J,I)
+
 	END DO
 
 	if(kpr.eq.1)print *,' npf===',npf
@@ -531,6 +535,8 @@ c
 	DO J=1,nmx(i)
 	pw(j,i)=turn(i)/nmx(i)
 	end do
+	pw1=turn(i)/nmx(i)
+	if(kpr.eq.1)print *,' i pw ',i,pw1
 	END DO
 c
 71 	format (20x,a6/,(6(1pe10.3)))
@@ -574,6 +580,7 @@ c
 	BRR(I)=0.
 	BZZ(I)=0.
 	do j=1,NMX(i)
+!	print *,' i j r z brz',i,j,r,z
       CALL BRZ(BR0,BZ0,R,RR(j,I),Z,ZZ(j,i))
       BR=BR0*pw(j,i)
       BZ=BZ0*pw(j,i)

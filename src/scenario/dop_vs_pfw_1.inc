@@ -3,9 +3,6 @@ c       ------I plasma---------
 	ygr(1,igr)=tpl/1.e3
 	yy(1)='I_pl[MA]'
 c       ----beta p(2) --
-
-	if(betpj.gt.5.)betpj=5.
-
 	ygr(2,igr)=betpj
 	yy(2)='BETAp'
 c       ------a minor-----
@@ -50,9 +47,12 @@ c       ---- gamma ------
 c	ygr(10,igr)=dfmax(n)*1.d-5
 c	yy(10)='Fmax'
 
+	if(kpr.eq.1)print *,' ++zeff_a zeff_avr',zeff_a,zeff_avr
+
 c       -------Zeff_a-----
-	ygr(11,igr)=zeff_a
-	yy(11)='Zeff_a'
+	ygr(12,igr)=zeff_a
+	yy(12)='Zeff_a'
+	
 c       -------Zeff_b-----
 c	ygr(12,igr)=zeff_b
 c	yy(12)='Zeff_b'
@@ -61,11 +61,12 @@ c	yy(12)='TAYoh,ms'
 c	ygr(12,igr)=psipl_av
 c	yy(12)='psipl_av,vs'
 
-	ygr(12,igr)=psiext_av
-ccccc	ygr(12,igr)=fdd*1.e-5
 
-	yy(12)='psiext_av,vs'
+!	ygr(12,igr)=psiext_av
+!	yy(12)='psiext_av,vs'
 c********************************************************
+
+
 c       -----te average-----
 	ygr(13,igr)=tec
 	yy(13)='Te_avr[eV]'
@@ -115,11 +116,9 @@ c!!!!!	c_e=vs/(0.1*4*pi*rmag*1.e-2*tpl*1.e-3)
 	ygr(23,igr)=c_e_old
 	yy(23)='C_Ejima'
 
-!	ygr(23,igr)=tokae*1.d-3
-!	yy(23)='I run [MA]'
+	ygr(23,igr)=tokae*1.d-3
+	yy(23)='I run [MA]'
 
-	ygr(23,igr)=pion
-	yy(23)='pion'
 	
 c       ---- W_sum ------
 	w_pf=0.
@@ -129,14 +128,8 @@ c       ---- W_sum ------
 c	ygr(24,igr)=w_pf
 c	yy(24)='P_PF[MW]'
         pmag_out=pmag*1.e-5*2.*pi
-
-!	ygr(24,igr)=pmag_out
-!	yy(24)='Pmag[Vs]'
-
-	ygr(24,igr)=YGsol
-	yy(24)='YGsol'
-
-
+	ygr(24,igr)=pmag_out
+	yy(24)='Pmag[Vs]'
 c************************************************************
 c           if(tt.gt.t_end)then
 c              print*,'!!!tt t_end',tt,t_end
@@ -146,99 +139,65 @@ c	      print*,d_gaps(mmm),pf(mmm)/1.e3
 c	      end do
 c	   end if
 
+	ygr(25,igr)=d_gaps(1)
+	yy(25)='error_01'
 
-!	ygr(25,igr)=d_gaps(1)
-!	yy(25)='error_01'
+	ygr(26,igr)=d_gaps(2)
+	yy(26)='error_02'
 
-!	ygr(26,igr)=d_gaps(2)
-!	yy(26)='error_02'
+	ygr(27,igr)=d_gaps(3)
+	yy(27)='error_03'
 
-!	ygr(27,igr)=d_gaps(3)
-!	yy(27)='error_03'
-
-!	ygr(28,igr)=d_gaps(4)
-!	yy(28)='error_04'
-
-
-	ygr(25,igr)=YTe
-	yy(25)='YTe'
-
-	ygr(26,igr)=YTi
-	yy(26)='YTi'
-
-	ygr(27,igr)=YGsep
-	yy(27)='YGsep'
-
-	ygr(28,igr)=Yne
-	yy(28)='Yne'
-	
-!     *  /c_temp5/YTe,YTi,YGsep,Yne,YGsol
-	
-	
+	ygr(28,igr)=d_gaps(4)
+	yy(28)='error_04'
 c***********************************************
-	ygr(29,igr)=YPsol
-	yy(29)='YPsol'
+	ygr(29,igr)=d_gaps(5)
+	yy(29)='error_05'
 
-	ygr(30,igr)=Ycnim
-	yy(30)='Ycnim'
+	ygr(30,igr)=d_gaps(6)
+	yy(30)='error_06'
 
-	ygr(31,igr)=Yqpk
-	yy(31)='Yqpk'
+	ygr(31,igr)=d_gaps(7)
+	yy(31)='error_07'
 
-	ygr(32,igr)=Yndt
-	yy(32)='Yndt'
-	
-!	     *  /c_temp6/YPsol,Ycnim,YSeng,Yqpk,Yndt
-
+	ygr(32,igr)=d_gaps(8)
+	yy(32)='error_08'
 c***********************************************
-!       YMU,YPalp,YAim,YPedPi,	
-	ygr(33,igr)=YMU
-	yy(33)='YMU'
+	ygr(33,igr)=d_gaps(9)
+	yy(33)='error_09'
 
-	ygr(34,igr)=YPalp
-	yy(34)='YPalp'
+	ygr(34,igr)=d_gaps(10)
+	yy(34)='error_10'
 
-	ygr(35,igr)=YAim
-	yy(35)='YAim'
+	ygr(35,igr)=d_gaps(11)
+	yy(35)='error_11'
 
-	ygr(36,igr)=YPedPi
-	yy(36)='YPedPi'
-
+	ygr(36,igr)=d_gaps(12)
+	yy(36)='error_12'
 c***********************************************
-!     	YGdt,YGpuf,YGpel,YGhe,
-	ygr(37,igr)=YGdt
-	yy(37)='YGdt'
+	ygr(37,igr)=d_gaps(13)
+	yy(37)='error_13'
 
-	ygr(38,igr)=YGpuf
-	yy(38)='YGpuf'
+	ygr(38,igr)=d_gaps(14)
+	yy(38)='error_14'
 
-!	ygr(39,igr)=YGpel
-!	yy(39)='YGpel'
+	ygr(39,igr)=d_gaps(15)
+	yy(39)='error_15'
 
-!	ygr(40,igr)=YGhe
-1	yy(40)='YGhe'
-
-
-	ygr(39,igr)=pd0(n)
-	yy(39)='D bnd'
-
-	ygr(40,igr)=pd0(1)/pd0(n)
-	yy(40)='D ax bnd'
-
-
+	ygr(40,igr)=d_gaps(16)
+	yy(40)='error_16'
 c***********************************************
-!     	Ypn,YnHe,yGELM,yGLFS
-	ygr(41,igr)=Ypn
-	yy(41)='Ypn'
+	ygr(41,igr)=d_gaps(17)
+	yy(41)='error_17'
 
-	ygr(42,igr)=YnHe
-	yy(42)='YnHe'
+	ygr(42,igr)=d_gaps(18)
+	yy(42)='error_18'
 
-	ygr(43,igr)=yGELM
-	yy(43)='yGELM'
+	ygr(43,igr)=d_gaps(19)
+	yy(43)='error_19'
 
-	ygr(44,igr)=yGLFS
-	yy(44)='yGLFS'
+	ygr(44,igr)=d_gaps(20)
+	yy(44)='error_20'
 c***********************************************
 	i=1
 	ggg=gaps(i)-gaps0(i)
@@ -459,9 +418,9 @@ c****************************************************
 	ygr(113,igr)=teit_98
 	yy(113)='tay_H[ms]'
 	
-cc	ygr(114,igr)=r_lh
-	ygr(114,igr)=r_lh_new
-	yy(114)='r_LH'
+	ygr(114,igr)=r_lh
+	ygr(114,igr)=r_lh_new 
+		yy(114)='r_LH'
 	
 	if(ksepa.eq.0)then
 		ell=eksk
@@ -588,10 +547,13 @@ c*******************************************
 		yy(147)='Psum,MW'
 
 	P_HL=0.082/2.5*(pcch/10.)**0.73*5.3**0.74*(s_plasma/1.e4)**0.98
-	    ygr(148,igr)=P_HL
+	
+	if(kpr.eq.1)print *,' p_hl s_plasma pcch=',p_hl,s_plasma,pcch 
+	
+		    ygr(148,igr)=P_HL
 		yy(148)='P_HL,MW'
 c****************************************************
-	pmag_out_1=dm0(1)*1.e-5
+	   pmag_out_1=dm0(1)*1.e-5
 c	   ygr(149,igr)=pmag_out_1
 c		yy(149)='Pmag Tr'
 
@@ -683,12 +645,8 @@ c		yy(176)='18bot'
 	    ygr(176,igr)=gaps(n_ga+1)
 		yy(176)='Dsep'
 c******************************************
-	    ygr(177,igr)=dist1
-		yy(177)='dist1'
-	    ygr(178,igr)=dist2
-		yy(178)='dist2'
 
-		ng=178
+		ng=176
 
 c***********************************
 c******  Calculation of Ivs3, Uvs3, Ivs1, Uvs1
@@ -708,6 +666,12 @@ c   Calculation of Uvs1 (in kV)
         U_vs1=-u_kd(7)*pf_turns(7)*1.e-3
 
 c***********************************
+
+!	print *,' write_data_in_time'
+
+		if(kpr.eq.1)print*,'to write_plasma =w_imp ',w_imp,w_imp+prim
+
+
 c***********************************
       call write_data_in_time(
      *	tt,tpl,betpj,eu,uli,r_cur,z_cur,p_sep,wel,wio,eksk,
@@ -734,6 +698,9 @@ c     *  rmag,gamma,vs,q_95,q(2),zvel*10.,psi_pf,pmag_out,uact,
      *	U_vs1,U_vs3,Curr_vs1,Curr_vs3,
      *  r_lh,wdop,qtep,w_fusion,wae+waq,s_plasma/1.e4,p_sum,P_HL,zmag,
      *  wtp,wtor,qc,w_imp,gfus,p_sep_tot,
+!     *  wtp,wtor,qc,prim,gfus,p_sep_tot,
+
+
      *  dist_min_xx,Rdist_min_xx,Zdist_min_xx,
      *  dNB_xx)
 c     *  wdop,qtep,w_fusion,

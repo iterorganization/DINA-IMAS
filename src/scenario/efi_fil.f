@@ -2,8 +2,6 @@
  	include 'double.inc'
 	include 'new_com.inc'
 
-        integer index_li(nr*nz)
-
 	call pol_halo_c(
      *  nr,nz,dx,dy,coef,pi,
      *  pmag,p_s,pbound,
@@ -77,9 +75,7 @@
 
  	include 'double.inc'
         include 'new_com.inc'
-        
-        integer index_li(nr*nz)
-
+      
         call cur_den_2_c(
      *  u_h,gr_fil,tpl,
      *  npo,aj,ro,tok_fil,n_rad,index_li)
@@ -235,9 +231,6 @@ c-------------
  	include 'double.inc'
         include 'new_com.inc'
       
-
-        integer index_ves(nr*nz)
-
         call fil_dis_cir_3_c(
      *  ke,xu,yu,
      *  n_fil,r_fil,z_fil,
@@ -803,9 +796,6 @@ c  ------- 4th point (i+1,j+1)
 	include 'new_com.inc'
 	dimension f_xx(*)
 
-        integer index_li(nr*nz)
-        integer index_ves(nr*nz)
-
 	call cur_den_c(
      *  nr,nz,u_h,dx,dy,coef,f_xx,eu_fil,pi,
      *  pmag,p_s,pbound,psi,
@@ -907,8 +897,6 @@ c  ------- 4th point (i+1,j+1)
 	subroutine cur_de()
  	include 'double.inc'
 	include 'new_com.inc'
-
-        integer index_ves(nr*nz)
 
 	call cur_de_c(
      *  nr,nz,dx,dy,coef,eu_fil,pi,
