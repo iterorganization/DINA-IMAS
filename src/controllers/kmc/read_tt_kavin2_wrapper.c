@@ -20,20 +20,21 @@ extern FILE*f;
 #define u_width 
 #define y_width 1
 
+extern	  struct t15_mem5 mem5;
 
 struct t15_mem5
 {
 double y[25];
 };
 
-	  struct t15_mem5 mem5;
+
+extern	  struct t15_mem7 mem7;
 
 struct t15_mem7
 {
 double y[25];
 };
 
-	  struct t15_mem7 mem7;
 
 
 /*

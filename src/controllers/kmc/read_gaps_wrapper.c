@@ -37,14 +37,14 @@ extern FILE*f1;
 #define u_width 
 #define y_width 50
 
-
+extern struct t15_mem3 mem3;
 struct t15_mem3
 {
 int N[7];
 double y_0[50][2],y1[50][2],y2[50][2],y3[50][2],y4[50][2],y5[50][2],y6[50][2];
 };
 
-	  struct t15_mem3 mem3;
+	  
 
 	  /*
  * Create external references here.  

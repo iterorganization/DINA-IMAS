@@ -43,7 +43,7 @@ int N; double y[500][20];
 int k_time; 
 };
 
-	  struct t15_mem2 mem2;
+extern struct t15_mem2 mem2;
 /*
  * Create external references here.  
  *

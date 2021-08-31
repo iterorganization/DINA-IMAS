@@ -4,6 +4,8 @@
 #define kf 15
 #define mexPrintf printf
 
+extern struct t15_mem6 mem6;
+
 struct t15_mem6
 {
 	int kmax;
@@ -11,12 +13,11 @@ struct t15_mem6
 	double t[nmax],tpl[nmax];
 };
 
-	  struct t15_mem6 mem6;
 
 
 
-FILE*prob;
-FILE*f2;
+extern FILE*prob;
+extern FILE*f2;
 
 /* Subroutine */ int scen_read(int i_en, int npf, int indx, int  *n, 
 		double *t_val, double *tpl_val, double *pf_val)
