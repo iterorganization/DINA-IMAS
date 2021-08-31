@@ -2437,6 +2437,8 @@ c--------------------------
 	include 'double.inc' 
 	include 'new_com.inc'
 	
+	dimension error_xx(*)
+	
 	call error_corr_c(error_xx,num_gaps_xx,
      * tt,t_end,zvel,tpl)
 

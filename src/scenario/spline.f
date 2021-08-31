@@ -3,8 +3,8 @@
 	dimension x(*),y(*)
 	dimension y2(n)
 
-	yp1=1.1e30
-	ypn=1.1e30
+	yp1=1.1d30
+	ypn=1.1d30
 
 c ***	preparation of y2 array	
 	call spline(x,y,n,yp1,ypn,y2)
@@ -225,7 +225,7 @@ CU    USES spline
         do 11 k=1,n
           ytmp(k)=ya(j,k)
 11      continue
-        call spline(x2a,ytmp,n,1.e30,1.e30,y2tmp)
+        call spline(x2a,ytmp,n,1.d30,1.d30,y2tmp)
         do 12 k=1,n
           y2a(j,k)=y2tmp(k)
 12      continue
@@ -249,7 +249,7 @@ CU    USES spline,splint
 11      continue
         call splint(x2a,ytmp,y2tmp,n,x2,yytmp(j))
 12    continue
-      call spline(x1a,yytmp,m,1.e30,1.e30,y2tmp)
+      call spline(x1a,yytmp,m,1.d30,1.d30,y2tmp)
       call splint(x1a,yytmp,y2tmp,m,x1,y)
       return
       END

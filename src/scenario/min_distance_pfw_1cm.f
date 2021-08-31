@@ -1,7 +1,8 @@
         subroutine min_dist_pfw(dNB_xx)
 	include 'double.inc'
 	include 'new_com.inc'
-
+      
+      dimension dNB_xx(*)
 c!!!	common
 c!!!     *  /eq8/jbound,xbound(ntet),ybound(ntet),alfa0_xx
 

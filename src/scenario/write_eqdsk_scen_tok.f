@@ -27,7 +27,7 @@ c************************************************
 	character*24 case_dina1,case_dina2
 
 	dimension q(*),f(*),p(*),ppx(*),pffx(*),r(*),z(*),
-     . xbound(*),ybound(*),xu(*),yu(*),psi_g(nr,nz),ai(*)
+     . xbound(*),ybound(*),xu(*),yu(*),psi_g(nr,nz),ai(*),a(*)
 
 	dimension psirz(nr,nz),fpol(npo),pres(npo),ffprim(npo),
      . pprime(npo),qpsi(npo),rbbbs(npo),zbbbs(npo),

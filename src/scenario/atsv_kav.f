@@ -283,12 +283,16 @@ c
       real*8 Z1,Z2,EE,Si,Sr,Rad
       real*4 T
       integer i
+      integer Kz
+      dimension Kz(1), Z1(1), Z2(1), EE(1), Si(1), Sr(1), Rad(1)
+
+      Kz(1) = nz+1
             do 1 i=1,i1
       T=Te(i)
-      call AReffm(nz,T,1,nz+1,Z1,Z2,EE,Si,Sr,Rad,0.,0.,T)
-      if(k.eq.1)  Xz(i)=0.16*Rad
-      if(k.eq.2)  Xz(i)=Z1
-      if(k.eq.3)  Xz(i)=Z2
+      call AReffm(nz,T,1,Kz,Z1,Z2,EE,Si,Sr,Rad,0.,0.,T)
+      if(k.eq.1)  Xz(i)=0.16*Rad(1)
+      if(k.eq.2)  Xz(i)=Z1(1)
+      if(k.eq.3)  Xz(i)=Z2(1)
     1 continue  
             return 
       end
@@ -576,7 +580,11 @@ c
       
       real RAJ,CDe
       
-      integer i
+      integer i,Kz
+      dimension Kz(1), Z1(1), Z2(1), EE(1), Si(1), Sr(1), Rad(1)
+
+      Kz(1) = nz+1
+
       RAJ=0.
       
       call get_param_test(n0_xx,n_e_xx,tay_lo_xx,tn_xx,alf_n_xx)
@@ -595,10 +603,10 @@ c
       
             do 1 i=1,i1
       T=Te(i)
-      call AReffm_t(nz,T,1,nz+1,Z1,Z2,EE,Si,Sr,Rad,RAJ,CDe,tn,tay_lo)
-      if(k.eq.1)  Xz(i)=0.16*Rad
-      if(k.eq.2)  Xz(i)=Z1
-      if(k.eq.3)  Xz(i)=Z2
+      call AReffm_t(nz,T,1,Kz,Z1,Z2,EE,Si,Sr,Rad,RAJ,CDe,tn,tay_lo)
+      if(k.eq.1)  Xz(i)=0.16*Rad(1)
+      if(k.eq.2)  Xz(i)=Z1(1)
+      if(k.eq.3)  Xz(i)=Z2(1)
     1 continue  
             return 
       end
@@ -785,6 +793,11 @@ c
       real RAJ,CDe
       
       integer i
+      integer Kz
+      dimension Kz(1), Z1(1), Z2(1), EE(1), Si(1), Sr(1), Rad(1)
+
+      Kz(1) = nz+1
+
       RAJ=0.
       
       call get_param_test2(n0_xx,n_e_xx,tay_lo_xx,tn_xx,alf_n_xx)
@@ -806,10 +819,10 @@ c
       
             do 1 i=1,i1
       T=Te(i)
-      call AReffm_t(nz,T,1,nz+1,Z1,Z2,EE,Si,Sr,Rad,RAJ,CDe,tn,tay_lo)
-      if(k.eq.1)  Xz(i)=0.16*Rad
-      if(k.eq.2)  Xz(i)=Z1
-      if(k.eq.3)  Xz(i)=Z2
+      call AReffm_t(nz,T,1,Kz,Z1,Z2,EE,Si,Sr,Rad,RAJ,CDe,tn,tay_lo)
+      if(k.eq.1)  Xz(i)=0.16*Rad(1)
+      if(k.eq.2)  Xz(i)=Z1(1)
+      if(k.eq.3)  Xz(i)=Z2(1)
     1 continue  
             return 
       end

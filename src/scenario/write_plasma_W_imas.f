@@ -53,13 +53,14 @@ c     *  pf2,pf6,cs2L,cs1,cs2U,volume,z_tok,tokc,zvel_out)
 	common
      *  /c_grib2/rp1,zp1,dist1,rp2,zp2,dist2
      *  /vic_018/r_lh_new
-
+     *  /maksim_01/tqc_xx,emag
+     *  /maksim_02/wr,wr_imas
       common 
      * /c_imas_t_end2/t_end2
      *  /c_imas2/p_n0
      *  /c_imas4/pn0_tot
 
-        dimension dNB_xx(24),wr(150)
+        dimension dNB_xx(24),wr(150),wr_imas(150)
 
 c******* Begin of Sign changing ******
         tpl_imas=tpl*(-1)
@@ -419,6 +420,119 @@ cccccc	wr(73)=r_lh
 
       if(kpr.eq.1)print*,'from write_plasma =wr(101)',wr(101)
 
+	
+	
+        wr_imas(1)=t
+        wr_imas(2)=tpl_imas*1000.
+        wr_imas(3)=rout/100.
+        wr_imas(4)=eu/100.
+        wr_imas(5)=eksk
+        wr_imas(6)=tri   !! %%% one needs to do it 
+        wr_imas(7)=v
+        wr_imas(8)=s
+        wr_imas(9)=s_plasma
+        wr_imas(10)=r_cur/100.
+        wr_imas(11)=z_cur/100.
+        wr_imas(12)=zvel
+        wr_imas(13)=rmag/100.
+        wr_imas(14)=zmag/100.
+        wr_imas(15)=rsep/100.
+        wr_imas(16)=zsep/100.
+        wr_imas(17)=q_95
+        wr_imas(18)=q_ax
+        wr_imas(19)=uli   !!! %%% one needs to divide into rout
+        wr_imas(20)=betpj
+        wr_imas(21)=pcch*1.d19
+        wr_imas(22)=gamma
+        wr_imas(23)=pion*1.d19
+        wr_imas(24)=tec
+        wr_imas(25)=te_ax/tec
+        wr_imas(26)=tqc
+        wr_imas(27)=tq_ax/tqc
+        wr_imas(28)=zeff_a
+        wr_imas(29)=uact
+        wr_imas(30)=vs
+        wr_imas(31)=c_e_old
+        wr_imas(32)=psi_ext !!!! %%% one needs to need to add tcam to psi_pf 
+        wr_imas(33)=psi_pf_imas
+        wr_imas(34)=psi_ax_imas
+        wr_imas(35)=pf1_imas*1.d3
+        wr_imas(36)=pf2_imas*1.d3
+        wr_imas(37)=pf3_imas*1.d3
+        wr_imas(38)=pf4_imas*1.d3
+        wr_imas(39)=pf5_imas*1.d3
+        wr_imas(40)=pf6_imas*1.d3
+        wr_imas(41)=pf7_imas*1.d3
+        wr_imas(42)=pf8_imas*1.d3
+        wr_imas(43)=pf9_imas*1.d3
+        wr_imas(44)=pf10_imas*1.d3
+        wr_imas(45)=pf11_imas*1.d3
+        wr_imas(46)=zv1_imas*1.d3
+        wr_imas(47)=zv2_imas*1.d3
+        wr_imas(48)=zv3_imas*1.d3
+        wr_imas(49)=zv4_imas*1.d3
+        wr_imas(50)=zv5_imas*1.d3
+        wr_imas(51)=zv6_imas*1.d3
+        wr_imas(52)=zv7_imas*1.d3
+        wr_imas(53)=zv8_imas*1.d3
+        wr_imas(54)=zv9_imas*1.d3
+        wr_imas(55)=zv10_imas*1.d3
+        wr_imas(56)=zv11_imas*1.d3
+        wr_imas(57)=Curr_vs1_imas*1.d3
+        wr_imas(58)=Curr_vs2_imas*1.d3
+        wr_imas(59)=Curr_vs3*1.d3
+        wr_imas(60)=U_vs1_imas*1.d3
+        wr_imas(61)=U_vs2_imas*1.d3
+        wr_imas(62)=U_vs3*1.d3
+        wr_imas(63)=Ptotal*1.d6
+        wr_imas(64)=P_rg*1.d6   !!!!! we will do it later
+        wr_imas(65)=Pohm*1.d6     !!!! %%% one needs to add Ohmic power in MW
+        wr_imas(66)=wdop*1.d6
+        wr_imas(67)=w_alfa*1.d6
+        wr_imas(68)=w_fusion*1.d6
+        wr_imas(69)=gfus*(1.d6/3.6d3)
+        wr_imas(70)=qtep
+        wr_imas(71)=(wdop+w_alfa+Pohm)*1.d6   !!! take care about Pohm !
+        wr_imas(72)=p_hl*1.d6
+cccccc  wr_imas(73)=r_lh
+        wr_imas(73)=r_lh_new
+        wr_imas(74)=Emag*1.d6  !!! we will do it later
+        wr_imas(75)=pl_inductance !!! we will do it later 
+        wr_imas(76)=wen2*1000.
+        wr_imas(77)=wr_imas(29)/wr_imas(2)
+        wr_imas(78)=wr_imas(75)/wr_imas(77)
+
+        wr_imas(79)=coef_He
+        wr_imas(80)=coef_imp1
+        wr_imas(81)=coef_imp2
+        wr_imas(82)=coef_imp3
+        wr_imas(83)=coef_imp4
+        wr_imas(84)=wtor*1.d6
+        wr_imas(85)=qc*1.d6
+        wr_imas(86)=w_Be*1.d6
+        wr_imas(87)=w_W*1.d6
+        wr_imas(88)=w_Ar*1.d6
+        wr_imas(89)=w_Ne*1.d6
+        wr_imas(90)=w_imp*1.d6
+        wr_imas(91)=(w_imp+wtor+qc)*1.d6
+        wr_imas(92)=p_sep_tot*1.d6
+        wr_imas(93)=tene/1000.
+        wr_imas(94)=rsep2/100.
+        wr_imas(95)=zsep2/100.
+        wr_imas(96)=gaps(n_ga+1)/100.
+        wr_imas(97)=rsep2_r/100.
+        wr_imas(98)=zsep2_r/100.
+        wr_imas(99)=bz_left
+        wr_imas(100)=bz_right
+        wr_imas(101)=dist_min_xx/100.
+        wr_imas(102)=Rdist_min_xx/100.
+        wr_imas(103)=Zdist_min_xx/100.
+        wr_imas(104)=dist2/100.
+        wr_imas(105)=dist1/100.
+	
+        do i=1,24
+           wr_imas(105+i)=dNB_xx(i)
+        end do  
 
 	return
 	end

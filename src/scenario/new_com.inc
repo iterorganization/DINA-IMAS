@@ -95,6 +95,8 @@
      *  /en2/TE0(npo),TQ0(npo),TEN(npo),TQN(npo),WE0(npo),
      *  WQ0(npo)
      *  /en2e/pd0_a,pt0_a,pd0_b,pt0_b,pw_p
+     *  /en4/WD0(npo),WT0(npo),WH0(npo),VD(npo),DIF(npo),
+     *  GGT(npo),GGTN(npo)
      *  /en5/SD0(npo),ST0(npo),SH0(npo)
      *  /en6/Vn(npo)
      *  /en9/QE0(npo),QQ0(npo),QDG(npo)
@@ -696,5 +698,14 @@ c************************************************
      
         common /c_teit_98/teit_98
 
-     
+     	common
+     *	/c_index1/index_li(nwnh)
+     *	/c_index2/index_ves(nwnh)
+     *	/c_index3/index_pl(nwnh)
+     *	/c_index4/ind_halo(nwnh)
+     *	/c_index5/ind_shape(kf),i_ip
+     	common
+     *  /neutral/a_neut(npo)
+	 
+	 
      
