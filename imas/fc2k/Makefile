@@ -1,7 +1,7 @@
 .phony: all clean fc2k
 
 pyworkspace = ../python_wf/actors
-kepler = true
+#kepler = true
 
 
 dina_actors = dinaimas21.xml dinacontr21.xml dinaputslice21.xml dinatransp_energy.xml dinatransp_density.xml dinatransp_bootcond.xml dinatransp_curdrive.xml dinatransp_heatsrc.xml dinasdn21.xml
