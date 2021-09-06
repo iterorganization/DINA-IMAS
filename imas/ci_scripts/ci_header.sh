@@ -42,31 +42,23 @@ module load IMAS
 # KEPLERMODULE=my2.5p2-2.1.3
 # module load Keplerdir/$KEPLERMODULE
 
-# KEPLERVERSON=Kepler/2.5p4-3.0.5
-KEPLERVERSON=Kepler/2.5p4-3.0.6
+# Using Kepler
+#KEPLERVERSON=Kepler/2.5p4-3.0.6
+#module load $KEPLERVERSON
 
-module load $KEPLERVERSON
-
-# KEPLERMODULE=MY2.5p2-2.1.4
-# KEPLERMODULE=MY2.5p4-2.1.5
 # module load Keplerdir/$KEPLERMODULE
 
-# KEPLERMODULE=MY2.5p4-3.0.5
-KEPLERMODULE=MY2.5p4-3.0.6
-if kepler_avail 2> /dev/null | grep -q $KEPLERMODULE; then
-   echo kepler_load $KEPLERMODULE
-   kepler_load $KEPLERMODULE
-else
-   echo "run bash ci_build.sh keplerinstall"
-   #return
-fi
+#KEPLERMODULE=MY2.5p4-3.0.6
+#if kepler_avail 2> /dev/null | grep -q $KEPLERMODULE; then
+#   echo kepler_load $KEPLERMODULE
+#   kepler_load $KEPLERMODULE
+#else
+#   echo "run bash ci_build.sh keplerinstall"
+#   #return
+#fi
 
 
-#module load FC2K/4.13.2-Java-1.8
 module load FC2K
-
-#module use /home/ITER/hoeneno/public/imas/etc/modulefiles
-#module load FC2K/4.13.1-7-g674246d
 
 
 # export _JAVA_OPTIONS="-Xss20m -Xms1g -Xmx4g" #stack size
