@@ -12,8 +12,8 @@ controllers:
 	make -C src/controllers/kmc_2madiv
 
 interface: dina controllers
-	make -C imas/astra_transp
-	make -C imas/eq_test
+#	make -C imas/astra_transp
+#	make -C imas/eq_test
 	make -C imas/interface
 
 fc2k: interface

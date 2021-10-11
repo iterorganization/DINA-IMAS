@@ -54,7 +54,7 @@ c     *  pf2,pf6,cs2L,cs1,cs2U,volume,z_tok,tokc,zvel_out)
      *  /c_grib2/rp1,zp1,dist1,rp2,zp2,dist2
      *  /vic_018/r_lh_new
      *  /maksim_01/tqc_xx,emag
-     *  /maksim_02/wr,wr_imas
+     *  /maksim_03/wr,wr_imas
       common 
      * /c_imas_t_end2/t_end2
      *  /c_imas2/p_n0
@@ -397,28 +397,7 @@ cccccc	wr(73)=r_lh
 	wr(104)=dist2/100.
 	wr(105)=dist1/100.
  
-       if(kpr.eq.1)print*,'from write_plasma =tt t_end2',tt,t_end2
 
-         if(tt.gt.t_end2)then
-           do i=3,34
-              wr(i)=0.
-           end do
-
-           do j=65,150
-              wr(j)=0.
-           end do
-        end if
-
-        dNB_xx(1)=pn0_tot   !!!!! N0 avr
-        
-        write(65,5002)(wr(i),i=1,105),dNB_xx
-
- 5002   format (150(1pe14.6))
-
-	close (65)
-
-
-      if(kpr.eq.1)print*,'from write_plasma =wr(101)',wr(101)
 
 	
 	
@@ -450,7 +429,7 @@ cccccc	wr(73)=r_lh
         wr_imas(26)=tqc
         wr_imas(27)=tq_ax/tqc
         wr_imas(28)=zeff_a
-        wr_imas(29)=uact
+        wr_imas(29)=uact_imas
         wr_imas(30)=vs
         wr_imas(31)=c_e_old
         wr_imas(32)=psi_ext !!!! %%% one needs to need to add tcam to psi_pf 
@@ -533,6 +512,36 @@ cccccc  wr_imas(73)=r_lh
         do i=1,24
            wr_imas(105+i)=dNB_xx(i)
         end do  
+
+
+
+
+       if(kpr.eq.1)print*,'from write_plasma =tt t_end2',tt,t_end2
+
+         if(tt.gt.t_end2)then
+           do i=3,34
+              wr(i)=0.
+              wr_imas(i)=0.
+           end do
+
+           do j=65,150
+              wr(j)=0.
+              wr_imas(j)=0.
+           end do
+        end if
+
+        dNB_xx(1)=pn0_tot   !!!!! N0 avr
+        
+        write(65,5002)(wr(i),i=1,105),dNB_xx
+
+ 5002   format (150(1pe14.6))
+
+	close (65)
+
+
+      if(kpr.eq.1)print*,'from write_plasma =wr(101)',wr(101)
+
+
 
 	return
 	end

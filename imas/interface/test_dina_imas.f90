@@ -109,7 +109,7 @@ tmax=10000.d0
 
 print *,'Enter decimation for filling the database...'
 !read (*,*)idec
-idec=100000
+idec=10
 
 
 print *,' Input pulse,run =', prescribedpulse, prescribedrun
