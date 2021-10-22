@@ -278,6 +278,7 @@ c  new_halo common blocks...
      *  /c_new_halo6/u_h(nwnh)
      *  /c_new_halo8/fsol,fsol0,alf_dis
      *  /c_new_halo10/dpsi_ax
+     *  /c_new_halo14/p_pl(nr,nz),p_pl0(nr,nz)
 
      *  /c_new_halo19/cur_tor(npo)
 

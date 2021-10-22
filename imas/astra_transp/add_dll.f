@@ -3380,6 +3380,7 @@ c      print 71,apr,(qde0(i),i=1,n)
 
       subroutine imp_rad_c(n,
      *  te0,qpr,pow_imp,vi,a,ha,pi,ptot,wel,wio,pne,coef_prim)
+	include 'double.inc'
 
       dimension te0(*),qpr(*),vi(*),a(*),ha(*),pne(*)
       

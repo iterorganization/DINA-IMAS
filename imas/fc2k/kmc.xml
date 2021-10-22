@@ -3,7 +3,7 @@
   <paramFile>empty</paramFile>
   <defaultparamFile>empty</defaultparamFile>
   <paramXsdFile>empty</paramXsdFile>
-  <fFile>../interface/dina_contr_1b.a</fFile>
+  <fFile>../interface/kmc.a</fFile>
   <subrt>dina_contr</subrt>
   <tupleParams serialization="custom">
     <unserializable-parents/>
@@ -323,8 +323,8 @@
       </default>
     </TupleP>
   </tupleParams>
-  <actor>dinacontr21_1b</actor>
-  <actorFolder>org/iter/imas/dinacontr21_1b</actorFolder>
+  <actor>kmc</actor>
+  <actorFolder>org/iter/imas/dina/kmc</actorFolder>
   <ualFolder>/work/imas/core/IMAS/3.29.0-4.8.4</ualFolder>
   <returnType serialization="custom">
     <unserializable-parents/>

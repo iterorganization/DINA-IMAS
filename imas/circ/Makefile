@@ -43,7 +43,7 @@ dina_circ.a:
 	make -f Makefile_circ
 
 dina_contr.a: 
-	@cp ../interface/dina_contr.a dina_contr.a
+	@cp ../interface/kmc.a dina_contr.a
 
 dina_put_slice.a:
 	@cp ../interface/dina_put_slice.a dina_put_slice.a

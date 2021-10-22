@@ -239,7 +239,7 @@ gridrange(4)=x(nr)
 
 write(*,*) "End of static data extraction"
 
-call write_cputime(0.d0, 0.d0, 1)
+call write_cputime(0., 0., 1)
 
   write(*,*) "pfres(1:3)=",pfres(1:3)
   write(*,*) "rcam(1:3)=",rcam(1:3)

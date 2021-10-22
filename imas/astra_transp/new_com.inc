@@ -675,3 +675,12 @@ c  BEAM Commons...
      *  /inj10/tpl_beam
      *  /inj11/s_beam(npo)
      *  /inj12/eee2,sb2(npo),s_beam2(npo)
+c*** from Volodia Dokuka
+	common
+     *  /c_vol1/QNET_B(npo),SAL_B(npo)
+c LOWER Hybrid
+
+	common
+     *  /c_lh0/i_lh
+     *  /c_lh1/power_lh,tpl_lh
+     *  /c_lh2/aj0_lh(npo),sb_lh(npo)

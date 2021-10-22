@@ -12,9 +12,10 @@ controllers:
 	make -C src/controllers/kmc_2madiv
 
 interface: dina controllers
-#	make -C imas/astra_transp
-#	make -C imas/eq_test
+	make -C imas/astra_transp
+	make -C imas/eq_test
 	make -C imas/interface
+	make -C imas/circ
 
 fc2k: interface
 	make -C imas/fc2k
@@ -27,5 +28,6 @@ clean:
 	make -C src/controllers/kmc_2madiv clean
 	make -C imas/astra_transp clean
 	make -C imas/eq_test clean
+	make -C imas/circ clean
 	make -C imas/interface clean
 	make -C imas/fc2k clean

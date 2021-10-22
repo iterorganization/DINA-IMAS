@@ -1,11 +1,16 @@
 <org.iter.imas.fc2k.ActorGenerator>
-  <version>4.2.6</version>
+  <version> </version>
+  <isKeplerActorGenerated>false</isKeplerActorGenerated>
+  <isPythonActorGenerated>true</isPythonActorGenerated>
+  <isDummyActorGenerated>false</isDummyActorGenerated>
   <paramFile>empty</paramFile>
   <defaultparamFile>empty</defaultparamFile>
   <paramXsdFile>empty</paramXsdFile>
   <fFile>../circ/dina_imas_circ.a</fFile>
   <mainLibraryOptim></mainLibraryOptim>
   <HasOptim>false</HasOptim>
+  <headerPath></headerPath>
+  <useHeader>false</useHeader>
   <subrt>dina_imas_circ</subrt>
   <tupleParams serialization="custom">
     <unserializable-parents/>
@@ -199,8 +204,9 @@
   <actor>dinaimas_circ</actor>
   <actorVersion></actorVersion>
   <actorDoc></actorDoc>
-  <actorFolder>org/iter/imas/dinaimas_circ</actorFolder>
+  <actorFolder>org/iter/imas/dina/dinaimas_circ</actorFolder>
   <semantic>ITER</semantic>
+  <pythonActorDir>../python_wf/actors</pythonActorDir>
   <compiler>gfortran</compiler>
   <libraries/>
   <systemLibraries/>
@@ -211,4 +217,5 @@
   <BATCH>false</BATCH>
   <InitFunc>false</InitFunc>
   <fDiagnosticInfo>false</fDiagnosticInfo>
+  <useSandbox>false</useSandbox>
 </org.iter.imas.fc2k.ActorGenerator>

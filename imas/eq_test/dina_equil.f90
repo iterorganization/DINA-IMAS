@@ -419,9 +419,9 @@ write(*,*) 'Filling 2d profiles...'
 
 
     call write_graf_imas(nr,nz,ke, &
-     &	0.01d0,0.01d0,tt,&
+     &	0.01,0.01,tt,&
      &  psi1,x,y,xu,yu,&
-     &  psi_ax,psi_bnd,psi_bnd,0.d0,0.d0) 
+     &  psi_ax,psi_bnd,psi_bnd,0.,0.) 
 
     end if
     
@@ -460,7 +460,7 @@ end subroutine
 	real*8,dimension(:,:) :: psi(nr,nz)
 	real*8,dimension(:) :: x(nr),y(nz),xu(ke),yu(ke)
 
-	real(8) :: dx,dy,ttt,pmag,pbound,p_s,um,vm
+	real (8) :: dx,dy,ttt,pmag,pbound,p_s,um,vm
 	
 
 5000	format(4(1x,1pe14.7))

@@ -1,5 +1,6 @@
 
 import os
+import sys
 
 import imas
 from imas import imasdef
@@ -12,11 +13,6 @@ import matplotlib.pyplot as plt
 
 # importing the actors we want to run
 import dinaimas21.wrapper as dinaimas21
-
-# Import one of the controllers
-import dinacontr21.wrapper as dinacontr21
-#import dinacontr21_1a.wrapper as dinacontr21
-#import dinacontr21_1b.wrapper as dinacontr21
 
 import dinatransp_bootcond.wrapper as dinatransp_bootcond
 import dinatransp_curdrive.wrapper as dinatransp_curdrive
@@ -167,151 +163,197 @@ def ASTRA_DENSITY(idslist):
 
 
 
-idslist = {}
-
-user_name = os.getenv('USER')
-
-pulse_in = 170
-run_in = 1
-
-pulse_out = 170
-run_out = 401
-
-decimation = 100
-
-# Set to 1 for ASTRA density transport
-USE_ASTRA = 0
-
-# Time since external transport actors fire
-timeExternalTransport = 2.0
 
 
-# Reading initial IDS's
-imas_entry_init = imas.DBEntry(imasdef.MDSPLUS_BACKEND, 'test', pulse_in, run_in, user_name, data_version = '3')
-imas_entry_init.open()
+def Workflow(Params):
 
+  controllername = Params["magcontr"]
+  exec("import " + controllername + ".wrapper as " + controllername)
+  dinacontr = eval(controllername + "." + controllername + "_actor")
 
-#Alternative technique of getting
-#equilibrium = imas.equilibrium()
-#equilibrium.get(db_entry = imas_entry_init, occurrence = 0)
-idslist['equilibrium'] = imas_entry_init.get('equilibrium', occurrence = 0)
-
-idslist['em_coupling'] = imas_entry_init.get('em_coupling')
-idslist['magnetics'] = imas_entry_init.get('magnetics')
-idslist['wall'] = imas_entry_init.get('wall')
-idslist['pf_active'] = imas_entry_init.get('pf_active')
-idslist['pf_passive'] = imas_entry_init.get('pf_passive')
-idslist['core_profiles'] = imas_entry_init.get('core_profiles')
-idslist['core_sources'] = imas_entry_init.get('core_sources')
-idslist['core_transport'] = imas_entry_init.get('core_transport')
-idslist['transport_solver_numerics'] = imas_entry_init.get('transport_solver_numerics')
-idslist['pulse_schedule'] = imas_entry_init.get('pulse_schedule')
-idslist['summary'] = imas_entry_init.get('summary')
-idslist['dataset_description'] = imas_entry_init.get('dataset_description')
-
-imas_entry_init.close()
-
-
-# Preparing of an IMAS entry for the simulation output
-imas_entry_result = imas.DBEntry(imasdef.MDSPLUS_BACKEND, 'test', pulse_out, run_out, user_name, data_version = '3')
-imas_entry_result.create()
-
-
-imas_entry_result.put(idslist["dataset_description"])
-imas_entry_result.put(idslist["pulse_schedule"])
-
-
-# Allocation for initial voltages of the magnetic control
-arr_volt = np.float64(range(501))
-
-
-# The main loop
-iloop_start = 0
-iloop = iloop_start
-timearr = []
-while True:
-   
-  # DINA 
-  arr_curr = DINA(idslist, arr_volt)
+  idslist = {}
+  
+  user_name = os.getenv('USER')
+  
+  user_in = Params["ids_in"]["user"]
+  db_in = Params["ids_in"]["database"]
+  pulse_in = Params["ids_in"]["pulse"]
+  run_in = Params["ids_in"]["run"]
+  
+  user_out = Params["ids_out"]["user"]
+  db_out = Params["ids_out"]["database"]
+  pulse_out = Params["ids_out"]["pulse"]
+  run_out = Params["ids_out"]["run"]
   
 
-  ip = idslist['summary'].global_quantities.ip.value[0]
-  time = idslist['summary'].time[0]
-  timearr.append(time)
-  print('DINA loop = ' + str(iloop))
-
-  # External transport
-  if time >= timeExternalTransport:
+  decimation = Params["decimation"]
+  
+  # Set to 1 for ASTRA density transport
+  USE_ASTRA = Params["use_astra"]
+  
+  # Time since external transport actors fire
+  timeExternalTransport = Params["t_exttransp"]
+  
+  
+  # Reading initial IDS's
+  imas_entry_init = imas.DBEntry(imasdef.MDSPLUS_BACKEND, db_in, pulse_in, run_in, user_in, data_version = '3')
+  imas_entry_init.open()
+  
+  
+  #Alternative technique of getting
+  #equilibrium = imas.equilibrium()
+  #equilibrium.get(db_entry = imas_entry_init, occurrence = 0)
+  idslist['equilibrium'] = imas_entry_init.get('equilibrium', occurrence = 0)
+  
+  idslist['em_coupling'] = imas_entry_init.get('em_coupling')
+  idslist['magnetics'] = imas_entry_init.get('magnetics')
+  idslist['wall'] = imas_entry_init.get('wall')
+  idslist['pf_active'] = imas_entry_init.get('pf_active')
+  idslist['pf_passive'] = imas_entry_init.get('pf_passive')
+  idslist['core_profiles'] = imas_entry_init.get('core_profiles')
+  idslist['core_sources'] = imas_entry_init.get('core_sources')
+  idslist['core_transport'] = imas_entry_init.get('core_transport')
+  idslist['transport_solver_numerics'] = imas_entry_init.get('transport_solver_numerics')
+  idslist['pulse_schedule'] = imas_entry_init.get('pulse_schedule')
+  idslist['summary'] = imas_entry_init.get('summary')
+  idslist['dataset_description'] = imas_entry_init.get('dataset_description')
+  
+  imas_entry_init.close()
+  
+  
+  # Preparing of an IMAS entry for the simulation output
+  imas_entry_result = imas.DBEntry(imasdef.MDSPLUS_BACKEND, db_out, pulse_out, run_out, user_out, data_version = '3')
+  imas_entry_result.create()
+  
+  
+  imas_entry_result.put(idslist["dataset_description"])
+  imas_entry_result.put(idslist["pulse_schedule"])
+  
+  
+  # Allocation for initial voltages of the magnetic control
+  arr_volt = np.float64(range(501))
+  
+  
+  # The main loop
+  iloop_start = 0
+  iloop = iloop_start
+  timearr = []
+  while True:
     
-    HEATSRC(idslist)
-    ENERGY(idslist)
+    # DINA 
+    arr_curr = DINA(idslist, arr_volt)
     
-    if USE_ASTRA==1:
-      ASTRA_DENSITY(idslist)
-    else:
-      # Density control and sources distribution    
-      cmd_pellet = density_control_pellet.density_control_pellet_actor(idslist['summary'])
-      cmd_valve = density_control_valve.density_control_valve_actor(idslist['summary'])
-          
-      # Density sources distribution
-      densitysrc_pellet = ASTRASRC_PELLET(idslist, cmd_pellet)
-      densitysrc_valve = ASTRASRC_VALVE(idslist, cmd_valve)
+  
+    ip = idslist['summary'].global_quantities.ip.value[0]
+    time = idslist['summary'].time[0]
+    timearr.append(time)
+    print('DINA loop = ' + str(iloop))
+  
+    # External transport
+    if time >= timeExternalTransport:
       
-      densitysrc = densitysrc_pellet + densitysrc_valve
-           
-      DENSITY(idslist, densitysrc)
+      HEATSRC(idslist)
+      ENERGY(idslist)
+      
+      if USE_ASTRA:
+        ASTRA_DENSITY(idslist)
+      else:
+        # Density control and sources distribution    
+        cmd_pellet = density_control_pellet.density_control_pellet_actor(idslist['summary'])
+        cmd_valve = density_control_valve.density_control_valve_actor(idslist['summary'])
+            
+        # Density sources distribution
+        densitysrc_pellet = ASTRASRC_PELLET(idslist, cmd_pellet)
+        densitysrc_valve = ASTRASRC_VALVE(idslist, cmd_valve)
+        
+        densitysrc = densitysrc_pellet + densitysrc_valve
+            
+        DENSITY(idslist, densitysrc)
+      
+  
+      
+      BOOTCOND(idslist)
+      CURDRIVE(idslist)
     
-
+    # Boundary conditions
+    SOLPS(idslist)
+  
+    # Magnetic controller
+    arr_volt = dinacontr(arr_curr)
+    #arr_volt = dinacontr21_1a.dinacontr21_1a_actor(arr_curr)
+  
+    #n1 = len(core_profiles.profiles_1d[0].grid.rho_tor_norm)
+    #print('n1 = ' + str(n1))
+  
+    #te0 = core_profiles.profiles_1d[0].electrons.temperature[0:n1-1]
+    #tq0 = core_profiles.profiles_1d[0].t_i_average[0:n1-1]
     
-    BOOTCOND(idslist)
-    CURDRIVE(idslist)
-  
-  # Boundary conditions
-  SOLPS(idslist)
-
-  # Magnetic controller
-  arr_volt = dinacontr21.dinacontr21_actor(arr_curr)
-  
-
-
-  #n1 = len(core_profiles.profiles_1d[0].grid.rho_tor_norm)
-  #print('n1 = ' + str(n1))
-
-  #te0 = core_profiles.profiles_1d[0].electrons.temperature[0:n1-1]
-  #tq0 = core_profiles.profiles_1d[0].t_i_average[0:n1-1]
-  
-   
-  # Put this slice to the database 
-  if (iloop%decimation == 0 or iloop == iloop_start):
-    #for key in idslist:
-    #  imas_entry_result.put_slice(idslist[key])
-    imas_entry_result.put_slice(idslist['em_coupling'])
-    imas_entry_result.put_slice(idslist['equilibrium'])
-    imas_entry_result.put_slice(idslist['magnetics'])
-    imas_entry_result.put_slice(idslist['pf_active'])
-    imas_entry_result.put_slice(idslist['pf_passive'])
-    imas_entry_result.put_slice(idslist['core_profiles'])
-    imas_entry_result.put_slice(idslist['core_sources'])
-    imas_entry_result.put_slice(idslist['core_transport'])
-    imas_entry_result.put_slice(idslist['summary'])
-    imas_entry_result.put_slice(idslist['wall'])
-  
-  
-  
-  print('Workflow step=' + str(iloop) + '; time=' + str(time) + ' s; Ipl=' + str(ip) + ' A', flush=True)
-  
-  # Condition for stopping the simulation
-  if (time > 20.0 and abs(ip) < 1.e3):
-    break
     
-  iloop = iloop + 1
+    # Put this slice to the database 
+    if (iloop%decimation == 0 or iloop == iloop_start):
+      #for key in idslist:
+      #  imas_entry_result.put_slice(idslist[key])
+      imas_entry_result.put_slice(idslist['em_coupling'])
+      imas_entry_result.put_slice(idslist['equilibrium'])
+      imas_entry_result.put_slice(idslist['magnetics'])
+      imas_entry_result.put_slice(idslist['pf_active'])
+      imas_entry_result.put_slice(idslist['pf_passive'])
+      imas_entry_result.put_slice(idslist['core_profiles'])
+      imas_entry_result.put_slice(idslist['core_sources'])
+      imas_entry_result.put_slice(idslist['core_transport'])
+      imas_entry_result.put_slice(idslist['summary'])
+      imas_entry_result.put_slice(idslist['wall'])
+    
+    
+    
+    print('Workflow step=' + str(iloop) + '; time=' + str(time) + ' s; Ipl=' + str(ip) + ' A', flush=True)
+    
+    # Condition for stopping the simulation
+    if (time > 20.0 and abs(ip) < 1.e3):
+      print('Workflow stop condition is met', flush=True)
+      break
+  
+    iloop = iloop + 1
+  
+  
+  imas_entry_result.close()
+  
+  print('Finished successfully after ' + str(iloop) + ' steps')
+  #print(timearr)
+  #print(dina_tuple)
+  #print(dir(pf_active))
 
 
-imas_entry_result.close()
 
-print('Finished successfully after ' + str(iloop) + ' steps')
-#print(timearr)
-#print(dina_tuple)
-#print(dir(pf_active))
+def main(argv):
+    
+  user_name = os.getenv('USER')
 
+  ids_in = {
+  "user": user_name,
+  "database": "test",
+  "pulse": 170,
+  "run": 1
+  }
 
+  ids_out = {
+  "user": user_name,
+  "database": "test",
+  "pulse": 170,
+  "run": 400
+  }
+
+  wf_params = {
+  "ids_in": ids_in,
+  "ids_out": ids_out,
+  "magcontr": "kmc_pfpo1_1a",
+  "decimation": 10,
+  "use_astra": False,
+  "t_exttransp": 4.0e3
+  }
+
+  Workflow(wf_params)
+
+if __name__ == '__main__':  # If direct run, not import
+  main(sys.argv[1:]) 
+    
