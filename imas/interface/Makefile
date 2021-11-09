@@ -7,8 +7,8 @@ f2c= gfortran -w  -ffixed-line-length-none -fd-lines-as-comments -fno-automatic 
 
 DINATRANSP = dina_transp1.o tran1.o dina_transp2.o tran2.o dina_transp3.o tran3.o dina_transp4.o tran4.o dina_transp5.o tran5.o
 
-FORTRANWF = test_dina_to_imas test_dina test_dina_pfpo1a test_dina_pfpo1b test_dina_2madiv
-TARGETS += $(FORTRANWF) dina_imas.a dina_put_slice.a kmc.a kmc_pfpo1_1a.a kmc_pfpo1_1b.a kmc_2madiv.a dina_transp_energy.a dina_transp_density.a dina_transp_density_test.a dina_transp_density_test0.a dina_transp_bootcond.a dina_transp_curdrive.a dina_transp_heatsrc.a solps_imas.a test_wr_prof
+FORTRANWF = test_dina_to_imas test_dina test_dina_2madiv test_dina_pfpo1a test_dina_pfpo1b test_dina_pfpo1c test_dina_pfpo1c-m1 test_dina_pfpo1d
+TARGETS += $(FORTRANWF) dina_imas.a dina_put_slice.a kmc.a kmc_pfpo1_1a.a kmc_pfpo1_1c-m1.a kmc_2madiv.a dina_transp_energy.a dina_transp_density.a dina_transp_density_test.a dina_transp_density_test0.a dina_transp_bootcond.a dina_transp_curdrive.a dina_transp_heatsrc.a solps_imas.a test_wr_prof
 
 DINADIR := ../../src/scenario
 CONTROLDIR := ../../src/controllers
@@ -31,11 +31,19 @@ test_dina_pfpo1a: test_dina_imas.o dina_put_slice.a dina_imas.a kmc_pfpo1_1a.a s
 	@echo "   * $^ -> $@"
 	$(F90_gfortran) -o $@ $^ $(LIBS_gfortran)
 
-test_dina_pfpo1b: test_dina_imas.o dina_put_slice.a dina_imas.a kmc_pfpo1_1b.a solps_imas.a
+test_dina_pfpo1b: test_dina_imas.o dina_put_slice.a dina_imas.a kmc_pfpo1_1a.a solps_imas.a
 	@echo "   * $^ -> $@"
 	$(F90_gfortran) -o $@ $^ $(LIBS_gfortran)
 
 test_dina_pfpo1c: test_dina_imas.o dina_put_slice.a dina_imas.a kmc_pfpo1_1a.a solps_imas.a
+	@echo "   * $^ -> $@"
+	$(F90_gfortran) -o $@ $^ $(LIBS_gfortran)
+
+test_dina_pfpo1c-m1: test_dina_imas.o dina_put_slice.a dina_imas.a kmc_pfpo1_1c-m1.a solps_imas.a
+	@echo "   * $^ -> $@"
+	$(F90_gfortran) -o $@ $^ $(LIBS_gfortran)
+
+test_dina_pfpo1d: test_dina_imas.o dina_put_slice.a dina_imas.a kmc_pfpo1_1c-m1.a solps_imas.a
 	@echo "   * $^ -> $@"
 	$(F90_gfortran) -o $@ $^ $(LIBS_gfortran)
 
@@ -86,7 +94,7 @@ kmc_pfpo1_1a.a: $(CONTROLDIR)/kmc_pfpo1_1a/kmc.a $(LIB_SOURCECTRL)
 	@cp $< $@
 	ar -rcs $@ $(LIB_SOURCECTRL)
 
-kmc_pfpo1_1b.a: $(CONTROLDIR)/kmc_pfpo1_1b/kmc.a $(LIB_SOURCECTRL)
+kmc_pfpo1_1c-m1.a: $(CONTROLDIR)/kmc_pfpo1_1c-m1/kmc.a $(LIB_SOURCECTRL)
 	@echo "   * $^ -> $@"
 	@cp $< $@
 	ar -rcs $@ $(LIB_SOURCECTRL)

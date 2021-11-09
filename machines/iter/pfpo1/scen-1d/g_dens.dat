@@ -1,0 +1,5 @@
+g_dens input PCCHP=g_dens*tpl(kA)*100./pi/eu**2(cm) if g_dens>0!!!
+if g_dens>1 we are using special waveform 
+-0.4
+pcch0(10*13)	Ip_changing(kA)		pcchk(10**13)
+0.5		9000.			4.5

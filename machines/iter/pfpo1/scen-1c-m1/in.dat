@@ -1,0 +1,144 @@
+  15.     	      read (41,*)U   Mineev 3.5MA
+  0.	              read (41,*)tay_ee
+  0.	              read (41,*)tay_ei
+  0.84	              read (41,*)alf_n
+  1e-3              read (41,*)p  1.35e-3
+  5.68		      read (41,*)R
+  1.6		      read (41,*)a
+  6.2		      read (41,*)R_ves
+  2.09		      read (41,*)a_ves
+  1.9		      read (41,*)e_ves
+  0.		      read (41,*)Z
+  0.99	              read (41,*)psi_n
+  1e-3                read (41,*)I_p  1e-3
+  2.e-3 	      read (41,*)T_e
+  2.e-3	              read (41,*)T_i
+  5.e-2	              read (41,*)gam=Ne/N0 initial (N0=4.8*p)
+  1.  	    	      read (41,*)elong
+  4.9     	      read (41,*)bt
+  1     	      read (41,*)i_temp
+  1.     	      read (41,*)alfa_loss
+  50.     	      read (41,*)g_gain  neutrals paffing speed gain
+  2.000e5     	      read (41,*)tay_lo  impurity lifetime in microsec
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  15.     	      read (41,*)U   Lukash
+  0.	              read (41,*)tay_ee
+  0.	              read (41,*)tay_ei
+  0.84	              read (41,*)alf_n
+  1.35e-3            read (41,*)p  1.35e-3  0.9e-3
+  5.68		      read (41,*)R
+  1.6		      read (41,*)a
+  6.2		      read (41,*)R_ves
+  2.09		      read (41,*)a_ves
+  1.9		      read (41,*)e_ves
+  0.		      read (41,*)Z
+  0.99	              read (41,*)psi_n
+  1.e-3               read (41,*)I_p
+  2.e-3 	      read (41,*)T_e
+  2.e-3	              read (41,*)T_i
+  5.e-2	              read (41,*)gam=Ne/N0 initial (N0=4.8*p)
+  1.  	    	      read (41,*)elong
+  4.9     	      read (41,*)bt
+  1     	      read (41,*)i_temp
+  1.     	      read (41,*)alfa_loss
+  50.     	      read (41,*)g_gain  neutrals paffing speed gain
+  2.000e5     	      read (41,*)tay_lo  impurity lifetime in microsec
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  15.     	      read (41,*)U   Mineev 3.5MA
+  0.	              read (41,*)tay_ee
+  0.	              read (41,*)tay_ei
+  0.84	              read (41,*)alf_n
+  1e-3              read (41,*)p  1.35e-3
+  5.68		      read (41,*)R
+  1.6		      read (41,*)a
+  6.2		      read (41,*)R_ves
+  2.09		      read (41,*)a_ves
+  1.9		      read (41,*)e_ves
+  0.		      read (41,*)Z
+  0.99	              read (41,*)psi_n
+  1.e-3               read (41,*)I_p
+  2.e-3 	      read (41,*)T_e
+  2.e-3	              read (41,*)T_i
+  5.e-2	              read (41,*)gam=Ne/N0 initial (N0=4.8*p)
+  1.  	    	      read (41,*)elong
+  4.9     	      read (41,*)bt
+  1     	      read (41,*)i_temp
+  1.     	      read (41,*)alfa_loss
+  50.     	      read (41,*)g_gain  neutrals paffing speed gain
+  2.000e5     	      read (41,*)tay_lo  impurity lifetime in microsec
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  15.     	      read (41,*)U   Lukash
+  0.	              read (41,*)tay_ee
+  0.	              read (41,*)tay_ei
+  0.84	              read (41,*)alf_n
+  1e-3             read (41,*)p  1.35e-3
+  5.68		      read (41,*)R
+  1.6		      read (41,*)a
+  6.2		      read (41,*)R_ves
+  2.09		      read (41,*)a_ves
+  1.9		      read (41,*)e_ves
+  0.		      read (41,*)Z
+  0.99	              read (41,*)psi_n
+  1.e-3               read (41,*)I_p
+  2.e-3 	      read (41,*)T_e
+  2.e-3	              read (41,*)T_i
+  5.e-2	              read (41,*)gam=Ne/N0 initial (N0=4.8*p)
+  1.  	    	      read (41,*)elong
+  4.9     	      read (41,*)bt
+  1     	      read (41,*)i_temp
+  1.     	      read (41,*)alfa_loss
+  50.     	      read (41,*)g_gain  neutrals paffing speed gain
+  2.000e5     	      read (41,*)tay_lo  impurity lifetime in microsec
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  15.     	      read (41,*)U
+  0.	              read (41,*)tay_ee
+  0.	              read (41,*)tay_ei
+  0.84	              read (41,*)alf_n
+  1e-3             read (41,*)p 1.2e-3
+  5.68		      read (41,*)R
+  1.6		      read (41,*)a
+  6.2		      read (41,*)R_ves
+  2.06		      read (41,*)a_ves
+  1.93		      read (41,*)e_ves
+  0.		      read (41,*)Z
+  0.99	              read (41,*)psi_n
+  1.e-3               read (41,*)I_p
+  2.e-3 	      read (41,*)T_e
+  2.e-3	              read (41,*)T_i
+  5.e-2	              read (41,*)gam=Ne/N0 initial (N0=4.8*p)
+  1.  	    	      read (41,*)elong
+  4.9     	      read (41,*)bt
+  1     	      read (41,*)i_temp
+  1.     	      read (41,*)alfa_loss
+  50.e0     	      read (41,*)g_gain  neutrals paffing speed gain
+  2.000e5     	      read (41,*)tay_lo  impurity lifetime in microsec
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  15.     	      read (41,*)U
+  0.	              read (41,*)tay_ee
+  0.	              read (41,*)tay_ei
+  0.84	              read (41,*)alf_n
+  1.35e-3             read (41,*)p 1.2e-3
+  5.68		      read (41,*)R
+  1.6		      read (41,*)a
+  6.2		      read (41,*)R_ves
+  2.06		      read (41,*)a_ves
+  1.93		      read (41,*)e_ves
+  0.		      read (41,*)Z
+  0.99	              read (41,*)psi_n
+  1.e-3               read (41,*)I_p
+  2.e-3 	      read (41,*)T_e
+  2.e-3	              read (41,*)T_i
+  5.e-2	              read (41,*)gam=Ne/N0 initial (N0=4.8*p)
+  1.  	    	      read (41,*)elong
+  4.9     	      read (41,*)bt
+  1     	      read (41,*)i_temp
+  1.     	      read (41,*)alfa_loss
+  50.e0     	      read (41,*)g_gain  neutrals paffing speed gain
+  2.000e5     	      read (41,*)tay_lo  impurity lifetime in microsec
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

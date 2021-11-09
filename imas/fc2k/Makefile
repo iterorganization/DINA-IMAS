@@ -5,7 +5,7 @@ pyworkspace = ../python_wf/actors
 
 
 dina_actors = dinaimas21.xml dinaputslice21.xml dinatransp_energy.xml dinatransp_density.xml dinatransp_bootcond.xml dinatransp_curdrive.xml dinatransp_heatsrc.xml
-contr_actors = kmc.xml kmc_2madiv.xml kmc_pfpo1_1a.xml kmc_pfpo1_1b.xml
+contr_actors = kmc.xml kmc_2madiv.xml kmc_pfpo1_1a.xml kmc_pfpo1_1c-m1.xml
 dina_regtest = dinaimas_circ.xml dina_equil.xml
 astra_actors = solps_imas.xml density_control_pellet.xml density_control_valve.xml astra_sources_pellet.xml astra_sources_valve.xml
 
@@ -50,7 +50,7 @@ endif
 	$$FC2K/bin/fc2k -nocompile kmc.xml $(usekep) $(usepy)
 	$$FC2K/bin/fc2k -nocompile kmc_2madiv.xml $(usekep) $(usepy)
 	$$FC2K/bin/fc2k -nocompile kmc_pfpo1_1a.xml $(usekep) $(usepy)
-	$$FC2K/bin/fc2k -nocompile kmc_pfpo1_1b.xml $(usekep) $(usepy)
+	$$FC2K/bin/fc2k -nocompile kmc_pfpo1_1c-m1.xml $(usekep) $(usepy)
 
 ifdef kepler
 	cd $(KEPLER)/build-area && ant clean-cache && ant compile && ant make-kars
