@@ -1,11 +1,16 @@
 <org.iter.imas.fc2k.ActorGenerator>
-  <version>4.2.3</version>
+  <version> </version>
+  <isKeplerActorGenerated>false</isKeplerActorGenerated>
+  <isPythonActorGenerated>true</isPythonActorGenerated>
+  <isDummyActorGenerated>false</isDummyActorGenerated>
   <paramFile>empty</paramFile>
   <defaultparamFile>empty</defaultparamFile>
   <paramXsdFile>empty</paramXsdFile>
   <fFile>../interface/dina_transp_heatsrc.a</fFile>
   <mainLibraryOptim></mainLibraryOptim>
   <HasOptim>false</HasOptim>
+  <headerPath></headerPath>
+  <useHeader>false</useHeader>
   <subrt>dina_transp_heatsrc</subrt>
   <tupleParams serialization="custom">
     <unserializable-parents/>
@@ -66,6 +71,7 @@
   <actorDoc></actorDoc>
   <actorFolder>org/iter/imas/dinatransp_heatsrc</actorFolder>
   <semantic>ITER</semantic>
+  <pythonActorDir>../python_wf/PYTHON_DINA_ACTORS</pythonActorDir>
   <compiler>gfortran</compiler>
   <libraries/>
   <systemLibraries/>
@@ -76,4 +82,5 @@
   <BATCH>false</BATCH>
   <InitFunc>false</InitFunc>
   <fDiagnosticInfo>false</fDiagnosticInfo>
+  <useSandbox>false</useSandbox>
 </org.iter.imas.fc2k.ActorGenerator>

@@ -1,0 +1,20 @@
+n_space      m_psi       l_velocity          
+48           101         1    
+radius
+100.d0   
+mass
+2.   
+ov_cx         ov_r         ov_ie
+1.d2          0.d-5        0.d-5
+fn                  tn
+20.d0               1.e-1
+n_ion               t_ion
+10.d0               1.e-1
+i_cyl
+1
+
+
+
+
+
+

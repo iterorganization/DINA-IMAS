@@ -1,0 +1,16 @@
+zvel_max (cm/ms) === *10 (m/s)	  
+0.01e5
+n_svd (number of time steps for boundary averaging)  
+10
+i_avr-averaging of boundary	  
+0
+i_filter  averaging fdd	  
+0
+tau_p (-msec) for averaging fdd 
+100.
+  
+
+ 
+
+
+

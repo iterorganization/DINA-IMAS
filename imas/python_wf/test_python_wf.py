@@ -309,7 +309,11 @@ def Workflow(Params):
     print('Workflow step=' + str(iloop) + '; time=' + str(time) + ' s; Ipl=' + str(ip) + ' A', flush=True)
     
     # Condition for stopping the simulation
-    if (time > 20.0 and abs(ip) < 1.e3):
+    tpfa = 0.
+    for coil in idslist['pf_active'].coil:
+      tpfa = tpfa + abs(coil.current.data[0])
+
+    if (tpfa < 1.e3 and abs(ip) < 1.e3):
       print('Workflow stop condition is met', flush=True)
       break
   

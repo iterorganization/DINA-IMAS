@@ -1,2 +1,0 @@
-	parameter(iy=300,ny=100 )
-	parameter (nv=400, npo2=2*npo)

@@ -53,14 +53,13 @@ c     *  pf2,pf6,cs2L,cs1,cs2U,volume,z_tok,tokc,zvel_out)
 	common
      *  /c_grib2/rp1,zp1,dist1,rp2,zp2,dist2
      *  /vic_018/r_lh_new
-     *  /maksim_01/tqc_xx,emag
-     *  /maksim_03/wr,wr_imas
+     *  /maksim_03/wr(150),wr_imas(150)
       common 
      * /c_imas_t_end2/t_end2
      *  /c_imas2/p_n0
      *  /c_imas4/pn0_tot
 
-        dimension dNB_xx(24),wr(150),wr_imas(150)
+        dimension dNB_xx(24)
 
 c******* Begin of Sign changing ******
         tpl_imas=tpl*(-1)

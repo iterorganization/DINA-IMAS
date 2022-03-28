@@ -1,5 +1,0 @@
-	parameter( npox=48,mu=301, kf=22, nmax=1290 ) 
-
-c	real *8 a1_gen
-c	real *8 a_gen
-

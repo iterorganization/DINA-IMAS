@@ -68,7 +68,7 @@ type (ids_wall) :: wall
 real (ids_real) :: arr_in1(501), arr_out1(501)
 
 ! define the pulse and run numbers for testing, will be done later outside
-integer :: pulse=170, run=4, prescribedpulse=170, prescribedrun=1
+integer :: pulse=105021, run=1, prescribedpulse=170, prescribedrun=1
 
 ! define local variables
 integer :: time_loop, key(25), indpf(12), ext_transp, i, iloop, idec, imax
@@ -89,12 +89,12 @@ print *,'User name is ', user
 
 print *,'Enter pulse number...'
 !read (*,*) pulse
-prescribedpulse = pulse
+!prescribedpulse = pulse
 
 
 print *,'Enter run number...'
 !read (*,*) run
-prescribedrun = 1
+!prescribedrun = 1
 
 
 !print *,' Enter maximum steps number'
@@ -109,7 +109,7 @@ tmax=10000.d0
 
 print *,'Enter decimation for filling the database...'
 !read (*,*)idec
-idec=10
+idec=50
 
 
 print *,' Input pulse,run =', prescribedpulse, prescribedrun
@@ -147,7 +147,7 @@ arr_out1(1:31)=0
 
 
 
-  call imas_create_env('ids',pulse,run,1,1,idx,user,'test','3')
+  call imas_create_env('ids',pulse,run,1,1,idx,user,'iter','3')
   write(*,*) 'Pulse file is created'
 
   call ids_put(idx,"dataset_description",data_description)

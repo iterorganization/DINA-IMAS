@@ -1,0 +1,25 @@
+tt_rampup
+ 9000  
+ t_nog3       dtpl_term_l       cIp_end
+ 25e3             20             -0.7 
+ Ics1_eob(kA)   rms_noise(m/s)
+ -18.8             0.6         
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+tt_rampup
+ 9000  
+ t_nog3       dtpl_term_l       cIp_end
+ 25e3             20             -0.7 
+ Ics1_eob(kA)   rms_noise(m/s)
+ -18.8             0.5         
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+RupRd(1)=tt_rampup*1e-3 
+RupRd(2)=dtpl_term_l
+RupRd(3)=cIp_end
+RupRd(4)=t_nog3 (dt_end_sim)
+RupRd(5)=Ics1_eob(kA)
+RupRd(6)=rms_noise(m/s)
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

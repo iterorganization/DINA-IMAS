@@ -1,2 +1,0 @@
-	parameter ( nbndp=2*(nr+nz), nbnd=nbndp-4)
-

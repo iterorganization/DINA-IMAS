@@ -1,18 +1,22 @@
+DINADIR := ../../src/scenario
+CONTROLDIR := ../../src/controllers
+ASTRADIR := ../astra_transp
+
 F90_gfortran=gfortran -w
 COPTS_gfortran = -O0 -freal-4-real-8 -cpp -fPIC -fno-second-underscore -ffree-line-length-none `pkg-config imas-gfortran --cflags` -g  
 #LIBS_gfortran=-L$(UAL)/fortraninterface -lUALFORTRANInterface_gfortran -Wl,-rpath,$(UAL)/itmcatalog/lib -L$(UAL)/lowlevel -lUALLowLevel -lm
 LIBS_gfortran=`pkg-config imas-gfortran --libs`
 
-f2c= gfortran -w  -ffixed-line-length-none -fd-lines-as-comments -fno-automatic -fPIC
+f2c= gfortran -w -I$(DINADIR) -ffixed-line-length-none -fd-lines-as-comments -fno-automatic -fPIC
 
 DINATRANSP = dina_transp1.o tran1.o dina_transp2.o tran2.o dina_transp3.o tran3.o dina_transp4.o tran4.o dina_transp5.o tran5.o
 
-FORTRANWF = test_dina_to_imas test_dina test_dina_2madiv test_dina_pfpo1a test_dina_pfpo1b test_dina_pfpo1c test_dina_pfpo1c-m1 test_dina_pfpo1d
-TARGETS += $(FORTRANWF) dina_imas.a dina_put_slice.a kmc.a kmc_pfpo1_1a.a kmc_pfpo1_1c-m1.a kmc_2madiv.a dina_transp_energy.a dina_transp_density.a dina_transp_density_test.a dina_transp_density_test0.a dina_transp_bootcond.a dina_transp_curdrive.a dina_transp_heatsrc.a solps_imas.a test_wr_prof
+FORTRANWF = test_dina_to_imas test_dina test_dina_2madiv test_dina_pfpo1a test_dina_pfpo1b test_dina_pfpo1c test_dina_pfpo1c-m1 test_dina_pfpo1d test_dina_pfpo2a test_dina_pfpo2b
 
-DINADIR := ../../src/scenario
-CONTROLDIR := ../../src/controllers
-ASTRADIR := ../astra_transp
+CONTROLLERS = kmc.a kmc_2madiv.a kmc_pfpo1_1a.a kmc_pfpo1_1c-m1.a kmc_pfpo1_1d.a kmc_pfpo1_2-vs1.a
+
+TARGETS += $(FORTRANWF) $(CONTROLLERS) dina_imas.a dina_sdn.a dina_put_slice.a dina_transp_energy.a dina_transp_density.a dina_transp_density_test.a dina_transp_density_test0.a dina_transp_bootcond.a dina_transp_curdrive.a dina_transp_heatsrc.a solps_imas.a test_wr_prof
+
 
 LIB_SOURCEDINA := dina_imas.o wr_prof_imas.o n_dina_imas3.o out42_for.o green_imas.o pers2.o
 
@@ -24,6 +28,10 @@ all: $(TARGETS)
 
 #--------------------- gfortran ------------------------
 test_dina: test_dina_imas.o dina_put_slice.a dina_imas.a kmc.a solps_imas.a
+	@echo "   * $^ -> $@"
+	$(F90_gfortran) -o $@ $^ $(LIBS_gfortran)
+
+test_dina_2madiv: test_dina_imas.o dina_put_slice.a dina_imas.a kmc_2madiv.a solps_imas.a
 	@echo "   * $^ -> $@"
 	$(F90_gfortran) -o $@ $^ $(LIBS_gfortran)
 
@@ -47,7 +55,11 @@ test_dina_pfpo1d: test_dina_imas.o dina_put_slice.a dina_imas.a kmc_pfpo1_1c-m1.
 	@echo "   * $^ -> $@"
 	$(F90_gfortran) -o $@ $^ $(LIBS_gfortran)
 
-test_dina_2madiv: test_dina_imas.o dina_put_slice.a dina_imas.a kmc_2madiv.a solps_imas.a
+test_dina_pfpo2a: test_dina_imas.o dina_put_slice.a dina_imas.a kmc_pfpo1_1d.a solps_imas.a
+	@echo "   * $^ -> $@"
+	$(F90_gfortran) -o $@ $^ $(LIBS_gfortran)
+
+test_dina_pfpo2b: test_dina_imas.o dina_put_slice.a dina_imas.a kmc_pfpo1_2-vs1.a solps_imas.a
 	@echo "   * $^ -> $@"
 	$(F90_gfortran) -o $@ $^ $(LIBS_gfortran)
 
@@ -71,6 +83,10 @@ test_wr_prof: test_wr_prof.o wr_prof_imas.o
 	@echo "   * $^ -> $@"
 	$(F90_gfortran) $(COPTS_gfortran) -c -o $@ $^
 
+wr_prof_imas.o: wr_prof_imas.f90
+	@echo "   * $^ -> $@"
+	$(F90_gfortran) $(COPTS_gfortran) -I$(DINADIR) -c -o $@ $^
+
 %.o: %.f
 	@echo "   * $^ -> $@"
 	$(f2c) -c $<
@@ -89,6 +105,11 @@ kmc.a: $(CONTROLDIR)/kmc/kmc.a $(LIB_SOURCECTRL)
 	@cp $< $@
 	ar -rcs $@ $(LIB_SOURCECTRL)
 
+kmc_2madiv.a: $(CONTROLDIR)/kmc_2madiv/kmc.a $(LIB_SOURCECTRL)
+	@echo "   * $^ -> $@"
+	@cp $< $@
+	ar -rcs $@ $(LIB_SOURCECTRL)
+
 kmc_pfpo1_1a.a: $(CONTROLDIR)/kmc_pfpo1_1a/kmc.a $(LIB_SOURCECTRL)
 	@echo "   * $^ -> $@"
 	@cp $< $@
@@ -99,7 +120,12 @@ kmc_pfpo1_1c-m1.a: $(CONTROLDIR)/kmc_pfpo1_1c-m1/kmc.a $(LIB_SOURCECTRL)
 	@cp $< $@
 	ar -rcs $@ $(LIB_SOURCECTRL)
 
-kmc_2madiv.a: $(CONTROLDIR)/kmc_2madiv/kmc.a $(LIB_SOURCECTRL)
+kmc_pfpo1_1d.a: $(CONTROLDIR)/kmc_pfpo1_1d/kmc.a $(LIB_SOURCECTRL)
+	@echo "   * $^ -> $@"
+	@cp $< $@
+	ar -rcs $@ $(LIB_SOURCECTRL)
+
+kmc_pfpo1_2-vs1.a: $(CONTROLDIR)/kmc_pfpo1_2-vs1/kmc.a $(LIB_SOURCECTRL)
 	@echo "   * $^ -> $@"
 	@cp $< $@
 	ar -rcs $@ $(LIB_SOURCECTRL)

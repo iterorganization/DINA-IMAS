@@ -691,10 +691,10 @@ c  BEAM Commons...
      *  /inj12/eee2,sb2(npo),s_beam2(npo)
 
 c************************************************
-	common
-     *  /maksim_01/tqc,emag
-     *  /maksim_02/qtep,gfus,gamma
+        common
+     *  /maksim_03/wr(150),wr_imas(150)
      *  /maksim_04/s_surf(npo)
+     *  /maksim_05/s_bound
      
         common /c_teit_98/teit_98
 

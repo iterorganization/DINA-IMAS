@@ -131,7 +131,7 @@ class ExampleApp(QMainWindow, design.Ui_MainWindow):
                 
         
         self.directoryLoad = os.path.normpath(os.getcwd() + '/../../machines/iter/')
-        self.directorySave = os.getenv('KEPLER')
+        self.directorySave = os.path.normpath(os.getcwd() + '/../../imas/python_wf/')
         self.labelDirLoad.setText(self.directoryLoad)
         self.labelDirSave.setText(self.directorySave)
         
@@ -1082,7 +1082,7 @@ class ExampleApp(QMainWindow, design.Ui_MainWindow):
       output = {}      
       output["type"] = "coil"
       
-      output["name"] = f.readline().rstrip()
+      output["name"] = f.readline().strip()
       
       props = self.ReadRowStr(f)
       if len(props) != 4:
@@ -1871,11 +1871,11 @@ class ExampleApp(QMainWindow, design.Ui_MainWindow):
       record = self.GetStuctWithFieldValue(self.DINAData, "title", "dens.dat")     
       self.FillPulseScheduleItem(psch.density_control.valve[0].flow_rate.reference, record, 1.e19)
       
-      # Be content (Ip < 1.5 MA)
+      # Be content (0D transport)
       record = self.GetStuctWithFieldValue(self.DINAData, "title", "gamma_z.dat")     
       self.FillPulseScheduleItem(psch.density_control.valve[1].flow_rate.reference, record)
       
-      # Be content (Ip > 1.5 MA)
+      # Be content (1D transport)
       record = self.GetStuctWithFieldValue(self.DINAData, "title", "gamma_z1.dat")     
       self.FillPulseScheduleItem(psch.density_control.valve[2].flow_rate.reference, record)      
       
@@ -2019,23 +2019,27 @@ class ExampleApp(QMainWindow, design.Ui_MainWindow):
         print('selected base = ', self.baseout)
 
         
-        imas_obj1 = imas.ids(self.pulseout, self.runout)
-        imas_obj1.open_env(self.userout, self.baseout, '3')
 
-
-
+        imas_entry_init = imas.DBEntry(imas.imasdef.MDSPLUS_BACKEND, self.baseout, self.pulseout, self.runout, self.userout, data_version = '3')
+        imas_entry_init.open()
+        
+        idslist = {}
+        
+        idslist['equilibrium'] = imas_entry_init.get('equilibrium')
+        idslist['wall'] = imas_entry_init.get('wall')
+        idslist['pf_active'] = imas_entry_init.get('pf_active')
+        idslist['pf_passive'] = imas_entry_init.get('pf_passive')
+        idslist['core_profiles'] = imas_entry_init.get('core_profiles')
+        idslist['core_sources'] = imas_entry_init.get('core_sources')
+        idslist['summary'] = imas_entry_init.get('summary')
+        
+        imas_entry_init.close()
 
         
-        self.sum1 = imas_obj1.summary
-        self.cp1 = imas_obj1.core_profiles
-        self.eq1 = imas_obj1.equilibrium
-        
-        self.sum1.get()
-        self.cp1.get()
-        self.eq1.get()
-        
-        imas_obj1.close()
-        
+        self.sum1 = idslist['summary']
+        self.cp1 = idslist['core_profiles']
+        self.eq1 = idslist['equilibrium']
+
         
         t1 = self.sum1.time
         ipl1 = self.sum1.global_quantities.ip.value
@@ -2056,10 +2060,13 @@ class ExampleApp(QMainWindow, design.Ui_MainWindow):
         self.outpGraph[4].Plot(t1, li_3, 'li_3')
         
 
+
+
+
         #if not self.EQUIL_win:
         #QVizGlobalOperations.checkEnvSettings()
         #QVizPreferences().build()
-        self.EQUIL_win = Second_window(self.pulseout,self.runout,self.userout,self.baseout, self.sum1, self.cp1, self.eq1)
+        self.EQUIL_win = Second_window(idslist)
         self.EQUIL_win.show()
     #--------------------
     def getMDI(self):

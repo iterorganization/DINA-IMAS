@@ -4,7 +4,7 @@ use ids_schemas
 use ids_routines
 implicit none
 
-type (ids_sdn)   :: sdnin,sdn
+type(ids_real_time_data) :: sdnin,sdn
 !integer, parameter :: DP = kind(1.0d0)
 real(ids_real) arrinout(*)
 integer :: ioswitch

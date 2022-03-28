@@ -55,7 +55,7 @@ d_tpl,   tpl_end
 c_h,     d_halo
 1.       10.
 kmaj,    li_drop   ndisrup   n_dif   nmix
--1       99999      -16        0      13 
+-1       -99999      -16        0      13 
 hpart    te_h
 1.1      0.5 
 i_d3d   i_iter  i_smal

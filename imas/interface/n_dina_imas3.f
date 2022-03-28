@@ -185,9 +185,6 @@ c ============ outputs ==============================================
 !	if(kpr.eq.3.or.kpr.eq.1)call out42(n_pr,a_print,num,apr)
 
 
-
-
-
       return
       end
 
@@ -195,21 +192,28 @@ c ============ outputs ==============================================
 !> dina_outp is a subroutine to collect the output data to write them after that 
 !> to IDSs in dina_imas subroutine
       
-	subroutine dina_outp(n_xx,
-     * tpl_xx,uli_xx,v_xx,parea_xx,psi_ax_xx,rmag_xx,zmag_xx,
-     * q_ax_xx,q_95_xx,rs0_xx,bt0_xx,wen2_xx,tt_xx,
-     * a_xx,psi_1D_xx,te0_xx,tq0_xx,pne_xx,tok1_xx,q_xx,
-     * x_xx,y_xx,psi_xx,psi_bnd_xx,psi_sep_xx,curr_d_xx,
-     * ksepa_xx,rmajor_xx,rminor_xx,elong_xx,tri_xx,gaps_xx,dsep_xx,
-     * pd0_xx,pt0_xx,sigma_xx,ajb_xx,aj0_xx,ajae_xx,zeff_xx,press_xx,qe0_xx,qq0_xx,
-     * betap_xx,betat_xx,tec_xx,tqc_xx,pec_xx,pic_xx,palf_xx,zeff0_xx,vloop_xx,
-     * tene_xx,teit_98_xx,wfus_xx,emag_xx,
+	subroutine dina_outp(n_xx, tpl_xx, tt_xx,
+     * a_xx, ai_xx,
+     * rs0_xx,bt0_xx,
+     * x_xx,y_xx,psi_xx,curr_d_xx,
+     * psi_1D_xx,phi_xx,
+     * fpol_xx,pptab_xx,fptab_xx,
+     * tok1_xx,q_xx,
      * vchopper_xx,pf_xx,tcam_xx,
-     * fpol_xx,pptab_xx,fptab_xx,phi_xx,
-     * n_bnd_xx,xbound_xx,ybound_xx,n_sep_xx,x_sep_xx,y_sep_xx, n_sep2_xx,x_sep2_xx,y_sep2_xx,
+     * te0_xx,tq0_xx,press_xx,zeff_xx,
+     * qe0_xx,qq0_xx,
+     * pne_xx,pd0_xx,pt0_xx,
+     * sigma_xx,ajb_xx,aj0_xx,ajae_xx,
      * bprobe_xx,psloop_xx,
+     * psi_ax_xx, psi_bnd_xx, psi_sep_xx, psi_sep2_xx,
+     * ksepa_xx,key_lh_xx,
      * surface_1d_xx,volume_1d_xx,area_1d_xx,
-     * psi_sep2_xx)
+     * n_bnd_xx,xbound_xx,ybound_xx,
+     * n_sep_xx,x_sep_xx,y_sep_xx,
+     * n_sep2_xx,x_sep2_xx,y_sep2_xx,
+     * n_ga_xx,gaps_xx,
+     * betap_xx,betat_xx,
+     * tene_xx,teit_98_xx)
 
 
 	include 'double.inc'
@@ -223,7 +227,7 @@ c ============ outputs ==============================================
 !     *  /cont20/x_gaps(kf_c),y_gaps(kf_c),gaps(kf_c),n_gaps
      
 
-	dimension a_xx(*),psi_1D_xx(*),te0_xx(*),tq0_xx(*),pne_xx(*),tok1_xx(*),
+	dimension a_xx(*),ai_xx(*),psi_1D_xx(*),te0_xx(*),tq0_xx(*),pne_xx(*),tok1_xx(*),
      *  q_xx(*),x_xx(*),y_xx(*)
 	dimension pd0_xx(*),pt0_xx(*),sigma_xx(*),ajb_xx(*),ajae_xx(*),
      *  aj0_xx(*),qe0_xx(*),qq0_xx(*)
@@ -242,25 +246,11 @@ c ============ outputs ==============================================
            
         
         n_xx=n
-
-!	pi=3.14159
 	
 	tpl_xx = tpl_dir*tpl*1000.d0
 	
 !	print *,' n_xx tpl_xx=',n_xx,tpl_xx
-	
-!	return
-	
-	uli_xx=uli
-	v_xx=volume
-	parea_xx=surface
-	
-	rmag_xx=rmag/100.d0
-	zmag_xx=zmag/100.d0
-	q_ax_xx=q(2)
-        q_95_xx=q_95
 
-	wen2_xx=0.d0 ! wr_imas
 	tt_xx=tt/1000.d0
 
         rs0_xx = rs0/100.d0
@@ -268,25 +258,10 @@ c ============ outputs ==============================================
 	
         betap_xx = betj
         betat_xx = bett
-        tec_xx = tec
-        tqc_xx = tqc
-        pec_xx = pcch*1.d19
-	pic_xx = pion*1.d19
-	palf_xx = palf*1.d19
-	zeff0_xx = zeff_a
-	vloop_xx = vloop
+
 	tene_xx = tene*1.d-3
-
-        print *,' tene_xx tene==',tene_xx,tene
-
-	teit_98_xx = teit_98*1.d-3
-	wfus_xx = w_fusion*1.d6
-	emag_xx = emag*1.d6
-
-        rmajor_xx = rout/100.d0
-        rminor_xx = eu/100.d0
-        elong_xx = elong
-        tri_xx = tri
+        teit_98_xx = teit_98*1.d-3
+        key_lh_xx = key_lh
       
       
         psi_ax_xx = tpl_dir*pmag*1.d-5*2.*pi
@@ -314,10 +289,10 @@ c ============ outputs ==============================================
            y_sep2_xx(i) = y_sep2(i)*1.d-2
         end do
         
+        n_ga_xx = n_ga
         do i=1,n_ga
           gaps_xx(i) = gaps(i)*1.d-2
         enddo
-        dsep_xx = gaps(n_ga+1)*1.d-2
         
         
         bprobe_xx(1:kprobe) = tpl_dir*bprobe(1:kprobe) ! *1.d-1
@@ -326,6 +301,7 @@ c=================================================
 
 	do i=1,n
 	   a_xx(i)=a(i)
+           ai_xx(i)=ai(i)
 
 	   te0_xx(i)=te0(i)
 	   tq0_xx(i)=tq0(i)
@@ -335,7 +311,7 @@ c=================================================
            pt0_xx(i)=pt0(i)*1.d19
            
            !sigma_xx(i)=sigma_dina(i)
-           sigma_xx(i)=sigk(i)
+           sigma_xx(i)=1480.d0*sigk(i)*te0(i)**1.5d0
            
            qe0_xx(i)=qe0(i)
            qq0_xx(i)=qq0(i)
@@ -350,10 +326,18 @@ c=================================================
            phi_xx(i) = bt0_dir*dfmax(i)*1.d-5
 
 
-	   surface_1d_xx(i) = s_surf(i)*2.d0*pi*1.d-4
+	   surface_1d_xx(i) = s_surf(i)*1.d-4
 
 	end do
 	
+	do i=1,n
+
+	   tok1_xx(i) = tpl_dir*tok1(i)*1.d7 ! Toroidal current density
+	   ajb_xx(i) = tpl_dir*ajb(i)*1.d7 ! Bootstrap current density
+	   aj0_xx(i) = tpl_dir*aj0(i)*1.d7 ! Current density by NBI CD
+	   ajae_xx(i) = tpl_dir*ajae(i)*1.d7 ! Current density by ECRH CD
+
+	end do
 	
 	
 	do i=1,n
@@ -403,8 +387,9 @@ c=================================================
            pptab_xx(i) = -tpl_dir*pptab_xx(i) * 1.d10/(rs0*8.d0*pi**2)
            fptab_xx(i) = -tpl_dir*fptab_xx(i) * rs0/(40.d0*pi)       
            fpol_xx(i) = bt0_dir*(rs0/100.d0)*fpol_xx(i)/10.d0
-           press_xx(i) = 1.602176634d0*press_xx(i)/(200.d0*1.d-6)         
-           q_xx(i)=q_xx(i)
+!           press_xx(i) = 1.602176634d0*press_xx(i)/(200.d0*1.d-6)
+           press_xx(i) = 1.d-2*press_xx(i)/(4.d0*pi*1.d-7)
+           q_xx(i) = q_xx(i)
                    
 	enddo
 	
@@ -416,18 +401,6 @@ c=================================================
            area_1d_xx(i) = area_1d_xx(i-1) + spo(i)*ha(i)*1.d-4          
 	enddo
 	
-	
-	do i=1,n
-
-	   tok1_xx(i) = tpl_dir*tok1(i)*1.d7 ! Toroidal current density
-	   ajb_xx(i) = tpl_dir*ajb(i)*1.d7 ! Bootstrap current density
-	   aj0_xx(i) = tpl_dir*aj0(i)*1.d7 ! j_parallel
-	   ajae_xx(i) = tpl_dir*ajae(i)*1.d7 ! source of j_parallel
-	      
-           
-           
-
-	end do
 
 c=================================================
 
@@ -502,33 +475,11 @@ c=================================================
         subroutine dina_wr_output(wr_imas_in)  
         include 'double.inc'
        
-        
-        common/maksim_03/wr,wr_imas       
-        dimension wr(150), wr_imas(150)
+        common /maksim_03/ wr(150),wr_imas(150)
         
         dimension wr_imas_in(150)
-        
-        !real*8 :: wr_imas(150)
-        
+
         wr_imas_in = wr_imas
-        
-!     * /c_br4/wdh,p_oh
-        
-        !wr_imas = wr
-        
-        !Pohm = wr(65)
-        !wdop = wr(66)
-        !w_alfa = wr(67)      
-        !wtor = wr(84)
-        
-        !w_Be = wr(86)
-        !w_W = wr(87)
-        !w_Ar = wr(88)
-        !w_Ne = wr(89)
-        !w_imp = wr(90)
-        !w_rad = wr(91)
-        !w_heat = wr(71)
- 
  
         return
         end
@@ -539,12 +490,12 @@ c=================================================
 !> to DINA to write them after that to DINA from IDSs in dina_imas subroutine
 
 	subroutine dina_input(te0_xx,tq0_xx,pne_xx,
-     * pd0_xx,pt0_xx,sigk_xx,ajb_xx,aj0_xx,qe0_xx,qq0_xx)
+     * pd0_xx,pt0_xx,sigma_xx,ajb_xx,aj0_xx,qe0_xx,qq0_xx)
 
 	include 'double.inc'
 
 	dimension te0_xx(*),tq0_xx(*),pne_xx(*)
-	dimension pd0_xx(*),pt0_xx(*),sigk_xx(*),ajb_xx(*),
+	dimension pd0_xx(*),pt0_xx(*),sigma_xx(*),ajb_xx(*),
      *  aj0_xx(*),qe0_xx(*),qq0_xx(*)
 
 	include 'parf0'
@@ -578,6 +529,10 @@ c=================================================
 	   te0(i)=te0_xx(i)
 	   tq0(i)=tq0_xx(i)
 	   pne(i)=pne_xx(i)*1.d-19
+	   pd0(i)=pd0_xx(i)*1.d-19
+	   pt0(i)=pt0_xx(i)*1.d-19
+	   qe0(i)=qe0_xx(i)
+	   qq0(i)=qq0_xx(i)
 	end do
 
       apr='--te0-' 
@@ -590,13 +545,14 @@ c=================================================
    71 FORMAT(20X,A20/,(6(1pE10.3)))
 	
 	do i=1,n
-	   pd0(i)=pd0_xx(i)*1.d-19
-	   pt0(i)=pt0_xx(i)*1.d-19
-	   sigk(i)=sigk_xx(i)
+           if (te0_xx(i).gt.0.d0) then
+             sigk(i)=sigma_xx(i)/(1480.d0*te0_xx(i)**1.5d0)
+           else 
+             sigk(i) = 0.d0
+           endif
+           
 	   ajb(i)=tpl_dir*ajb_xx(i)*1.d-7
 	   aj0(i)=tpl_dir*aj0_xx(i)*1.d-7
-	   qe0(i)=qe0_xx(i)
-	   qq0(i)=qq0_xx(i)
 	end do
 
       apr='--pd0-' 

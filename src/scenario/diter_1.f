@@ -223,6 +223,8 @@ c       implicit real*8 (a-h,o-z)
      *  /ge7/eu,rs,zout,eksk
 	common
      *	/efit4/coef
+        common /maksim_04/s_surf(npo)
+        common /maksim_05/s_bound
 
         dimension tok_b(ntet),r_b(ntet),z_b(ntet)
 
@@ -247,6 +249,9 @@ c
 	bav=0.
 	bpbound1=0.
       dl_b=0.
+      
+      s_surf(i)=0.
+      
       xmin=1.e5
       xmax=-1.e5
 	bsq(i)=0.
@@ -294,6 +299,9 @@ c======================================
 c   bpol in kGgaus
       bpol=BP_j
       dl_b=dl_b+sqrt(g22)
+      
+      s_surf(i)=s_surf(i)+2.d0*PI*sqrt(g22)*UC
+      
 ccc	bpbound1=bpbound1+bpol*sqrt(g22)
 	bpbound1=bpbound1+bpol*sqrt(g22)*uc/rs
 
@@ -338,6 +346,9 @@ c==========================
       GRA1(I)=GRA1(I)/VI(I)
       C3(I)=c3(i)/(ha(i)*2.*PI)
    30 CONTINUE
+   
+        s_bound=s_surf(n)
+   
 	ba(1)=ba(2)
 
 	r_m(1)=xpl(1,1)

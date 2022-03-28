@@ -106,6 +106,7 @@ export PYTHONPATH=${VIZ_HOME}:${PYTHONPATH}
 #   OBJ=obj_gfortran
 # fi
 
-module list
+
+module list -t
 
 
