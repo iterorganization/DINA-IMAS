@@ -2270,7 +2270,7 @@ class ExampleApp(uiclass, baseclass):
       #print('Be waveform for 0D, z='+str(z))
       #print(record)
       self.FillIonElement(psch.density_control.ion[ion], record.z)
-      self.FillPulseScheduleItem(psch.density_control.ion[ion].n_i_volume_average.reference, record)
+      self.FillPulseScheduleItem(psch.density_control.ion[ion].n_i_volume_average.reference, record, mult=1.e19)
       
       # Be content (1D transport)
       record = self.generalData['gamma_z1'] #self.GetStuctWithFieldValue(self.generalData, "title", "gamma_z1.dat")
@@ -2278,25 +2278,25 @@ class ExampleApp(uiclass, baseclass):
       #print('Be waveform for 1D, z='+str(z))
       #print(record)
       self.FillIonElement(psch.density_control.ion[ion], record.z)
-      self.FillPulseScheduleItem(psch.density_control.ion[ion].n_i_volume_average.reference, record)
+      self.FillPulseScheduleItem(psch.density_control.ion[ion].n_i_volume_average.reference, record, mult=1.e19)
       
       # W content
       record = self.generalData['gamma_z2'] #self.GetStuctWithFieldValue(self.generalData, "title", "gamma_z2.dat")
       ion = 4
       self.FillIonElement(psch.density_control.ion[ion], record.z)
-      self.FillPulseScheduleItem(psch.density_control.ion[ion].n_i_volume_average.reference, record)
+      self.FillPulseScheduleItem(psch.density_control.ion[ion].n_i_volume_average.reference, record, mult=1.e19)
        
       # Ar content
       record = self.generalData['gamma_z3'] #self.GetStuctWithFieldValue(self.generalData, "title", "gamma_z3.dat")
       ion = 5
       self.FillIonElement(psch.density_control.ion[ion], record.z)
-      self.FillPulseScheduleItem(psch.density_control.ion[ion].n_i_volume_average.reference, record)
+      self.FillPulseScheduleItem(psch.density_control.ion[ion].n_i_volume_average.reference, record, mult=1.e19)
       
       # Ne content
       record = self.generalData['gamma_z4'] #self.GetStuctWithFieldValue(self.generalData, "title", "gamma_z4.dat")
       ion = 6
       self.FillIonElement(psch.density_control.ion[ion], record.z)
-      self.FillPulseScheduleItem(psch.density_control.ion[ion].n_i_volume_average.reference, record)
+      self.FillPulseScheduleItem(psch.density_control.ion[ion].n_i_volume_average.reference, record, mult=1.e19)
  
  
       # Aux heating
