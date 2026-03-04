@@ -1,0 +1,113 @@
+   tcont2  dtcont2  Ip_div ref_ramp Ip_rd   trd_ref  ! control_data2.dat
+    2.   0.3   3.3      3.    4.4     70.    0.25     1     75
+c_a_tpl1 c_a_tpl1_eob  c_a_tpl2  c_a_tpl_min  y0   c1_y0     c2_y0
+  5.         1.5         5.       0.75        1.   1.8        4.
+t_tran2D   tt_dw
+ 3500    
+ktime  ! elong_ref.dat
+ 7
+time[S] elong_ref
+  0.000000e+000    1.1
+  3.500000e+000    1.1
+  7.500000e+000    1.3100
+  1.200000e+001    1.6700
+  1.800000e+001    1.7200
+  2.500000e+001    1.7700
+  1.000000e+002    1.7700
+ktime  ! g1.dat
+ 2
+time   
+  0.     0.
+  6000.  0. 
+ktime  ! g1_term.dat
+ 2
+time
+  0.     0.
+  66.  -19. 
+ktime  ! g2.dat
+ 2
+time
+  0      0.
+  6000   0. 
+ktime   ! g2_term.dat
+ 2
+time
+  0.     0.
+  66.    0. 
+ktime  ! g3.dat
+ 6
+time
+  0.   773.5
+  3.5  773.5
+  7.5  803.
+  12.  820.
+  6.563559e+001  820.
+  6.100100e+003  820.
+ktime  ! g3_term.dat
+ 4
+time
+  0.   820.
+  30.  820.
+  50.  795.
+  66.  795.
+ktime  ! g4.dat
+ 6
+time
+  0.              148.9
+  3.5000e+00      148.9
+  1.200000e+001   25.
+  2.035960e+001   24.
+  6.519600e+001   22.7609
+  6.100100e+003   22.7609
+ktime  ! g4_term.dat
+ 4
+time
+  0.   22.7609
+  30   70.
+  45   138
+  66   241
+ktime  ! g5.dat
+ 5
+time
+  0.          265.5
+  3.5000e+00  265.5
+  1.2000e+01  100.
+  65.196       59.5995
+  6.1001e+03   59.5995 
+ktime   ! g5_term.dat
+ 4
+time
+  0.    59.5995
+  30.  161.
+  45.  232.
+  66.  373.
+ktime  ! g6.dat
+ 8
+time
+  0.0000e+00     410.5
+  3.5000e+00     410.5
+  1.0000e+01     410.5
+  1.2000e+01     416.0
+  20.3596        421.4
+  2.0000e+02     421.4
+  5.0000e+02     428.
+  6.1001e+03     428. 
+ktime  ! g6_term.dat
+ 3
+time
+  0    428.
+  30.  420.
+  66.  428. 
+tt_rampup   !tt_kavin2.dat
+65000   
+dt_end_sim   dtpl_term_l   cIp_end   
+50   70   1.5   
+Ics1_eob(kA)   rms_noise(m/s)   
+-44.0   0.6   
+   VS1_max(V)    VS3_max(V)  CS3U_max(V)  CS2U_max(V)  CS1_max(V)  CS2L_max(V) CS3L_max(V)       PF1_max(V)  PF2_max(V) PF3_max(V) PF4_max(V) PF5_max(V) PF6_max(V)      Tu(s) ! control_data.dat
+  6e3           575.        2.1e3 2.1e3 4.2e3 2.1e3 2.1e3   2.1e3 3.15e3 3.15e3 3.15e3 3.15e3 2.1e3     0.04
+ c_cur_max      CS3U_max(kA)  CS2U_max(kA)  CS1_max(kA)  CS2L_max(kA) CS3L_max(kA)        PF1_max(kA)  PF2_max(kA) PF3_max(kA) PF4_max(kA) PF5_max(kA) PF6_max(kA)
+  0.98        45.  45.  45.  45.  45.   48.  55.  55.  55.  52.  52.
+CS3U CS2U CS1 CS2L CS3L PF1 PF2 PF3 PF4 PF5 PF6 VS3 Virt1 Virt2 Virt3 Virt4 Virt5 ! n_turn
+554. 554. 554. 554. 554. 248.6 115.2 185.9 169.9 216.8 459.4 1 1 1 1 1 1  
+ 
