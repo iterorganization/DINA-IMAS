@@ -1,5 +1,6 @@
 <?xml version="1.0" ?>
 <parameters>
+   <kpr>1</kpr>
    <tcont2>2</tcont2>
    <dtcont2>0.3</dtcont2>
    <Ip_div>3.3</Ip_div>

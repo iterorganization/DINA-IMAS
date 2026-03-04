@@ -22,6 +22,7 @@
    <grid_n>50</grid_n>
    <grid_rho>0.5</grid_rho>
    <grid_alpha>0.95</grid_alpha>
+   <coef_p_lh>1.0</coef_p_lh>
    <tt_rampup>75000</tt_rampup>
    <dt_end_sim>50</dt_end_sim>
    <dtpl_term_l>70</dtpl_term_l>

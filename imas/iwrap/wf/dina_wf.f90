@@ -115,6 +115,8 @@ integer :: hh, mm
  integer :: error_flag
  character(len=:), pointer :: error_message
  
+ real (ids_real) :: vs3_l, vs3_r
+
 call getenv("USER", user_default)
 
 
@@ -186,6 +188,10 @@ call xml2eg_parse_memory(buffer, doc)
   call xml2eg_get(doc, 'step_max', imax)
 
 
+  call xml2eg_get(doc, 'vs3_l', vs3_L)
+  call xml2eg_get(doc, 'vs3_r', vs3_R)
+
+
 
 
 if (trim(user_pfa).eq.'') user_pfa = user_default
@@ -219,6 +225,8 @@ print *,' External transport time, s =', time_ext
 print *,' Maximum time steps amount =', imax
 print *,' Maximum simulation time, s =', time_stop
 
+print *,' VS3 L =', vs3_L
+print *,' VS3 R =', vs3_R
 
 
 if (time_start.gt.0.d0) then
@@ -308,6 +316,29 @@ write(*,*) 'get_em_coupling error_flag =', error_flag
 if (associated(error_message) .and. error_flag.ne.0) then 
 write(*,*) 'get_em_coupling error_message =', error_message
 endif
+
+
+
+! VS3 Parameters
+write(*,*) 'Green VS3 Luu =', em_coupling%mutual_active_active(13, 13)
+write(*,*) 'Green VS3 Ldd =', em_coupling%mutual_active_active(14, 14)
+write(*,*) 'Green VS3 Lud =', em_coupling%mutual_active_active(13, 14)
+write(*,*) 'Green VS3 Ldu =', em_coupling%mutual_active_active(14, 13)
+write(*,*) 'Green VS3 L =', em_coupling%mutual_active_active(13, 13) + em_coupling%mutual_active_active(14, 14)
+
+em_coupling%mutual_active_active(13, 13) = 0.5d0*vs3_L
+em_coupling%mutual_active_active(13, 14) = 0.d0
+em_coupling%mutual_active_active(14, 13) = 0.d0
+em_coupling%mutual_active_active(14, 14) = 0.5d0*vs3_L
+
+
+write(*,*) 'MD VS3 Ru =', pf_active0%coil(13)%resistance
+write(*,*) 'MD VS3 Rd =', pf_active0%coil(14)%resistance
+write(*,*) 'MD VS3 R =', pf_active0%coil(13)%resistance + pf_active0%coil(14)%resistance
+
+pf_active0%coil(13)%resistance = 0.5d0*vs3_R
+pf_active0%coil(14)%resistance = 0.5d0*vs3_R
+
 
 
   CopyString(em_coupling%code%name, workflow%time_loop%component(1)%name)

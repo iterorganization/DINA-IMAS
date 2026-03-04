@@ -30,6 +30,7 @@
 		 <xs:element ref="grid_n" minOccurs="0"/>
 		 <xs:element ref="grid_rho" minOccurs="0"/>
 		 <xs:element ref="grid_alpha" minOccurs="0"/>
+         <xs:element ref="coef_p_lh" minOccurs="0"/>
 		 <xs:element ref="tt_rampup" minOccurs="0"/>
 		 <xs:element ref="dt_end_sim" minOccurs="0"/>
 		 <xs:element ref="dtpl_term_l" minOccurs="0"/>
@@ -226,6 +227,12 @@
       </xs:annotation>
    </xs:element>
    
+   <xs:element name="coef_p_lh" type="float_general">
+      <xs:annotation>
+          <xs:documentation></xs:documentation>
+      </xs:annotation>
+   </xs:element>
+
    <xs:element name="tt_rampup" type="float_general">
       <xs:annotation>
           <xs:documentation></xs:documentation>

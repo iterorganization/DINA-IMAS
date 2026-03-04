@@ -63,5 +63,7 @@
   <controller>kmc</controller>
   <step_max>1000000</step_max>
   <use_astra>0</use_astra>
+  <vs3_l>0.00152</vs3_l>
+  <vs3_r>0.012</vs3_r>
 
 </parameters>
