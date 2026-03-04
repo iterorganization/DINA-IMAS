@@ -1,0 +1,23 @@
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+	   elementFormDefault="qualified">
+	   
+   <xs:include schemaLocation="../imas_database.xsd" />
+
+   <xs:annotation>
+     <xs:documentation>Parameters for magnetic controller actor test workflow</xs:documentation>
+   </xs:annotation>
+ 
+   <!-- document element -->
+  <xs:element name="parameters">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="input_scenario" type="imas_database"/>
+        <xs:element name="output" type="imas_database"/>
+		<xs:element name="time_start" type="xs:double"/>
+		<xs:element name="time_sim" type="xs:double"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  
+</xs:schema>
+ 

@@ -1,0 +1,61 @@
+# Saved with iWrap 1.0.0
+---
+actor_description:
+    actor_name: kav_mag_contr
+    actor_type: python
+    data_type: legacy
+code_description:
+    documentation: DINA-Scenario actor for calculation of free-boundary equilibrium evolution 
+    implementation:
+        code_parameters:
+            format: legacy-xml
+            parameters: ./code_parameters.xml
+            schema: ./code_parameters.xsd
+        code_path: ./kav_mag_contr.a
+        data_dictionary_compliant: 3.39.0
+        data_type: legacy
+        include_path: ./kav_mag_contr.mod
+        programming_language: fortran
+        root_dir: .
+        subroutines:
+            finalize:
+                arguments:
+                name:
+                need_code_parameters: false
+            get_state:
+            get_timestamp:
+            init:
+                arguments:
+                name:
+                need_code_parameters: false
+            main:
+                arguments:
+                -   intent: IN
+                    name: pulse_schedule
+                    type: pulse_schedule
+                -   intent: IN
+                    name: pulse_schedule_term
+                    type: pulse_schedule
+                -   intent: IN
+                    name: equilibrium0
+                    type: equilibrium
+                -   intent: IN
+                    name: pf_active0
+                    type: pf_active
+                -   intent: OUT
+                    name: pf_active
+                    type: pf_active
+                name: kmc_step
+                need_code_parameters: true
+            set_state:
+    settings:
+        compiler_cmd: $FCOMPILER
+        compiler_flags: -w -freal-4-real-8 -fno-second-underscore -ffree-line-length-none -fPIC
+        extra_libraries:
+            path_defined:
+            - ./kav_mag_contr.a
+            pkg_config_defined:
+            - libxml-2.0
+            - xmllib
+        mpi_compiler_cmd:
+...

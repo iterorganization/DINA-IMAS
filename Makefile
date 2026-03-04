@@ -11,12 +11,15 @@ controllers:
 	make -C src/controllers/kmc_2madiv
 	make -C src/controllers/kmc_pfpo1_1a
 	make -C src/controllers/kmc_pfpo1_1b
+	make -C src/controllers/kmc_contr_4
 
 interface: dina controllers
 	make -C imas/iwrap/dina_green
 	make -C imas/iwrap/dina_imas
 	make -C imas/iwrap/kmc
+	make -C imas/iwrap/kmc_contr_4
 	make -C imas/iwrap/wf
+	make -C imas/iwrap/wf_contr_4
 
 iwrap: interface
 	make -C imas/iwrap/dina_green actor

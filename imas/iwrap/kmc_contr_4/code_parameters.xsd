@@ -1,0 +1,212 @@
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+	   elementFormDefault="qualified">
+   <xs:annotation>
+     <xs:documentation>Code parameters for DINA-Scenario actor generation</xs:documentation>
+   </xs:annotation>
+ 
+   <xs:simpleType name="integer_flag">
+     <xs:restriction base="xs:integer">
+       <xs:minInclusive value="0"/>
+	   <xs:maxInclusive value="1"/>
+     </xs:restriction>
+   </xs:simpleType>
+ 
+   <xs:simpleType name="float_general">
+     <xs:restriction base="xs:float">
+     </xs:restriction>
+   </xs:simpleType>
+
+   <!-- document element -->
+   <xs:element name="parameters">
+     <xs:complexType>
+       <xs:all>
+	     <xs:element ref="kpr" minOccurs="0"/>
+         <xs:element ref="tcont2" minOccurs="0"/>
+		 <xs:element ref="dtcont2" minOccurs="0"/>
+         <xs:element ref="Ip_div" minOccurs="0"/>
+		 <xs:element ref="ref_ramp" minOccurs="0"/>
+		 <xs:element ref="Ip_rd" minOccurs="0"/>
+		 <xs:element ref="trd_ref" minOccurs="0"/>
+		 <xs:element ref="max_VS_lim" minOccurs="0"/>
+		 <xs:element ref="c_a_tpl2_lim" minOccurs="0"/>
+		 <xs:element ref="time_stop" minOccurs="0"/>
+		 <xs:element ref="c_a_tpl1" minOccurs="0"/>
+		 <xs:element ref="c_a_tpl1_eob" minOccurs="0"/>
+		 <xs:element ref="c_a_tpl2" minOccurs="0"/>
+		 <xs:element ref="c_a_tpl_min" minOccurs="0"/>
+		 <xs:element ref="y0" minOccurs="0"/>
+		 <xs:element ref="c1_y0" minOccurs="0"/>
+		 <xs:element ref="c2_y0" minOccurs="0"/>
+		 <xs:element ref="t_tran2D" minOccurs="0"/>
+		 <xs:element ref="Tu" minOccurs="0"/>
+		 <xs:element ref="c_cur_max" minOccurs="0"/>
+		 <xs:element ref="tt_rampup" minOccurs="0"/>
+		 <xs:element ref="dt_end_sim" minOccurs="0"/>
+		 <xs:element ref="dtpl_term_l" minOccurs="0"/>
+		 <xs:element ref="cIp_end" minOccurs="0"/>
+		 <xs:element ref="Ics1_eob" minOccurs="0"/>
+		 <xs:element ref="rms_noise" minOccurs="0"/>
+       </xs:all>
+     </xs:complexType>
+   </xs:element>
+ 
+
+
+   <xs:element name="kpr" type="integer_flag">
+      <xs:annotation>
+          <xs:documentation>Print diagnostic output to console</xs:documentation>
+      </xs:annotation>
+   </xs:element>
+ 
+   <xs:element name="tcont2" type="float_general">
+      <xs:annotation>
+          <xs:documentation></xs:documentation>
+      </xs:annotation>
+   </xs:element>
+
+   <xs:element name="dtcont2" type="float_general">
+      <xs:annotation>
+          <xs:documentation></xs:documentation>
+      </xs:annotation>
+   </xs:element>
+   
+   <xs:element name="Ip_div" type="float_general">
+      <xs:annotation>
+          <xs:documentation></xs:documentation>
+      </xs:annotation>
+   </xs:element>
+   
+   <xs:element name="ref_ramp" type="float_general">
+      <xs:annotation>
+          <xs:documentation></xs:documentation>
+      </xs:annotation>
+   </xs:element>
+   
+   <xs:element name="Ip_rd" type="float_general">
+      <xs:annotation>
+          <xs:documentation></xs:documentation>
+      </xs:annotation>
+   </xs:element>
+   
+   <xs:element name="trd_ref" type="float_general">
+      <xs:annotation>
+          <xs:documentation></xs:documentation>
+      </xs:annotation>
+   </xs:element>
+   
+   <xs:element name="max_VS_lim" type="float_general">
+      <xs:annotation>
+          <xs:documentation></xs:documentation>
+      </xs:annotation>
+   </xs:element>
+   
+   <xs:element name="c_a_tpl2_lim" type="float_general">
+      <xs:annotation>
+          <xs:documentation></xs:documentation>
+      </xs:annotation>
+   </xs:element>
+   
+   <xs:element name="time_stop" type="float_general">
+      <xs:annotation>
+          <xs:documentation></xs:documentation>
+      </xs:annotation>
+   </xs:element>
+   
+   <xs:element name="c_a_tpl1" type="float_general">
+      <xs:annotation>
+          <xs:documentation></xs:documentation>
+      </xs:annotation>
+   </xs:element>
+   
+   <xs:element name="c_a_tpl1_eob" type="float_general">
+      <xs:annotation>
+          <xs:documentation></xs:documentation>
+      </xs:annotation>
+   </xs:element>
+   
+   <xs:element name="c_a_tpl2" type="float_general">
+      <xs:annotation>
+          <xs:documentation></xs:documentation>
+      </xs:annotation>
+   </xs:element>
+   
+   <xs:element name="c_a_tpl_min" type="float_general">
+      <xs:annotation>
+          <xs:documentation></xs:documentation>
+      </xs:annotation>
+   </xs:element>
+   
+   <xs:element name="y0" type="float_general">
+      <xs:annotation>
+          <xs:documentation></xs:documentation>
+      </xs:annotation>
+   </xs:element>
+   
+   <xs:element name="c1_y0" type="float_general">
+      <xs:annotation>
+          <xs:documentation></xs:documentation>
+      </xs:annotation>
+   </xs:element>
+   
+   <xs:element name="c2_y0" type="float_general">
+      <xs:annotation>
+          <xs:documentation></xs:documentation>
+      </xs:annotation>
+   </xs:element>
+    
+   <xs:element name="t_tran2D" type="float_general">
+      <xs:annotation>
+          <xs:documentation></xs:documentation>
+      </xs:annotation>
+   </xs:element>
+   
+   <xs:element name="Tu" type="float_general">
+      <xs:annotation>
+          <xs:documentation></xs:documentation>
+      </xs:annotation>
+   </xs:element>
+   
+   <xs:element name="c_cur_max" type="float_general">
+      <xs:annotation>
+          <xs:documentation></xs:documentation>
+      </xs:annotation>
+   </xs:element>
+   
+   <xs:element name="tt_rampup" type="float_general">
+      <xs:annotation>
+          <xs:documentation></xs:documentation>
+      </xs:annotation>
+   </xs:element>
+   
+   <xs:element name="dt_end_sim" type="float_general">
+      <xs:annotation>
+          <xs:documentation></xs:documentation>
+      </xs:annotation>
+   </xs:element>
+   
+   <xs:element name="dtpl_term_l" type="float_general">
+      <xs:annotation>
+          <xs:documentation></xs:documentation>
+      </xs:annotation>
+   </xs:element>
+   
+   <xs:element name="cIp_end" type="float_general">
+      <xs:annotation>
+          <xs:documentation></xs:documentation>
+      </xs:annotation>
+   </xs:element>
+   
+   <xs:element name="Ics1_eob" type="float_general">
+      <xs:annotation>
+          <xs:documentation></xs:documentation>
+      </xs:annotation>
+   </xs:element>
+   
+   <xs:element name="rms_noise" type="float_general">
+      <xs:annotation>
+          <xs:documentation></xs:documentation>
+      </xs:annotation>
+   </xs:element>
+   
+</xs:schema>
+ 
