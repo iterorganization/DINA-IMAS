@@ -46,7 +46,8 @@ F90LIB+=`pkg-config $(PACKAGES) --libs`
 F90INC+=`pkg-config $(PACKAGES) --cflags`
 
 # LIST OF OBJECT FILES
-OBJS_ACTOR = ../../../src/controllers/kmc/kmc.a kav_contr.o dina_contr.o contr_params_imas.o
+IMAS_OBJ = kav_contr.o dina_contr.o contr_params_imas.o
+OBJ_ACTOR = ../../../src/controllers/kmc/kmc.a
 OBJS_TEST  = test_actor.o 
 
 IWRAP_ACTORS_DIR ?= $(HOME)/IWRAP_ACTORS
@@ -68,7 +69,7 @@ actor-gui : lib ## Opens IWrap GUI
 $(TEST).exe: $(OBJS_TEST) $(ACTOR).a
 	$(FC) $(F90FLAGS) -o $@ $^ $(F90LIB)
 
-$(ACTOR).a: $(OBJS_ACTOR)
+$(ACTOR).a: $(OBJ_ACTOR) $(IMAS_OBJ)
 	@cp $< $@
 	ar -rcs $@ $^
 

@@ -108,25 +108,25 @@ logical :: errorflag
       enddo
       
       
-      ig = 3
-      ktime = size(psch%position_control%gap(ig)%value%reference%time)
+      !ig = 3
+      ktime = size(psch%position_control%geometric_axis%r%reference%time)
       write (49,*) 'ktime   !g3.dat'
       write (49,*) ktime
       write (49,*) 'time   '
       do i=1,ktime
-        write (49,*) psch%position_control%gap(ig)%value%reference%time(i), psch%position_control%gap(ig)%value%reference%data(i)*1.d2
+        write (49,*) psch%position_control%geometric_axis%r%reference%time(i), (psch%position_control%geometric_axis%r%reference%data(i) + psch%position_control%minor_radius%reference%data(i))*1.d2
       enddo
       
-      ktime = size(psch_dw%position_control%gap(ig)%value%reference%time)
+      ktime = size(psch_dw%position_control%geometric_axis%r%reference%time)
       write (49,*) 'ktime   !g3_term.dat'
       write (49,*) ktime
       write (49,*) 'time   '
       do i=1,ktime
-        write (49,*) psch_dw%position_control%gap(ig)%value%reference%time(i), psch_dw%position_control%gap(ig)%value%reference%data(i)*1.d2
+        write (49,*) psch_dw%position_control%geometric_axis%r%reference%time(i), (psch_dw%position_control%geometric_axis%r%reference%data(i) + psch_dw%position_control%minor_radius%reference%data(i))*1.d2
       enddo
       
       
-      ig = 4
+      ig = 3
       ktime = size(psch%position_control%gap(ig)%value%reference%time)
       write (49,*) 'ktime   !g4.dat'
       write (49,*) ktime
@@ -144,7 +144,7 @@ logical :: errorflag
       enddo
       
       
-      ig = 5
+      ig = 4
       ktime = size(psch%position_control%gap(ig)%value%reference%time)
       write (49,*) 'ktime   !g5.dat'
       write (49,*) ktime
@@ -162,21 +162,21 @@ logical :: errorflag
       enddo
       
       
-      ig = 6
-      ktime = size(psch%position_control%gap(ig)%value%reference%time)
+      !ig = 6
+      ktime = size(psch%position_control%geometric_axis%r%reference%time)
       write (49,*) 'ktime   !g6.dat'
       write (49,*) ktime
       write (49,*) 'time   '
       do i=1,ktime
-        write (49,*) psch%position_control%gap(ig)%value%reference%time(i), psch%position_control%gap(ig)%value%reference%data(i)*1.d2
+        write (49,*) psch%position_control%geometric_axis%r%reference%time(i), (psch%position_control%geometric_axis%r%reference%data(i) - psch%position_control%minor_radius%reference%data(i))*1.d2
       enddo
       
-      ktime = size(psch_dw%position_control%gap(ig)%value%reference%time)
+      ktime = size(psch_dw%position_control%geometric_axis%r%reference%time)
       write (49,*) 'ktime   !g6_term.dat'
       write (49,*) ktime
       write (49,*) 'time   '
       do i=1,ktime
-        write (49,*) psch_dw%position_control%gap(ig)%value%reference%time(i), psch_dw%position_control%gap(ig)%value%reference%data(i)*1.d2
+        write (49,*) psch_dw%position_control%geometric_axis%r%reference%time(i), (psch_dw%position_control%geometric_axis%r%reference%data(i) - psch_dw%position_control%minor_radius%reference%data(i))*1.d2
       enddo
         
         
@@ -243,15 +243,15 @@ call xml2eg_free_doc(doc)
         write(49,*) psch%pf_active%supply(1)%voltage%reference%time(i)*1.d3, &
         & psch%pf_active%supply(1)%voltage%reference%data(i)*(tpl_dir/pf_turn(1)), &
         & psch%pf_active%supply(2)%voltage%reference%data(i)*(tpl_dir/pf_turn(2)), &
-        & psch%pf_active%supply(3)%voltage%reference%data(i)*(tpl_dir/pf_turn(3)), &
-        & psch%pf_active%supply(4)%voltage%reference%data(i)*(tpl_dir/pf_turn(4)), &
-        & psch%pf_active%supply(5)%voltage%reference%data(i)*(tpl_dir/pf_turn(5)), &
-        & psch%pf_active%supply(6)%voltage%reference%data(i)*(tpl_dir/pf_turn(6)), &
-        & psch%pf_active%supply(7)%voltage%reference%data(i)*(tpl_dir/pf_turn(7)), &
-        & psch%pf_active%supply(8)%voltage%reference%data(i)*(tpl_dir/pf_turn(8)), &
-        & psch%pf_active%supply(9)%voltage%reference%data(i)*(tpl_dir/pf_turn(9)), &
-        & psch%pf_active%supply(10)%voltage%reference%data(i)*(tpl_dir/pf_turn(10)), &
-        & psch%pf_active%supply(11)%voltage%reference%data(i)*(tpl_dir/pf_turn(11))
+        & (psch%pf_active%supply(3)%voltage%reference%data(i) + psch%pf_active%supply(4)%voltage%reference%data(i))*(tpl_dir/pf_turn(3)), &
+        & psch%pf_active%supply(5)%voltage%reference%data(i)*(tpl_dir/pf_turn(4)), &
+        & psch%pf_active%supply(6)%voltage%reference%data(i)*(tpl_dir/pf_turn(5)), &
+        & psch%pf_active%supply(7)%voltage%reference%data(i)*(tpl_dir/pf_turn(6)), &
+        & psch%pf_active%supply(8)%voltage%reference%data(i)*(tpl_dir/pf_turn(7)), &
+        & psch%pf_active%supply(9)%voltage%reference%data(i)*(tpl_dir/pf_turn(8)), &
+        & psch%pf_active%supply(10)%voltage%reference%data(i)*(tpl_dir/pf_turn(9)), &
+        & psch%pf_active%supply(11)%voltage%reference%data(i)*(tpl_dir/pf_turn(10)), &
+        & psch%pf_active%supply(13)%voltage%reference%data(i)*(tpl_dir/pf_turn(11))
       enddo
       write(49,*) ''
       close(49)
