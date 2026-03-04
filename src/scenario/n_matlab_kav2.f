@@ -138,6 +138,7 @@
       common /c_tt_kavin2_c1/tt_rampup_c1,dt_end_sim_c1,
      * dtpl_term_l_c1,cIp_end_c1,CS1_eob_c1,rms_noise_c1
       common /c_q_test/q_test
+      common /maksim_06/r_lh_coef
 
 	dimension tcam(*),tcam0(*),ind(kf),pfhelp(kf)
 
@@ -1047,7 +1048,8 @@ ccc	      tt_h=tt_rampup+1100.
 	      tt_avr=tt_rampup+1100.
 	   end if
 
-	   if(tt.gt.tt_rampup+1100..and.r_lh_new.gt.1..and.
+	   
+	   if(tt.gt.tt_rampup+1100..and.r_lh_new.gt.r_lh_coef.and.
      *         key_help.eq.0)then
 	      key_help=1
 	      tt_h=tt

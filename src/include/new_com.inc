@@ -688,8 +688,11 @@ c************************************************
      *  /maksim_03/wr(150),wr_imas(150)
      *  /maksim_04/s_surf(npo)
      *  /maksim_05/s_bound
+     *  /maksim_06/r_lh_coef
      
         common /c_teit_98/teit_98
+        
+        
 
      
      

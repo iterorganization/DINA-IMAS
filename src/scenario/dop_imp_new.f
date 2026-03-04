@@ -229,10 +229,12 @@ c
 	common /c_temp6/wdr_d,wdr_t,WEL,wio
       common /c_teit_98/teit_98
         common /maksim_02/qtep,gfus,gamma
+        common /maksim_06/r_lh_coef
 
 	character *70 apr2
 
 4010    format(6e12.3)
+
 
 
       i_en=i_en+1
@@ -601,7 +603,7 @@ c*** If Paux=wde+wdq > 3 MW L-H scaling is used
 c#####           teit=teit_95
            tepr=amin1(teit_95,teoh)
 c#####           if(r_lh.gt.1)teit=teit_98
-           if(r_lh.gt.1)tepr=teit_98
+           if(r_lh.gt.r_lh_coef)tepr=teit_98
 c*** f_t is correction function for teoh !
            tt3=tt*1.e-3
            f_t=19.-0.18*tt3
@@ -615,7 +617,7 @@ c#####           if(ntay.gt.31)tepr=(f_t/teoh**2+1./teit**2)**(-0.5)
 
 		if(key_t11.eq.2.or.key_t11.eq.3)then
 
-		if(r_lh_new.ge.1.d0.and.tt.gt.tt_rampup)then
+		if(r_lh_new.ge.r_lh_coef.and.tt.gt.tt_rampup)then
 		k_r_lh_new=1
 		end if
 
