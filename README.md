@@ -227,6 +227,7 @@ Description of the parameters in the XML:
 * grid_n - Amount of 1D grid points
 * grid_rho - rho value after which the 1D grid gradually increases density
 * grid_alpha - 1D grid compression factor in the boundary region
+* coef_p_lh - coeffitient modifying threshold power of L to H transition
 * tt_rampup [ms] - Duration of the plasma current ramp-up
 * dt_end_sim [s] - Duration of the CS&PF current termination phase, starting after end of plasma
 * dtpl_term_l - [s] - Duration of the plasma current ramp-down phase

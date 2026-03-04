@@ -1,8 +1,8 @@
 !> dina_data_read is the main subroutine to read the input code parameters
 
-subroutine dina_data_read_imas(psch, codeparam)
+subroutine dina_data_read_imas(psch, pfa, codeparam)
 
-use ids_schemas, only: ids_pulse_schedule, ids_parameters_input
+use ids_schemas, only: ids_pulse_schedule, ids_pf_active, ids_parameters_input
 
 use f90_file_reader, only: file2buffer
 use xml2eg_mdl, only: xml2eg_parse_memory, xml2eg_get, type_xml2eg_document, xml2eg_free_doc
@@ -16,9 +16,12 @@ use xml2eg_mdl, only: xml2eg_parse_memory, xml2eg_get, type_xml2eg_document, xml
 include 'imas_interface.inc'
 
 type (ids_pulse_schedule)   :: psch
+type (ids_pf_active)   :: pfa
 type(ids_parameters_input) :: codeparam
 
-        COMMON /pf1/npf,pf(kf),pf0(kf)
+        common /pf1/npf,pf(kf),pf0(kf)
+        common /pf8/pfind(kf,kf),pfres(kf),a1(kf,kf),e1(kf),e2(kf) 
+
         common /ge5/kpr
 	common /n_m/n,m,mp
 
@@ -75,9 +78,11 @@ type(ids_parameters_input) :: codeparam
 
      common /c_one2d/alf,ro_alf
      common /c_q_test/q_test
-
+     common /maksim_06/r_lh_coef
      
-!character(len=30) :: ConfigFile = 'code_parameters.xml'
+
+     real*8 :: dens_main(ntime)
+
 type(type_xml2eg_document) :: doc
 character(len=132), pointer :: buffer(:) => NULL()
 integer :: io_unit = 1
@@ -152,6 +157,10 @@ end if
       
       if(kpr.eq.1)print *,'alf ro_alf ',alf,ro_alf
    
+         
+         
+         r_lh_coef = 1.d0
+         
          
 ! 	open (unit=40,file='tt_kavin.dat',form='formatted') 
         !read (49,*) 
@@ -240,11 +249,16 @@ call xml2eg_get(doc, 'tt_dina', tt_dina_c)
           t_t_c1(1:n_t_c1) = psch%pf_active%coil(1)%resistance_additional%reference%time(1:n_t_c1)
 
           do i=1,kf
+                print*, 'pfres_0(i)', i, pfres(i)
+              enddo
+
+          do i=1,kf
+                !pf_t_c1(i,1:n_t_c1) = pfres(i)
                 pf_t_c1(i,1:n_t_c1) = 0.d0
           enddo
-
+   
           do i=1,size(psch%pf_active%coil)
-                pf_t_c1(ncirc(i),1:n_t_c1) = pf_t_c1(ncirc(i),1:n_t_c1) + psch%pf_active%coil(i)%resistance_additional%reference%data(1:n_t_c1)
+                pf_t_c1(ncirc(i),1:n_t_c1) = pf_t_c1(ncirc(i),1:n_t_c1) + psch%pf_active%coil(i)%resistance_additional%reference%data(1:n_t_c1) + pfa%coil(i)%resistance
           enddo
         
         
@@ -253,7 +267,8 @@ call xml2eg_get(doc, 'tt_dina', tt_dina_c)
         enddo
         
         do i=1,n_t_c1
-          print*, 'pfres', pf_t_c1(:,i)
+          print*, 'time =', t_t_c1(i)
+          print*, 'pfres+pfres_add ', pf_t_c1(:,i)
         enddo
         
 !           do k=1,npf_c1
@@ -271,9 +286,9 @@ call xml2eg_get(doc, 'tt_dina', tt_dina_c)
            !   read (49,*)t_t_c2(i),udd_sol_t_c2(i)
            !end do 
 
-           n_t_c2 = size(psch%ec%launcher(1)%power%reference%time)
-           t_t_c2(1:n_t_c2) = psch%ec%launcher(1)%power%reference%time(1:n_t_c2)
-           udd_sol_t_c2(1:n_t_c2) = psch%ec%launcher(1)%power%reference%data(1:n_t_c2)*1.d-6
+           n_t_c2 = size(psch%ec%power%reference%time)
+           t_t_c2(1:n_t_c2) = psch%ec%power%reference%time(1:n_t_c2)
+           udd_sol_t_c2(1:n_t_c2) = psch%ec%power%reference%data(1:n_t_c2)*1.d-6
         
         
         
@@ -292,6 +307,33 @@ call xml2eg_get(doc, 'tt_dina', tt_dina_c)
            t_t_c3(1:n_t_c3) = psch%density_control%ion(ion)%n_i_volume_average%reference%time(1:n_t_c3)
            pn_d_t_c3(1:n_t_c3) = psch%density_control%ion(ion)%n_i_volume_average%reference%data(1:n_t_c3)*1.d-19
 
+
+
+!           open (unit=41,file='dens.dat',form='formatted')
+           !read (49,*) 
+           !read (49,*)n_t_c8 
+           !read (49,*) 
+
+           !do i=1,n_t_c8 
+           !   read (49,*)t_t_c8(i),den_t_c8(i)
+           !end do
+
+           ion = 2
+           n_t_c8 = size(psch%density_control%ion(ion)%n_i_volume_average%reference%time)
+           t_t_c8(1:n_t_c8) = psch%density_control%ion(ion)%n_i_volume_average%reference%time(1:n_t_c8)
+           den_t_c8(1:n_t_c8) = psch%density_control%ion(ion)%n_i_volume_average%reference%data(1:n_t_c8)*1.d-19
+
+
+           if (n_t_c8.ne.n_t_c3) then
+                print*, 'References of D and T have different length:',  n_t_c3, n_t_c8
+                stop
+           endif
+           dens_main(1:n_t_c8) = (pn_d_t_c3(1:n_t_c8) + den_t_c8(1:n_t_c8))*1.d19
+
+           print*, 'dens_main = ', dens_main(1:n_t_c8)
+
+
+           ! 0D model only
 !           open (unit=41,file='gamma_z.dat',form='formatted')
            !read (49,*) 
            !read (49,*)n_t_c4,nz_imp_c4 
@@ -304,10 +346,15 @@ call xml2eg_get(doc, 'tt_dina', tt_dina_c)
            ion = 3
            nz_imp_c4 = psch%density_control%ion(ion)%element(1)%z_n
            n_t_c4 = size(psch%density_control%ion(ion)%n_i_volume_average%reference%time)
+           if (n_t_c4.ne.n_t_c3) then
+                print*, 'References of impurity and main ion have different length:', ion, n_t_c4, n_t_c3
+                stop
+           endif
            t_t_c4(1:n_t_c4) = psch%density_control%ion(ion)%n_i_volume_average%reference%time(1:n_t_c4)*1.d3
-           pn_d_t_c4(1:n_t_c4) = psch%density_control%ion(ion)%n_i_volume_average%reference%data(1:n_t_c4)
+           pn_d_t_c4(1:n_t_c4) = psch%density_control%ion(ion)%n_i_volume_average%reference%data(1:n_t_c4)/dens_main(1:n_t_c4)
         
         
+           ! 0D and 1D model
 !           open (unit=41,file='gamma_z2.dat',form='formatted') 
            !read (49,*) 
            !read (49,*)n_t_c5,nz_imp2_c5 
@@ -320,8 +367,12 @@ call xml2eg_get(doc, 'tt_dina', tt_dina_c)
            ion = 5
            nz_imp2_c5 = psch%density_control%ion(ion)%element(1)%z_n
            n_t_c5 = size(psch%density_control%ion(ion)%n_i_volume_average%reference%time)
+           if (n_t_c5.ne.n_t_c3) then
+                print*, 'References of impurity and main ion have different length:', ion, n_t_c5, n_t_c3
+                stop
+           endif
            t_t_c5(1:n_t_c5) = psch%density_control%ion(ion)%n_i_volume_average%reference%time(1:n_t_c5)*1.d3
-           pn_d_t_c5(1:n_t_c5) = psch%density_control%ion(ion)%n_i_volume_average%reference%data(1:n_t_c5)
+           pn_d_t_c5(1:n_t_c5) = psch%density_control%ion(ion)%n_i_volume_average%reference%data(1:n_t_c5)/dens_main(1:n_t_c5)
         
         
 !	open (unit=41,file='init.dat',form='formatted')
@@ -352,20 +403,9 @@ call xml2eg_get(doc, 'gain_puff', g_gain_c6)
            emoq_t_c7(1:n_t_c7) = psch%ic%power%reference%data(1:n_t_c7)*1.d-6
         
         
-!           open (unit=41,file='dens.dat',form='formatted')
-           !read (49,*) 
-           !read (49,*)n_t_c8 
-           !read (49,*) 
 
-           !do i=1,n_t_c8 
-           !   read (49,*)t_t_c8(i),den_t_c8(i)
-           !end do
 
-           ion = 2
-           n_t_c8 = size(psch%density_control%ion(ion)%n_i_volume_average%reference%time)
-           t_t_c8(1:n_t_c8) = psch%density_control%ion(ion)%n_i_volume_average%reference%time(1:n_t_c8)
-           den_t_c8(1:n_t_c8) = psch%density_control%ion(ion)%n_i_volume_average%reference%data(1:n_t_c8)*1.d-19
-
+           ! 1D model only
 !           open (unit=41,file='gamma_z1.dat',form='formatted')
            !read (49,*) 
            !read (49,*)n_t_c9,nz_imp1_c9 
@@ -378,9 +418,15 @@ call xml2eg_get(doc, 'gain_puff', g_gain_c6)
            ion = 4
            nz_imp1_c9 = psch%density_control%ion(ion)%element(1)%z_n
            n_t_c9 = size(psch%density_control%ion(ion)%n_i_volume_average%reference%time)
+           if (n_t_c9.ne.n_t_c3) then
+                print*, 'References of impurity and main ion have different length:', ion, n_t_c9, n_t_c3
+                stop
+           endif
            t_t_c9(1:n_t_c9) = psch%density_control%ion(ion)%n_i_volume_average%reference%time(1:n_t_c9)*1.d3
-           pn_d_t_c9(1:n_t_c9) = psch%density_control%ion(ion)%n_i_volume_average%reference%data(1:n_t_c9)
+           pn_d_t_c9(1:n_t_c9) = psch%density_control%ion(ion)%n_i_volume_average%reference%data(1:n_t_c9)/dens_main(1:n_t_c9)
         
+
+           ! 1D model only
 !           open (unit=41,file='gamma_z3.dat',form='formatted') 
            !read (49,*) 
            !read (49,*)n_t_c10,nz_imp3_c10 
@@ -393,10 +439,15 @@ call xml2eg_get(doc, 'gain_puff', g_gain_c6)
            ion = 6
            nz_imp3_c10 = psch%density_control%ion(ion)%element(1)%z_n
            n_t_c10 = size(psch%density_control%ion(ion)%n_i_volume_average%reference%time)
+           if (n_t_c10.ne.n_t_c3) then
+                print*, 'References of impurity and main ion have different length:', ion, n_t_c10, n_t_c3
+                stop
+           endif
            t_t_c10(1:n_t_c10) = psch%density_control%ion(ion)%n_i_volume_average%reference%time(1:n_t_c10)*1.d3
-           pn_d_t_c10(1:n_t_c10) = psch%density_control%ion(ion)%n_i_volume_average%reference%data(1:n_t_c10)
+           pn_d_t_c10(1:n_t_c10) = psch%density_control%ion(ion)%n_i_volume_average%reference%data(1:n_t_c10)/dens_main(1:n_t_c10)
         
         
+           ! 1D model only
 !           open (unit=41,file='gamma_z4.dat',form='formatted') 
            !read (49,*) 
            !read (49,*)n_t_c11,nz_imp4_c11 
@@ -406,12 +457,28 @@ call xml2eg_get(doc, 'gain_puff', g_gain_c6)
            !   read (49,*)t_t_c11(i),pn_d_t_c11(i)
            !end do 
 
-           ion = 7
+           if (size(psch%density_control%ion) .lt. 7) then
+                print*, "psch%density_control%ion(3) is used for both 0D and 1D model"
+             ion = 3
+           elseif (size(psch%density_control%ion) .eq. 7) then
+             ion = 7
+           else
+                print*, "Amount of ions greater than 7 is not supported"
+                stop
+           endif
+
            nz_imp4_c11 = psch%density_control%ion(ion)%element(1)%z_n
            n_t_c11 = size(psch%density_control%ion(ion)%n_i_volume_average%reference%time)
+           if (n_t_c11.ne.n_t_c3) then
+                print*, 'References of impurity and main ion have different length:', ion, n_t_c11, n_t_c3
+                stop
+           endif
            t_t_c11(1:n_t_c11) = psch%density_control%ion(ion)%n_i_volume_average%reference%time(1:n_t_c11)*1.d3
-           pn_d_t_c11(1:n_t_c11) = psch%density_control%ion(ion)%n_i_volume_average%reference%data(1:n_t_c11)
+           pn_d_t_c11(1:n_t_c11) = psch%density_control%ion(ion)%n_i_volume_average%reference%data(1:n_t_c11)/dens_main(1:n_t_c11)
         
+
+
+
 !                 open (unit=41,file='bohm_gbohm.dat',form='formatted')
                 !read (49,*)
                 !read (49,*) k_Bohm_c12
