@@ -167,6 +167,7 @@ end if
         !read (49,*)time_eq_c
           
         call xml2eg_get(doc, 'tt_kavin', tt_kavin_c)
+          tt_kavin_c = tt_kavin_c * 1.d3
           
 !        open (unit=1,file='kpr.dat',form='formatted')
 
@@ -181,6 +182,7 @@ end if
 	!read (49,*)tay_c,rs0_c,key_t11_c,bt0_c
         
 call xml2eg_get(doc, 'tau', tay_c)
+tay_c = tay_c * 1.d3
 !call xml2eg_get(doc, 'rs0', rs0_c)
 call xml2eg_get(doc, 'key_t11', key_t11_c)
 !call xml2eg_get(doc, 'bt0', bt0_c)
@@ -211,6 +213,11 @@ call xml2eg_get(doc, 'gaps/gaps_z', gaps_z_str)
     read(gaps_r_str,*)(x_gaps_c(i),i=1,n_ga_c)
     read(gaps_z_str,*)(y_gaps_c(i),i=1,n_ga_c)
 
+    do i=1,n_ga_c
+    x_gaps_c(i) = x_gaps_c(i) * 1.d2
+    y_gaps_c(i) = y_gaps_c(i) * 1.d2
+    enddo
+    
   print*, 'x gaps =', (x_gaps_c(i),i=1,n_ga_c)
   print*, 'y gaps =', (y_gaps_c(i),i=1,n_ga_c)
 
@@ -231,6 +238,7 @@ call xml2eg_get(doc, 'circuit/direction', dircircuit_str)
         !read (49,*)
         !read (49,*)tt_dina_c
 call xml2eg_get(doc, 'tt_dina', tt_dina_c)
+tt_dina_c = tt_dina_c*1.d3
 
 !           open (unit=41,file='pfres.dat',form='formatted') 
            !read (49,*) 
@@ -488,19 +496,19 @@ call xml2eg_get(doc, 'bohm_gbohm', k_Bohm_c12)
            !read (49,*) 
            !read (49,*)tay_simul_c13
 call xml2eg_get(doc, 'tau_sim', tay_simul_c13)
-
+tay_simul_c13 = tay_simul_c13 * 1.d3
 !          open (unit=40,file='dw.dat',form='formatted') 
           !read (49,*) 
 !          read (40,*)tt_dw,tay_dw
           !read (49,*)tay_dw_c14
 call xml2eg_get(doc, 'tau_dw', tay_dw_c14)
-
+tay_dw_c14 = tay_dw_c14 * 1.d3
 
 !           open (unit=40,file='pcchp_end.dat',form='formatted') 
         !read (49,*)
         !read (49,*)pcchp_end_c15
 call xml2eg_get(doc, 'pcchp_end', pcchp_end_c15)
-
+pcchp_end_c15 = pcchp_end_c15 * 1.d-19
 
           !read (49,*) 
           !read (49,*)k_ener_ext_c16, k_dens_ext_c16,k_ajb_ext_c16
@@ -518,10 +526,10 @@ call xml2eg_get(doc, 'dt_end_sim', dt_end_sim)
 call xml2eg_get(doc, 'dtpl_term_l', dtpl_term_l)
 call xml2eg_get(doc, 'cIp_end', cIp_end)
 
-          tt_rampup_c1=tt_rampup
+          tt_rampup_c1=tt_rampup*1.d3
           dt_end_sim_c1=dt_end_sim
           dtpl_term_l_c1=dtpl_term_l
-          cIp_end_c1=cIp_end
+          cIp_end_c1=cIp_end*1.d-6*tpl_dir
 
           dtpl_term_h=0
           
@@ -530,7 +538,7 @@ call xml2eg_get(doc, 'cIp_end', cIp_end)
 call xml2eg_get(doc, 'Ics1_eob', CS1_eob)
 call xml2eg_get(doc, 'rms_noise', rms_noise)
 
-          CS1_eob_c1=CS1_eob
+          CS1_eob_c1=CS1_eob*1.d-3*tpl_dir
           rms_noise_c1=rms_noise
           
           

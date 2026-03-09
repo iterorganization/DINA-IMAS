@@ -30,6 +30,8 @@ logical :: errorflag
       dimension pf_turn(17)
       DATA (pf_turn(I), I=1,17)/554., 554., 554. ,554., 554. ,248.6, 115.2, 185.9, 169.9, 216.8, 459.4, 1., 1., 1., 1., 1., 1./
       
+      
+      
       open(unit=49,file='control_init_1.dat', form='formatted')
       
       !call file2buffer(ConfigFile, io_unit, buffer)
@@ -39,8 +41,10 @@ logical :: errorflag
       call xml2eg_get(doc, 'tcont2', tcont2)
       call xml2eg_get(doc, 'dtcont2', dtcont2)
       call xml2eg_get(doc, 'Ip_div', Ip_div)
+      Ip_div = Ip_div * 1.d-6 * tpl_dir
       call xml2eg_get(doc, 'ref_ramp', ref_ramp)
       call xml2eg_get(doc, 'Ip_rd', Ip_rd)
+      Ip_rd = Ip_rd * 1.d-6 * tpl_dir
       call xml2eg_get(doc, 'trd_ref', trd_ref)
       call xml2eg_get(doc, 'max_VS_lim', max_VS_lim)
       call xml2eg_get(doc, 'c_a_tpl2_lim', c_a_tpl2_lim)
@@ -61,6 +65,7 @@ logical :: errorflag
 
 
       call xml2eg_get(doc, 't_tran2D', t_tran2D)
+      t_tran2D = t_tran2D * 1.d3
       write (49,*) 't_tran2D'
       write (49,*) t_tran2D
       
@@ -182,16 +187,19 @@ logical :: errorflag
         
         
       call xml2eg_get(doc, 'tt_rampup', tt_rampup)
+      tt_rampup = tt_rampup * 1.d3
       write (49,*) 'tt_rampup   !tt_kavin2.dat'
       write (49,*) tt_rampup
       
       call xml2eg_get(doc, 'dt_end_sim', dt_end_sim)
       call xml2eg_get(doc, 'dtpl_term_l', dtpl_term_l)
       call xml2eg_get(doc, 'cIp_end', cIp_end)
+      cIp_end = cIp_end * 1.d-6 * tpl_dir
       write (49,*) 'dt_end_sim   dtpl_term_l   cIp_end'
       write (49,*) dt_end_sim, dtpl_term_l, cIp_end
 
       call xml2eg_get(doc, 'Ics1_eob', CS1_eob)
+      CS1_eob = CS1_eob * 1.d-3 * tpl_dir
       call xml2eg_get(doc, 'rms_noise', rms_noise)
       write (49,*) 'Ics1_eob(kA)   rms_noise(m/s)'
       write (49,*) CS1_eob, rms_noise

@@ -206,12 +206,12 @@ The imas/iwrap/dina_imas/code_parameters.xml file contains default settings.
 The codeparam_dina.xml files are stored in scenario folders or can be created using GUI from *.dat files.  
 Description of the parameters in the XML:
 * kpr - Key to print debug and diagnostic logs
-* tt_kavin [ms] - Time to switch from 0D transport model to 1D
-* tau [ms] - Time step before switching to 1D transport model
-* tau_sim [ms] - Time step for simulation after switching to 1D transport model and before plasma current rampdown
-* tau_dw [ms] - Time step for simulation during plasma current ramp-down
+* tt_kavin [s] - Time to switch from 0D transport model to 1D
+* tau [s] - Time step before switching to 1D transport model
+* tau_sim [s] - Time step for simulation after switching to 1D transport model and before plasma current rampdown
+* tau_dw [s] - Time step for simulation during plasma current ramp-down
 * key_t11 - JET Ohmic scaling
-* tt_dina [ms] - Time after which input 1D transport profiles are used, internal transport model switches off
+* tt_dina [s] - Time after which input 1D transport profiles are used, internal transport model switches off
 * tpl_dir - Sign of the plasma current
 * p [Pa] - Initial neutral D particles pressure
 * T_e [eV] - Initial electron temperature
@@ -220,7 +220,7 @@ Description of the parameters in the XML:
 * gain_puff - Neutrals puffing gain to keep the prescribed waveform of D in 0D model
 * bohm_gbohm - Key to switch on (=1) or off (=0) Bohm-gyro-Bohm scaling
 * q_swth - Minimal q at axis when a sawtooth is triggered
-* pcchp_end - The level to which plasma density linearly decreases during 4 s after start of plasma current ramp-down phase. The resulting Greenwald ratio is kept during the rest of ramp-down.
+* pcchp_end [m^-3] - The level to which plasma density linearly decreases during 4 s after start of plasma current ramp-down phase. The resulting Greenwald ratio is kept during the rest of ramp-down.
 * ener_ext - When time - tt_dina, switch off internal energy transport calculations
 * dens_ext - When time - tt_dina, switch off internal density transport calculations
 * ajb_ext - When time - tt_dina, switch off internal conductivity and bootstrap current calculations
@@ -228,15 +228,15 @@ Description of the parameters in the XML:
 * grid_rho - rho value after which the 1D grid gradually increases density
 * grid_alpha - 1D grid compression factor in the boundary region
 * coef_p_lh - coeffitient modifying threshold power of L to H transition
-* tt_rampup [ms] - Duration of the plasma current ramp-up
+* tt_rampup [s] - Duration of the plasma current ramp-up
 * dt_end_sim [s] - Duration of the CS&PF current termination phase, starting after end of plasma
 * dtpl_term_l - [s] - Duration of the plasma current ramp-down phase
-* cIp_end [MA] - Minimum plasma current at the ramp-down phase
-* Ics1_eob [kA] - Value of the current in CS1 circuit at which the current ramp-down starts
+* cIp_end [A] - Minimum plasma current at the ramp-down phase
+* Ics1_eob [A] - Value of the current in CS1 circuit at which the current ramp-down starts
 * rms_noise [m/s] - RMS of noise in the diagnostic signal of dZ/dt for VS stabilization
 * gaps/ngaps - amount of plasma shape gaps calculated
-* gaps/gaps_r [cm] - list of R coordinates of plasma shape gaps measuring points
-* gaps/gaps_z [cm] - list of Z coordinates of plasma shape gaps measuring points
+* gaps/gaps_r [m] - list of R coordinates of plasma shape gaps measuring points
+* gaps/gaps_z [m] - list of Z coordinates of plasma shape gaps measuring points
 * circuit/ncirc - amount of PF coils
 * circuit/connection - list of circuit numbers to which a corresponding coil belongs to
 * circuit/direction - direction of a corresponding coil in its circuit (1 or -1)
@@ -391,9 +391,9 @@ Description of the parameters in the XML:
 - kpr - Key to print debug and diagnostic logs
 - tcont2 [s] - Time when the limiter controller is switched on
 - dtcont2 [s] - Transition time of the control voltages from the current controller to the limiter controller at the ramp-up phase
-- Ip_div [MA] - Value of plasma current (negative) when the first divertor controller is switched on at the ramp-up phase
+- Ip_div [A] - Value of plasma current when the first divertor controller is switched on at the ramp-up phase
 - ref_ramp [s] - Transition time of the control voltages after switching of the first divertor controller
-- Ip_rd [MA] - Value of plasma current when the second divertor controller is switched on at the plasma current termination phase
+- Ip_rd [A] - Value of plasma current when the second divertor controller is switched on at the plasma current termination phase
 - trd_ref [s] - Last time moment in schedule of the gaps for the plasma termination phase
 - max_VS_lim - Maximum value of the gain coefficient for VS controller at the limiter phase
 - c_a_tpl2_lim - Gain coefficient for the limiter controller at the ramp-up phase
@@ -405,14 +405,14 @@ Description of the parameters in the XML:
 - y0 - Tunable coefficient for divertor controller gain at the plasma current termination phase
 - c1_y0 - Tunable coefficient for divertor controller gain at the plasma current termination phase
 - c2_y0 - Tunable coefficient for divertor controller gain at the plasma current termination phase
-- t_tran2D [ms] - Time when the limiter controller starts to control extended set of the plasma shape parameters to maintain elongated plasma
+- t_tran2D [s] - Time when the limiter controller starts to control extended set of the plasma shape parameters to maintain elongated plasma
 - Tu [s] - Minimum time of voltage variation from –Vmax to +Vmax for CS&PF power supplies
 - c_cur_max - Fraction of coil current limit when the current limitation alghorithm starts protection
-- tt_rampup [ms] - Duration of the plasma current ramp-up
+- tt_rampup [s] - Duration of the plasma current ramp-up
 - dt_end_sim [s] - Duration of the CS&PF current termination phase, starting after end of plasma
 - dtpl_term_l - [s] - Duration of the plasma current ramp-down phase
-- cIp_end [MA] - Minimum plasma current at the ramp-down phase
-- Ics1_eob [kA] - Value of the current in CS1 circuit at which the current ramp-down starts
+- cIp_end [A] - Minimum plasma current at the ramp-down phase
+- Ics1_eob [A] - Value of the current in CS1 circuit at which the current ramp-down starts
 - rms_noise [m/s] - RMS of noise in the diagnostic signal of dZ/dt for VS stabilization
 
 
