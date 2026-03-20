@@ -24,7 +24,7 @@ c
 	ier=1
 	if(kpr.eq.1)print *,' xx zz ier===',xx,zz,ier
 	if(kpr.eq.1)print *,' x_1 x_n ===',r(1),r(nr)
-	if(kpr.eq.1)print *,' y_1 y_n ===',z(1),z(nr)
+	if(kpr.eq.1)print *,' y_1 y_n ===',z(1),z(nz)
 	stop
 	return
 	end if
@@ -207,7 +207,7 @@ c
 	ier=1
 	if(kpr.eq.1)print *,' xx zz ier===',xx,zz,ier
 	if(kpr.eq.1)print *,' x_1 x_n ===',r(1),r(nr)
-	if(kpr.eq.1)print *,' y_1 y_n ===',z(1),z(nr)
+	if(kpr.eq.1)print *,' y_1 y_n ===',z(1),z(nz)
 	stop
 	return
 	end if
