@@ -465,6 +465,7 @@ void t15_2_step(void)
 
   /* RelationalOperator: '<S21>/Relational Operator' */
   t15_2_B.RelationalOperator = (t15_2_B.e6_n[2] < t15_2_B.Product1);
+  //t15_2_B.RelationalOperator = t15_2_B.Times > 122.; // Override the rampdown condition
 
   /* Memory: '<S32>/Memory' */
   t15_2_B.Memory = t15_2_DWork.Memory_PreviousInput;

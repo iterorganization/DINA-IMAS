@@ -1132,6 +1132,8 @@ c-------  calculate...
       
         if(pf(3)/pf_turns(3).lt.CS1_eob .and. k_CS1.eq.0 
      *     .and. tt.gt.dt_contr_hl*1e3) then
+!		if(k_CS1.eq.0 
+!     *     .and. tt.gt.122.0*1e3) then
         k_CS1=1
         tt_eob=tt-1.e-3
         tt_dw=tt_eob
