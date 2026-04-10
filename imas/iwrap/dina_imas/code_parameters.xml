@@ -6,7 +6,7 @@
    <tau_sim>10.0e-3</tau_sim>
    <tau_dw>5.0e-3</tau_dw>
    <key_t11>1</key_t11>
-   <tt_dina>11520.0</tt_dina>
+   <tt_dina>7200.0</tt_dina>
    <tpl_dir>-1.0</tpl_dir>
    <p>0.001</p>
    <T_e>0.002</T_e>

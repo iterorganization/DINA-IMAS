@@ -1,9 +1,5 @@
-mkdir sandbox
-cd sandbox
-rm -rf ./*
+cp -rf $DINA_ROOT/machines/imp ./
 
-cp -rf ../../../../machines/imp ./
-
-python ../test_actor.py -c ../test_wf_parameters.xml 2>&1 | tee log_python
+python $DINA_ROOT/imas/iwrap/dina_imas/test_actor.py -c ./test_wf_parameters.xml 2>&1 | tee log_python
 
 

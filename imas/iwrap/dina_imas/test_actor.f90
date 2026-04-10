@@ -27,18 +27,9 @@ type (ids_pulse_schedule)   :: pulse_schedule
 type (ids_summary) :: summary
 type (ids_wall) :: wall
 
-integer :: ibackend = 12
-
 
 ! IDS location data
-character (len=255) :: user_default
-
-character (len=255) :: user_out='', database_out
-integer :: pulse_out=-1, run_out=-1
-
-character (len=255) :: user_eq='', database_eq
-integer :: pulse_eq=-1, run_eq=-1
-
+character (len=255) :: uri_in, uri_out
 
 
 integer :: i, imax = 1000
@@ -63,10 +54,6 @@ INTEGER :: clock_start,clock_end,clock_rate
 
 
 
-call getenv("USER", user_default)
-
-
-
 if (command_argument_count().eq.0) then
   print *,'Two arguments must be provided. First argument must be the name of a workflow config XML file, second argument is a code parameters XML file.'
   stop
@@ -85,15 +72,8 @@ print *,' Using code parameters file: ', CodeParamsFile
 call file2buffer(ConfigFile, io_unit, buffer)
 call xml2eg_parse_memory(buffer, doc)
   
-  call xml2eg_get(doc, 'input_scenario/user', user_eq)
-  call xml2eg_get(doc, 'input_scenario/database', database_eq)
-  call xml2eg_get(doc, 'input_scenario/pulse', pulse_eq)
-  call xml2eg_get(doc, 'input_scenario/run', run_eq)
-
-  call xml2eg_get(doc, 'output/user', user_out)
-  call xml2eg_get(doc, 'output/database', database_out)
-  call xml2eg_get(doc, 'output/pulse', pulse_out)
-  call xml2eg_get(doc, 'output/run', run_out)
+  call xml2eg_get(doc, 'input_scenario/uri', uri_in)
+  call xml2eg_get(doc, 'output/uri', uri_out)
   
   call xml2eg_get(doc, 'time_start', time_start)
   call xml2eg_get(doc, 'time_sim', time_sim)
@@ -102,23 +82,19 @@ call xml2eg_free_doc(doc)
 deallocate(buffer)
 
 
-if (trim(user_eq).eq.'') user_eq = user_default
-if (trim(user_out).eq.'') user_out = user_default
 
-
-print *,' Equilibrium user, database, pulse, run =', trim(user_eq), trim(database_eq), pulse_eq, run_eq
-print *,' Output user =', trim(user_out), trim(database_out), pulse_out, run_out
+print *,' Input scenario URI =', trim(uri_in)
+print *,' Output URI =', trim(uri_out)
 
 
 
 interp_start = 1
 
+call imas_open(uri_in, OPEN_PULSE, idx_e, error_flag)
 
-call imas_open_env('ids',pulse_eq,run_eq,idx_e,user_eq,database_eq,'3')
 call ids_get(idx_e,"pulse_schedule",pulse_schedule)
 call ids_get(idx_e,"em_coupling",em_coupling)
 call ids_get(idx_e,"wall",wall)
-
 
 call ids_get_slice(idx_e,"equilibrium",equilibrium0, time_start, interp_start)
 call ids_get_slice(idx_e,"core_profiles",core_profiles0, time_start, interp_start)
@@ -127,11 +103,10 @@ call ids_get_slice(idx_e,"pf_active",pf_active0, time_start, interp_start)
 call ids_get_slice(idx_e,"pf_passive",pf_passive0, time_start, interp_start)
 call ids_get_slice(idx_e,"magnetics",magnetics0, time_start, interp_start)
 
-
   call imas_close(idx_e)
   
-
-  call imas_create_env('ids',pulse_out,run_out,1,1,idx,user_out,database_out,'3')
+  
+  call imas_open(uri_out, CREATE_PULSE, idx, error_flag)
   write(*,*) 'Output database is created'
   
 flush(6)
