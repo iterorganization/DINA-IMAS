@@ -30,6 +30,14 @@ logical :: errorflag
       dimension pf_turn(17)
       DATA (pf_turn(I), I=1,17)/554., 554., 554. ,554., 554. ,248.6, 115.2, 185.9, 169.9, 216.8, 459.4, 1., 1., 1., 1., 1., 1./
       
+      real (ids_real) cur_lim
+      dimension cur_lim(11)
+      DATA (cur_lim(I), I=1,11)/45.0, 45.0, 45.0, 45.0, 45.0, 48.0, 55.0, 55.0, 55.0, 52.0, 52.0/
+      
+      real (ids_real) volt_lim
+      dimension volt_lim(13)
+      DATA (volt_lim(I), I=1,13)/6000.0, 575.0, 2100.0, 2100.0, 4200.0, 2100.0, 2100.0, 2100.0, 3150.0, 3150.0, 3150.0, 3150.0, 2100.0/
+      
       
       
       open(unit=49,file='control_init_1.dat', form='formatted')
@@ -205,10 +213,17 @@ logical :: errorflag
       write (49,*) CS1_eob, rms_noise
       
       
+      call xml2eg_get(doc, 'Tu', Tu)
+      call xml2eg_get(doc, 'c_cur_max', c_cur_max)
+      Tu = 0.04
+      c_cur_max = 0.98
+      
+      
+      
       write (49,*) 'VS1_max(V)   VS3_max(V)   CS3U_max(V)   CS2U_max(V)   CS1_max(V)   CS2L_max(V)   CS3L_max(V)   PF1_max(V)   PF2_max(V)   PF3_max(V)   PF4_max(V)   PF5_max(V)   PF6_max(V)   Tu(s)   !control_data.dat'
-      write (49,*) '6000.0   575.0   2100.0   2100.0   4200.0   2100.0   2100.0   2100.0   3150.0   3150.0   3150.0   3150.0   2100.0   0.04'
+      write (49,*) (volt_lim(i), i=1, 13),   Tu
       write (49,*) 'c_cur_max   CS3U_max(kA)   CS2U_max(kA)   CS1_max(kA)   CS2L_max(kA)   CS3L_max(kA)   PF1_max(kA)   PF2_max(kA)   PF3_max(kA)   PF4_max(kA)   PF5_max(kA)   PF6_max(kA) '
-      write (49,*) '0.98   45.0   45.0   45.0   45.0   45.0   48.0   55.0   55.0   55.0   52.0   52.0 '
+      write (49,*) c_cur_max,  (cur_lim(i), i=1, 11)
       write (49,*) 'CS3U   CS2U   CS1   CS2L   CS3L   PF1   PF2   PF3   PF4   PF5   PF6   VS3   Virt1   Virt2   Virt3   Virt4   Virt5   !n_turn'
       write (49,*) (pf_turn(i),i=1,17)
       write (49,*) ''
