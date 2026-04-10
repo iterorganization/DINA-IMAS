@@ -12,22 +12,15 @@ from kav_mag_contr.actor import kav_mag_contr
 from kav_mag_contr.common.runtime_settings import SandboxMode
 
 
-def get_dbentry(root, user_default):
+def get_dbentry(root, opt):
     if root == None:
         return None, -1
-    usernode = root.find('user')
-    if (usernode != None):
-        username = usernode.text
-    else:
-        username = None
-    if (username == None or username == ""):
-        username = user_default
-    database = root.find('database').text
-    if database == None or database == '':
-        return None, -1
-    pulse = int(root.find('pulse').text)
-    run = int(root.find('run').text)
-    IMAS_DBEntry = imas.DBEntry(imasdef.MDSPLUS_BACKEND, database, pulse, run, username, data_version = '3')
+    uri_node = root.find('uri')
+    if uri_node == None:
+        return None, -2
+    
+    uri = uri_node.text
+    IMAS_DBEntry = imas.DBEntry(uri, opt)
     status,_ = IMAS_DBEntry.open()
     if status == 0:
         IMAS_DBEntry.close()
@@ -52,7 +45,7 @@ Time_Sim = float(root.find('time_sim').text)
 InterpStart = imasdef.CLOSEST_INTERP
 
 # INPUT/OUTPUT CONFIGURATION
-IMAS_SCEN, status = get_dbentry(root.find('input_scenario'), user_default)
+IMAS_SCEN, status = get_dbentry(root.find('input_scenario'), 'r')
 IMAS_SCEN.open()
 
 pulse_schedule = IMAS_SCEN.get('pulse_schedule')
@@ -64,7 +57,7 @@ pulse_schedule_term = IMAS_SCEN.get('pulse_schedule', occurrence=1)
 
 # CREATE OUTPUT DATAFILE
 print('=> Create output datafile')
-IMAS_OUT, status = get_dbentry(root.find('output'), user_default)
+IMAS_OUT, status = get_dbentry(root.find('output'), 'w')
 IMAS_OUT.create()
 
 IMAS_OUT.put(pulse_schedule)
