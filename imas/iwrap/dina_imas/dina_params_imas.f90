@@ -106,21 +106,13 @@ integer :: ncirc(kf), dircirc(kf)
 integer :: grid_n
 real*8 :: grid_rho, grid_alpha
 
-!      n=n_c
-      n_c=50
-      n=n_c
-      
-      if(kpr.eq.1)print *,'n n_c ',n,n_c
       
       
       print*, 'DINA_PARAMS_IMAS'
       print*, 'npf =', npf
       print*, 'PF_TURNS =', pf_turns
       
-      
-      ! Initializing 1D grid
- !     call one2d()
-     
+
      
         !open(unit=49,file='dina_data.dat', form='formatted')
      
@@ -129,6 +121,11 @@ real*8 :: grid_rho, grid_alpha
 call xml2eg_parse_memory(codeparam%parameters_value, doc)
 
          
+        call xml2eg_get(doc, 'kpr', kpr_c)
+        kpr = kpr_c
+        
+        
+        
          call xml2eg_get(doc, 'grid_n', grid_n)
          call xml2eg_get(doc, 'grid_rho', grid_rho)
          call xml2eg_get(doc, 'grid_alpha', grid_alpha)
@@ -156,10 +153,6 @@ end if
       alf=grid_alpha
       
       if(kpr.eq.1)print *,'alf ro_alf ',alf,ro_alf
-   
-         
-         
-         r_lh_coef = 1.d0
          
          
 ! 	open (unit=40,file='tt_kavin.dat',form='formatted') 
@@ -173,8 +166,6 @@ end if
 
         !read (49,*)
         !read (49,*)kpr_c
-        
-        call xml2eg_get(doc, 'kpr', kpr_c)
 
 !     	open(unit=2,file='for002_kav',form='formatted')
 
@@ -192,10 +183,15 @@ if (errorflag) then
    print*, 'q_swth reading error'
    q_test = 0.97
 end if
-
 print*, 'q_swth=q_test=', q_test
 
 
+call xml2eg_get(doc, 'coef_p_lh', r_lh_coef, errorflag)
+if (errorflag) then
+   print*, 'r_lh_coef reading error'
+   r_lh_coef = 1.0
+end if
+print*, 'r_lh_coef=', r_lh_coef
 
 
 	!open(unit=49,status='old',file='gaps_data_ramp',form='formatted')
