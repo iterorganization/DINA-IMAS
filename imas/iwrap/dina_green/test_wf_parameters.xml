@@ -1,38 +1,24 @@
 <?xml version="1.0"?>
 <parameters>
   <input_equilibrium>
-    <user></user>
-    <database></database>
   </input_equilibrium>
   <input_pf_active>
-    <user>public</user>
-    <database>ITER_MD</database>
-    <pulse>111001</pulse>
-    <run>203</run>
+    <uri>imas:mdsplus?user=public;database=ITER_MD;pulse=111001;run=203;version=3</uri>
   </input_pf_active>
   <input_pf_passive>
-    <user>public</user>
-    <database>ITER_MD</database>
-    <pulse>115005</pulse>
-    <run>2</run>
+    <uri>imas:mdsplus?user=public;database=ITER_MD;pulse=115005;run=2;version=3</uri>
   </input_pf_passive>
   <input_magnetics>
-    <user></user>
-    <database></database>
   </input_magnetics>
   <output>
-    <user></user>
-    <database>test</database>
-    <pulse>999</pulse> 
-    <run>1</run>
+    <uri>imas:mdsplus?path=output</uri>
   </output>
   <grid>
     <nr>65</nr>
-	<nz>129</nz>
-    <r1>3.0</r1>
-	<r2>9.0</r2>
-    <z1>-6.0</z1>
-	<z2>6.0</z2>
+	  <nz>129</nz>
+    <rmin>3.0</rmin>
+	  <rmax>9.0</rmax>
+    <zmin>-6.0</zmin>
+	  <zmax>6.0</zmax>
   </grid>
 </parameters>
-

@@ -20,10 +20,10 @@
 	  <xs:all>
 		<xs:element name="nr" type="xs:integer"/>
 		<xs:element name="nz" type="xs:integer"/>
-		<xs:element name="r1" type="xs:decimal"/>
-		<xs:element name="r2" type="xs:decimal"/>
-		<xs:element name="z1" type="xs:decimal"/>
-		<xs:element name="z2" type="xs:decimal"/>
+		<xs:element name="rmin" type="xs:decimal"/>
+		<xs:element name="rmax" type="xs:decimal"/>
+		<xs:element name="zmin" type="xs:decimal"/>
+		<xs:element name="zmax" type="xs:decimal"/>
 	  </xs:all>
 	</xs:complexType>
 	

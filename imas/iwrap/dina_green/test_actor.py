@@ -11,22 +11,15 @@ from dina_green.actor import dina_green
 
 
 
-def get_dbentry(root, user_default):
+def get_dbentry(root, opt):
     if root == None:
         return None, -1
-    usernode = root.find('user')
-    if (usernode != None):
-        username = usernode.text
-    else:
-        username = None
-    if (username == None or username == ""):
-        username = user_default
-    database = root.find('database').text
-    if database == None or database == '':
-        return None, -1
-    pulse = int(root.find('pulse').text)
-    run = int(root.find('run').text)
-    IMAS_DBEntry = imas.DBEntry(imasdef.MDSPLUS_BACKEND, database, pulse, run, username, data_version = '3')
+    uri_node = root.find('uri')
+    if uri_node == None:
+        return None, -2
+    
+    uri = uri_node.text
+    IMAS_DBEntry = imas.DBEntry(uri, opt)
     status,_ = IMAS_DBEntry.open()
     if status == 0:
         IMAS_DBEntry.close()
@@ -47,17 +40,17 @@ Time_Start = 0.
 InterpStart = imasdef.CLOSEST_INTERP
 
 # INPUT/OUTPUT CONFIGURATION
-IMAS_PFA, status = get_dbentry(root.find('input_pf_active'), user_default)
+IMAS_PFA, status = get_dbentry(root.find('input_pf_active'), 'r')
 IMAS_PFA.open()
 pf_active = IMAS_PFA.get_slice('pf_active', Time_Start, InterpStart)
 IMAS_PFA.close()
 
-IMAS_PFP, status = get_dbentry(root.find('input_pf_passive'), user_default)
+IMAS_PFP, status = get_dbentry(root.find('input_pf_passive'), 'r')
 IMAS_PFP.open()
 pf_passive = IMAS_PFP.get_slice('pf_passive', Time_Start, InterpStart)
 IMAS_PFP.close()
 
-IMAS_MAG, status = get_dbentry(root.find('input_magnetics'), user_default)
+IMAS_MAG, status = get_dbentry(root.find('input_magnetics'), 'r')
 if (status == 0):
     IMAS_MAG.open()
     magnetics = IMAS_MAG.get_slice('magnetics', Time_Start, InterpStart)
@@ -66,7 +59,7 @@ else:
     magnetics = imas.magnetics()
     magnetics.ids_properties.homogeneous_time=2
 
-IMAS_EQ, status = get_dbentry(root.find('input_equilibrium'), user_default)
+IMAS_EQ, status = get_dbentry(root.find('input_equilibrium'), 'r')
 if (status == 0):
     IMAS_EQ.open()
     equilibrium = IMAS_EQ.get_slice('equilibrium', Time_Start, InterpStart)
@@ -76,10 +69,10 @@ else:
     grid = root.find('grid')
     nr = int(grid.find('nr').text)
     nz = int(grid.find('nz').text)
-    r1 = float(grid.find('r1').text)
-    r2 = float(grid.find('r2').text)
-    z1 = float(grid.find('z1').text)
-    z2 = float(grid.find('z2').text)
+    r1 = float(grid.find('rmin').text)
+    r2 = float(grid.find('rmax').text)
+    z1 = float(grid.find('zmin').text)
+    z2 = float(grid.find('zmax').text)
     equilibrium.ids_properties.homogeneous_time=1
     equilibrium.time_slice.resize(1)
     equilibrium.time.resize(1)
@@ -93,7 +86,7 @@ else:
 
 # CREATE OUTPUT DATAFILE
 print('=> Create output datafile')
-IMAS_OUT, status = get_dbentry(root.find('output'), user_default)
+IMAS_OUT, status = get_dbentry(root.find('output'), 'w')
 IMAS_OUT.create()
 
 
