@@ -295,8 +295,8 @@ if(kprobe.ne.kprobe2)then
 end if
 
 
-if(npfp.gt.mu)then
-  print*, 'npfp.gt.mu', npfp, mu
+if(npfp+npfa.gt.mu)then
+  print*, 'npfp+npfa.gt.mu', npfp, npfa, mu
   stop
 end if
 if(kloop.gt.nloop)then
@@ -387,6 +387,7 @@ do i=1,npfa
 enddo
 
 
+print*, 'kpr =', kpr
 if (kpr.eq.1) then
   print*, 'pfind'
   do i=1,nact
