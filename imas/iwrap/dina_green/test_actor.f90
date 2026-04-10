@@ -21,14 +21,9 @@ type (ids_pf_active) :: pf_active
 type (ids_pf_passive) :: pf_passive
 
 
-integer :: ibackend = 12
-
 
 ! IDS location data
-character (len=255) :: user_default
-
 character(len=300) ::  uri_pfa, uri_pfp, uri_mag, uri_eq, uri_out
-
 
 
 integer :: i
@@ -60,10 +55,6 @@ r1 = 3.d0
 r2 = 9.d0
 z1 = -6.d0
 z2 = 6.d0
-
-
-
-call getenv("USER", user_default)
 
 
 
