@@ -38,21 +38,28 @@ LDFLAGS=`pkg-config $(PACKAGES) --libs` -mcmodel=large -Wl,--no-relax
 
 F90INC+=-I../dina_green
 F90INC+=-I../dina_imas
-F90INC+=-I../kmc
 
 
-DINA_LIBS =  ../dina_imas/dina_imas.a ../kmc/kav_mag_contr.a \
-	     ../dina_green/dina_green.a
+DINA_LIBS =  ../dina_imas/dina_imas.a  ../dina_green/dina_green.a
+	     
 		 
-all: dina_wf.exe
+all: dina_wf.exe dina_wf_contr_4.exe
 
-dina_wf.exe: dina_wf.o $(DINA_LIBS)
+dina_wf.exe: dina_wf.o $(DINA_LIBS) ../kmc/kav_mag_contr.a
 	@echo "   * $^ -> $@"
 	$(FC) -o $@ $^ $(LDFLAGS)
 
-%.o: %.f90
+dina_wf_contr_4.exe: dina_wf_contr_4.o $(DINA_LIBS) ../kmc_contr_4/kav_mag_contr.a
 	@echo "   * $^ -> $@"
 	$(FC) $(F90FLAGS) $(F90INC) -c -o $@ $^
+
+dina_wf.o: dina_wf.f90
+	@echo "   * $^ -> $@"
+	$(FC) $(F90FLAGS) $(F90INC) -I../kmc -c -o $@ $^
+
+dina_wf_contr_4.o: dina_wf.f90
+	@echo "   * $^ -> $@"
+	$(FC) $(F90FLAGS) $(F90INC) -I../kmc_contr_4 -c -o $@ $^
 
 validate: ## Test the consistency of the XML and XSD files for input parameters
 	xmllint --noout wfconfig.xsd wfconfig.xml
