@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<parameters>
+
+  <pulse_schedule>
+    <uri>imas:mdsplus?user=dubrovm;pulse=170;run=1;database=test;version=3</uri>
+  </pulse_schedule>
+  <input_pf_active> 
+    <uri>imas:mdsplus?user=dubrovm;pulse=105099;run=1;database=iter;version=3</uri>
+  </input_pf_active>
+  <input_pf_passive>
+    <uri>imas:mdsplus?user=dubrovm;pulse=105099;run=1;database=iter;version=3</uri>
+  </input_pf_passive>
+  <input_magnetics>
+  </input_magnetics>
+  <input_em_coupling>
+  </input_em_coupling>
+  <input_wall>
+    <uri>imas:mdsplus?user=public;pulse=116000;run=2;database=ITER_MD;version=3</uri>
+  </input_wall>
+  <input_start>
+    <uri>imas:mdsplus?user=dubrovm;pulse=105099;run=1;database=iter;version=3</uri>
+  </input_start>
+  <output>
+    <uri>imas:mdsplus?path=output</uri>
+  </output>
+  <input_transp>
+    <uri>imas:mdsplus?user=dubrovm;pulse=105099;run=1;database=iter;version=3</uri>
+  </input_transp>
+  
+  <time_start>20.0</time_start>
+  <start_interp_mode>1</start_interp_mode>
+  <transp_interp_mode>1</transp_interp_mode>
+  <time_stop>20.3</time_stop>
+  <decimation>1</decimation>
+  <time_ext>6.0</time_ext>
+  <step_max>1000000</step_max>
+  
+</parameters>
