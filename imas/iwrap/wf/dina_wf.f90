@@ -57,35 +57,12 @@ type (ids_dataset_description) :: data_description
 type (ids_summary) :: summary
 type (ids_wall) :: wall
 type (ids_workflow) :: workflow
-integer :: ibackend = 12
 
 
 ! IDS location data
+character(len=300) :: uri_prs, uri_psch, uri_pfa, uri_pfp, uri_mag, uri_wll, uri_ext, uri_out
 character (len=255) :: user_default
 
-character (len=255) :: user_out='', database_out
-integer :: pulse_out=-1, run_out=-1
-
-character (len=255) :: user_pfa='', database_pfa
-integer :: pulse_pfa=-1, run_pfa=-1
-
-character (len=255) :: user_pfp='', database_pfp
-integer :: pulse_pfp=-1, run_pfp=-1
-
-character (len=255) :: user_mag='', database_mag
-integer :: pulse_mag=-1, run_mag=-1
-
-character (len=255) :: user_wll='', database_wll
-integer :: pulse_wll=-1, run_wll=-1
-
-character (len=255) :: user_prs='', database_prs
-integer :: pulse_prs=-1, run_prs=-1
-
-character (len=255) :: user_psch='', database_psch
-integer :: pulse_psch=-1, run_psch=-1
-
-character (len=255) :: user_transp='', database_transp=''
-integer :: pulse_transp=-1, run_transp=-1
 
 ! Workflow parameters
 real (ids_real) :: pulsetime = 0.0, time_start=0.0, time_stop=10000.0
@@ -94,10 +71,10 @@ integer :: ext_transp, restart=0
 
 ! Local variables
 integer :: i, iloop
-integer :: idx_a, idx_p, idx_m, idx, idx0, err
+integer :: idx, idx0, err
 !integer :: nact,npass,ngrid
 integer :: interp_start = 1, interp_transp = 1
-real (ids_real) ::time_get,time_ext, current_pf_stop
+real (ids_real) :: time_get, time_ext, current_pf_stop
 
 character(len=30) :: ConfigFile
 type(type_xml2eg_document) :: doc
@@ -114,8 +91,13 @@ integer :: hh, mm
  type(ids_parameters_input) :: codeparam_green, codeparam_dina, codeparam_kmc
  integer :: error_flag
  character(len=:), pointer :: error_message
+ logical:: error_em, error_mag
  
  real (ids_real) :: vs3_l, vs3_r
+ real (ids_real) :: rs0, bt0
+ real (ids_real) :: rmax, rmin, zmax, zmin, dr, dz
+integer :: nr, nz
+
 
 call getenv("USER", user_default)
 
@@ -137,47 +119,15 @@ print *,' Using workflow config file: ', ConfigFile
 
 call file2buffer(ConfigFile, io_unit, buffer)
 call xml2eg_parse_memory(buffer, doc)
-
-  call xml2eg_get(doc, 'pulse_schedule/user', user_psch)
-  call xml2eg_get(doc, 'pulse_schedule/database', database_psch)
-  call xml2eg_get(doc, 'pulse_schedule/pulse', pulse_psch)
-  call xml2eg_get(doc, 'pulse_schedule/run', run_psch)
   
-  call xml2eg_get(doc, 'input_pf_active/user', user_pfa)
-  call xml2eg_get(doc, 'input_pf_active/database', database_pfa)
-  call xml2eg_get(doc, 'input_pf_active/pulse', pulse_pfa)
-  call xml2eg_get(doc, 'input_pf_active/run', run_pfa)
-
-  call xml2eg_get(doc, 'input_pf_passive/user', user_pfp)
-  call xml2eg_get(doc, 'input_pf_passive/database', database_pfp)
-  call xml2eg_get(doc, 'input_pf_passive/pulse', pulse_pfp)
-  call xml2eg_get(doc, 'input_pf_passive/run', run_pfp)
-
-  call xml2eg_get(doc, 'input_magnetics/user', user_mag)
-  call xml2eg_get(doc, 'input_magnetics/database', database_mag)
-  call xml2eg_get(doc, 'input_magnetics/pulse', pulse_mag)
-  call xml2eg_get(doc, 'input_magnetics/run', run_mag)
-
-  call xml2eg_get(doc, 'input_wall/user', user_wll)
-  call xml2eg_get(doc, 'input_wall/database', database_wll)
-  call xml2eg_get(doc, 'input_wall/pulse', pulse_wll)
-  call xml2eg_get(doc, 'input_wall/run', run_wll)
-
-  call xml2eg_get(doc, 'input_start/user', user_prs)
-  call xml2eg_get(doc, 'input_start/database', database_prs)
-  call xml2eg_get(doc, 'input_start/pulse', pulse_prs)
-  call xml2eg_get(doc, 'input_start/run', run_prs)
-  
-  call xml2eg_get(doc, 'input_transp/user', user_transp)
-  call xml2eg_get(doc, 'input_transp/database', database_transp)
-  call xml2eg_get(doc, 'input_transp/pulse', pulse_transp)
-  call xml2eg_get(doc, 'input_transp/run', run_transp)
-  
-  call xml2eg_get(doc, 'output/user', user_out)
-  call xml2eg_get(doc, 'output/database', database_out)
-  call xml2eg_get(doc, 'output/pulse', pulse_out)
-  call xml2eg_get(doc, 'output/run', run_out)
-  
+  call xml2eg_get(doc, 'pulse_schedule/uri', uri_psch)
+  call xml2eg_get(doc, 'input_pf_active/uri', uri_pfa)
+  call xml2eg_get(doc, 'input_pf_passive/uri', uri_pfp)
+  call xml2eg_get(doc, 'input_magnetics/uri', uri_mag, error_mag)
+  call xml2eg_get(doc, 'input_wall/uri', uri_wll)
+  call xml2eg_get(doc, 'input_start/uri', uri_prs)
+  call xml2eg_get(doc, 'input_transp/uri', uri_ext)
+  call xml2eg_get(doc, 'output/uri', uri_out)
   
   call xml2eg_get(doc, 'time_start', time_start)
   call xml2eg_get(doc, 'start_interp_mode', interp_start)
@@ -187,38 +137,33 @@ call xml2eg_parse_memory(buffer, doc)
   call xml2eg_get(doc, 'time_ext', time_ext)
   call xml2eg_get(doc, 'step_max', imax)
 
-
   call xml2eg_get(doc, 'vs3_l', vs3_L)
   call xml2eg_get(doc, 'vs3_r', vs3_R)
+  
+  call xml2eg_get(doc, 'rs0', rs0)
+  call xml2eg_get(doc, 'bt0', bt0)
 
+  call xml2eg_get(doc, 'rmin', rmin)
+  call xml2eg_get(doc, 'rmax', rmax)
 
+  call xml2eg_get(doc, 'zmin', zmin)
+  call xml2eg_get(doc, 'zmax', zmax)
+  
 
+print *,' Pulse schedule uri =', trim(uri_psch)
 
-if (trim(user_pfa).eq.'') user_pfa = user_default
-if (trim(user_pfp).eq.'') user_pfp = user_default
-if (trim(user_mag).eq.'') user_mag = user_default
-if (trim(user_wll).eq.'') user_wll = user_default
-if (trim(user_prs).eq.'') user_prs = user_default
-if (trim(user_psch).eq.'') user_psch = user_default
-if (trim(user_transp).eq.'') user_transp = user_default
-if (trim(user_out).eq.'') user_out = user_default
+print *,' PF Active uri =', trim(uri_pfa)
+print *,' PF Passive uri =', trim(uri_pfp)
+print *,' Wall uri =', trim(uri_wll)
 
-
-print *,' Pulse schedule user, database, pulse, run =', trim(user_psch), trim(database_psch), pulse_psch, run_psch
-
-print *,' PF Active user, database, pulse, run =', trim(user_pfa), trim(database_pfa), pulse_pfa, run_pfa
-print *,' PF Passive user, database, pulse, run =', trim(user_pfp), trim(database_pfp), pulse_pfp, run_pfp
-print *,' Magnetics user, database, pulse, run =', trim(user_mag), trim(database_mag), pulse_mag, run_mag
-print *,' Wall user, database, pulse, run =', trim(user_wll), trim(database_wll), pulse_wll, run_wll
-
-print *,' Start user, database, pulse, run =', trim(user_prs), trim(database_prs), pulse_prs, run_prs
+print *,' Start uri =', trim(uri_prs)
 print *,' Start time, s =', time_start
 print *,' Start interpolation =', interp_start
 
-print *,' Transp user, database, pulse, run =', trim(user_transp), trim(database_transp), pulse_transp, run_transp
+print *,' Transp uri =', trim(uri_ext)
 print *,' Transp interpolation =', interp_transp
 
-print *,' Output user =', trim(user_out), trim(database_out), pulse_out, run_out
+print *,' Output uri =', trim(uri_out)
 print *,' Output put decimation =', idec
 
 print *,' External transport time, s =', time_ext
@@ -228,22 +173,26 @@ print *,' Maximum simulation time, s =', time_stop
 print *,' VS3 L =', vs3_L
 print *,' VS3 R =', vs3_R
 
+print *,' rs0 =', rs0
+print *,' bt0 =', bt0
+
 
 if (time_start.gt.0.d0) then
   restart = 1
 endif
 
 
-write(*,*) 'Reading the prescribed IDS'
- call imas_open_env('ids',pulse_prs,run_prs,idx0,user_prs,database_prs,'3')
 
-! call ids_get(idx0, "workflow", workflow)
 
 if (restart.eq.1) then
 
   write(*,*) 'Restart from t=', time_start
   time_get = time_start
   
+  write(*,*) 'Reading the prescribed IDS'
+  call imas_open(uri_prs, OPEN_PULSE, idx0, error_flag)
+! call ids_get(idx0, "workflow", workflow)
+
   !call ids_get_slice(idx0,"em_coupling",em_coupling, time_get, interp_start)
   !call ids_get_slice(idx0,"magnetics",magnetics0, time_get, interp_start)
   call ids_get_slice(idx0,"equilibrium",equilibrium0, time_get, interp_start)
@@ -257,6 +206,9 @@ if (restart.eq.1) then
   
   write(*,*) 'Restart from plasma current, A = ', equilibrium0%time_slice(1)%global_quantities%ip
 
+  write(*,*) 'Finished reading the prescribed IDS'
+  call imas_close(idx0)
+
 else
 
   write(*,*) 'Start from t=0'
@@ -267,33 +219,68 @@ else
   interp_start = 1
 
   !call ids_get(idx0,"em_coupling",em_coupling)
-  call ids_get_slice(idx0,"equilibrium",equilibrium0, time_get, interp_start)
+  !call ids_get_slice(idx0,"equilibrium",equilibrium0, time_get, interp_start)
 
-
-  !call ids_get(idx0,"core_profiles",core_profiles0)
-  !call ids_get(idx0,"core_sources",core_sources0)
-  !call ids_get(idx0,"transport_solver_numerics",bndcond)
-
+  equilibrium0%ids_properties%homogeneous_time = 1
+  allocate(equilibrium0%time(1))
+  equilibrium0%time(1) = 0.d0
   
+  ! Setting the vacuum toroidal field
+  allocate(equilibrium0%vacuum_toroidal_field%b0(1))
+  equilibrium0%vacuum_toroidal_field%b0(1) = bt0
+  equilibrium0%vacuum_toroidal_field%r0 = rs0
+
+
+! 2D equilibrium grid preparation
+  nr = 65
+  nz = 129
+
+  print *,' nr, nz =', nr, nz
+  print *,' rmin, rmax =', rmin, rmax
+  print *,' zmin, zmax =', zmin, zmax
+
+
+  !deallocate(equilibrium0%time_slice(1)%profiles_2d)
+  allocate(equilibrium0%time_slice(1))
+  allocate(equilibrium0%time_slice(1)%profiles_2d(1))
+  equilibrium0%time_slice(1)%profiles_2d(1)%type%index = 0
+  ! Grid dimensions
+  equilibrium0%time_slice(1)%profiles_2d(1)%grid_type%index = 1 ! Rectangular a la eqdsk
+  allocate(equilibrium0%time_slice(1)%profiles_2d(1)%grid%dim1(nr))
+  allocate(equilibrium0%time_slice(1)%profiles_2d(1)%grid%dim2(nz))
+
+  dr = (rmax - rmin)/nr
+  dz = (zmax - zmin)/nz
+  do i=1,nr
+    equilibrium0%time_slice(1)%profiles_2d(1)%grid%dim1(i) = rmin + i*dr
+  enddo
+  do i=1,nz
+    equilibrium0%time_slice(1)%profiles_2d(1)%grid%dim2(i) = zmin + i*dz
+  enddo
+
+  write(*,*) 'equilibrium0 grid is set '
+  flush(6)
+
 endif
 
-write(*,*) 'Finished reading the prescribed IDS'
+
+
+call imas_open(uri_pfa, OPEN_PULSE, idx0, error_flag)
+call ids_get_slice(idx0,"pf_active",pf_active0, time_start, interp_start)
 call imas_close(idx0)
 
+call imas_open(uri_pfp, OPEN_PULSE, idx0, error_flag)
+call ids_get_slice(idx0,"pf_passive",pf_passive0, time_start, interp_start)
+call imas_close(idx0)
 
-call imas_open_env('ids',pulse_pfa,run_pfa,idx_a,user_pfa,database_pfa,'3')
-call ids_get_slice(idx_a,"pf_active",pf_active0, time_start, interp_start)
-call imas_close(idx_a)
+if (.NOT.error_mag) then
+print *,' Using magnetics from URI =', trim(uri_mag)
+call imas_open(uri_mag, OPEN_PULSE, idx0, error_flag)
+call ids_get_slice(idx0,"magnetics",magnetics0, time_start, interp_start)
+call imas_close(idx0)
+endif
 
-call imas_open_env('ids',pulse_pfp,run_pfp,idx_p,user_pfp,database_pfp,'3')
-call ids_get_slice(idx_p,"pf_passive",pf_passive0, time_start, interp_start)
-call imas_close(idx_p)
-
-call imas_open_env('ids',pulse_mag,run_mag,idx_m,user_mag,database_mag,'3')
-call ids_get_slice(idx_m,"magnetics",magnetics0, time_start, interp_start)
-call imas_close(idx_m)
-
-call imas_open_env('ids',pulse_wll,run_wll,idx0,user_wll,database_wll,'3')
+call imas_open(uri_wll, OPEN_PULSE, idx0, error_flag)
 call ids_get_slice(idx0,"wall",wall, time_start, interp_start)
 call imas_close(idx0)
 
@@ -352,7 +339,7 @@ pf_active0%coil(14)%resistance = 0.5d0*vs3_R
 
 
 write(*,*) 'Reading the pulse schedule'
-call imas_open_env('ids',pulse_psch,run_psch,idx0,user_psch,database_psch,'3')
+call imas_open(uri_psch, OPEN_PULSE, idx0, error_flag)
 
 call ids_get(idx0,"pulse_schedule",pulse_schedule)
 call ids_get(idx0,"pulse_schedule/1",pulse_schedule_term)
@@ -367,8 +354,7 @@ call imas_close(idx0)
  
   
   
-
-  call imas_create_env('ids',pulse_out,run_out,1,1,idx,user_out,database_out,'3')
+  call imas_open(uri_out, CREATE_PULSE, idx, error_flag)
   write(*,*) 'Pulse file is created'
 
   call ids_put(idx,"wall",wall)
@@ -442,6 +428,8 @@ write(*,*) "DINA_IMAS inputs deallocated"
 flush(6)
 
 
+ 
+ 
 call kmc_step(pulse_schedule, pulse_schedule_term, equilibrium, pf_active1, pf_active &
  & , codeparam_kmc, error_flag, error_message)
 
@@ -532,22 +520,15 @@ ext_transp=1
 end if
 
 if (ext_transp.eq.1) then
-write(*,*) 'Using prescribed transport'
+
+  call imas_open(uri_ext, OPEN_PULSE, idx0, error_flag)
 
   time_get = summary%time(1)
-  
-  !ibackend = 12 ! MDS+
-  !ibackend = 13 ! HDF5
-
-  !call system("export IMAS_AL_DEFAULT_BACKEND=13")
-  call imas_open_env('ids',pulse_transp,run_transp,idx0,user_transp,database_transp,'3')
-  
+  write(*,*) 'Using prescribed transport, time_get =', time_get
   call ids_get_slice(idx0,"core_profiles",core_profiles0, time_get, interp_transp)
   call ids_get_slice(idx0,"core_sources",core_sources0, time_get, interp_transp)
-  
-  call imas_close(idx0)
-  !call system("export IMAS_AL_DEFAULT_BACKEND=12")
 
+  call imas_close(idx0)
 
   
 else

@@ -27,6 +27,12 @@
         <xs:element ref="use_astra"/>
         <xs:element ref="vs3_l"/>
         <xs:element ref="vs3_r"/>
+        <xs:element ref="rs0"/>
+        <xs:element ref="bt0"/>
+        <xs:element ref="rmin"/>
+        <xs:element ref="rmax"/>
+        <xs:element ref="zmin"/>
+        <xs:element ref="zmax"/>
       </xs:all>
     </xs:complexType>
   </xs:element>
@@ -43,7 +49,13 @@
   <xs:element name="use_astra" type="integer_flag"/>
   <xs:element name="vs3_l" type="xs:decimal"/>
   <xs:element name="vs3_r" type="xs:decimal"/>
-  
+  <xs:element name="rs0" type="xs:decimal"/>
+  <xs:element name="bt0" type="xs:decimal"/>
+  <xs:element name="rmin" type="xs:decimal"/>
+  <xs:element name="rmax" type="xs:decimal"/>
+  <xs:element name="zmin" type="xs:decimal"/>
+  <xs:element name="zmax" type="xs:decimal"/>
+  <xs:element name="comment" type="xs:string"/>
   
    <xs:simpleType name="integer_decimation">
      <xs:restriction base="xs:integer">
