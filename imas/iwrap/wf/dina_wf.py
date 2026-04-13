@@ -20,6 +20,19 @@ from kav_mag_contr.actor import kav_mag_contr
 from kav_mag_contr.common import runtime_settings as KMC_RTS
 
 
+def get_dbentry(root, opt='a'):
+    if root == None:
+        return None, -1
+    uri_node = root.find('uri')
+    if uri_node == None:
+        return None, -2
+    
+    uri = uri_node.text
+    IMAS_DBEntry = imas.DBEntry(uri, opt)
+    status,_ = IMAS_DBEntry.open()
+    if status == 0:
+        IMAS_DBEntry.close()
+    return IMAS_DBEntry, status
 
 
 class DINA_Workflow:
@@ -87,6 +100,17 @@ class DINA_Workflow:
     # Calculate em_coupling if not read
     if (idslist['em_coupling'] == None):
       self.GREEN()
+
+      em_coupling = idslist['em_coupling']
+
+      em_coupling.mutual_active_active[12, 12] = 0.5*self.vs3_L
+      em_coupling.mutual_active_active[12, 13] = 0.0
+      em_coupling.mutual_active_active[13, 12] = 0.0
+      em_coupling.mutual_active_active[13, 13] = 0.5*self.vs3_L
+
+      idslist['pf_active'].coil[12].resistance = 0.5*self.vs3_R
+      idslist['pf_active'].coil[13].resistance = 0.5*self.vs3_R
+
     
     workflow = idslist['workflow']
     em_coupling = idslist['em_coupling']
@@ -226,28 +250,6 @@ class DINA_Workflow:
     #print(dir(pf_active))
 
 
-  def get_dbentry(self, root, user_default):
-    if root == None:
-      return None, -1
-    usernode = root.find('user')
-    if (usernode != None):
-      username = usernode.text
-    else:
-      username = None
-    if (username == None or username == ""):
-      username = user_default
-    database = root.find('database').text
-    if database == None or database == '':
-      return None, -1
-    pulse = int(root.find('pulse').text)
-    run = int(root.find('run').text)
-    IMAS_DBEntry = imas.DBEntry(imasdef.MDSPLUS_BACKEND, database, pulse, run, username, data_version = '3')
-    status,_ = IMAS_DBEntry.open()
-    if status == 0:
-      IMAS_DBEntry.close()
-    return IMAS_DBEntry, status
-
-
 
   def __init__(self, config):
     # Default workflow parameters
@@ -302,11 +304,22 @@ class DINA_Workflow:
     idslist = {}
 
 
+    self.InterpStart = int(root.find('start_interp_mode').text)
+    self.Time_Start = float(root.find('time_start').text)
+    self.Time_Stop = float(root.find('time_stop').text)
+    self.Time_ExternalTranspStarts = float(root.find('time_ext').text)
+    self.MagneticController = root.find('controller').text
+    self.Decimation = int(root.find('decimation').text)
+
+    self.vs3_L = float(root.find('vs3_l').text)
+    self.vs3_R = float(root.find('vs3_r').text)
+
+
     # Reading initial IDS's
     input_start = root.find('input_start')
-    IMAS_InputStart, status = self.get_dbentry(input_start, user_default)
+    IMAS_InputStart, status = get_dbentry(input_start, 'r')
     
-    IMAS_PulseSchedule, status = self.get_dbentry(root.find('pulse_schedule'), user_default)
+    IMAS_PulseSchedule, status = get_dbentry(root.find('pulse_schedule'), 'r')
 
     dataset_description = imas.dataset_description()
     idslist['dataset_description'] = dataset_description
@@ -327,17 +340,46 @@ class DINA_Workflow:
       idslist['equilibrium'] = IMAS_InputStart.get_slice('equilibrium', TimeGet, interp)
       idslist['core_profiles'] = IMAS_InputStart.get_slice('core_profiles', TimeGet, interp)
       idslist['core_sources'] = IMAS_InputStart.get_slice('core_sources', TimeGet, interp)
-      idslist['transport_solver_numerics'] = IMAS_InputStart.get_slice('transport_solver_numerics', TimeGet, interp)
+      #idslist['transport_solver_numerics'] = IMAS_InputStart.get_slice('transport_solver_numerics', TimeGet, interp)
+      idslist['transport_solver_numerics'] = imas.transport_solver_numerics()
+      idslist['transport_solver_numerics'].ids_properties.homogeneous_time=1
+
       IMAS_InputStart.close()
       
-      dataset_description.simulation.time_restart = equilibrium0.time[0]
+      dataset_description.simulation.time_restart = idslist['equilibrium'].time[0]
 
     else:
-      print('Start from t = 0') 
+      print('Start from t = 0')
 
-      IMAS_InputStart.open()
-      idslist['equilibrium'] = IMAS_InputStart.get_slice('equilibrium', 0.0, 1)
-      IMAS_InputStart.close()
+      equilibrium = imas.equilibrium()
+      equilibrium.ids_properties.homogeneous_time=1
+      equilibrium.time.resize(1)
+      equilibrium.time[0] = 0.0
+
+      # Setting the vacuum toroidal field
+      equilibrium.vacuum_toroidal_field.b0.resize(1)
+      equilibrium.vacuum_toroidal_field.b0[0] = float(root.find('bt0').text)
+      equilibrium.vacuum_toroidal_field.r0 = float(root.find('rs0').text)
+
+      r1 = float(root.find('rmin').text)
+      r2 = float(root.find('rmax').text)
+      z1 = float(root.find('zmin').text)
+      z2 = float(root.find('zmax').text)
+      
+      nr = 65
+      nz = 129
+      equilibrium.time_slice.resize(1)
+      equilibrium.time_slice[0].profiles_2d.resize(1)
+      equilibrium.time_slice[0].profiles_2d[0].grid_type.index = 1 # Rectangular a la eqdsk
+      equilibrium.time_slice[0].profiles_2d[0].grid.dim1.resize(nr)
+      equilibrium.time_slice[0].profiles_2d[0].grid.dim2.resize(nz)
+	  
+      equilibrium.time_slice[0].profiles_2d[0].grid.dim1 = np.linspace(r1, r2, num=nr)
+      equilibrium.time_slice[0].profiles_2d[0].grid.dim2 = np.linspace(z1, z2, num=nz)
+
+      idslist['equilibrium'] = equilibrium
+
+
       idslist['core_profiles'] = imas.core_profiles()
       idslist['core_profiles'].ids_properties.homogeneous_time=1
       
@@ -358,17 +400,17 @@ class DINA_Workflow:
     
 
 
-    IMAS_PFA, status = self.get_dbentry(root.find('input_pf_active'), user_default)
+    IMAS_PFA, status = get_dbentry(root.find('input_pf_active'), 'r')
     IMAS_PFA.open()
     idslist['pf_active'] = IMAS_PFA.get_slice('pf_active', self.Time_Start, self.InterpStart)
     IMAS_PFA.close()
 
-    IMAS_PFP, status = self.get_dbentry(root.find('input_pf_passive'), user_default)
+    IMAS_PFP, status = get_dbentry(root.find('input_pf_passive'), 'r')
     IMAS_PFP.open()
     idslist['pf_passive'] = IMAS_PFP.get_slice('pf_passive', self.Time_Start, self.InterpStart)
     IMAS_PFP.close()
 
-    IMAS_MAG, status = self.get_dbentry(root.find('input_magnetics'), user_default)
+    IMAS_MAG, status = get_dbentry(root.find('input_magnetics'), 'r')
     if (status == 0):
       IMAS_MAG.open()
       idslist['magnetics'] = IMAS_MAG.get_slice('magnetics', self.Time_Start, self.InterpStart)
@@ -377,14 +419,14 @@ class DINA_Workflow:
       idslist['magnetics'] = imas.magnetics()
       idslist['magnetics'].ids_properties.homogeneous_time=1
 
-    IMAS_WLL, status = self.get_dbentry(root.find('input_wall'), user_default)
+    IMAS_WLL, status = get_dbentry(root.find('input_wall'), 'r')
     IMAS_WLL.open()
     idslist['wall'] = IMAS_WLL.get_slice('wall', self.Time_Start, self.InterpStart)
     IMAS_WLL.close()
 
 
 
-    IMAS_EMCoupling, status = self.get_dbentry(root.find('input_em_coupling'), user_default)
+    IMAS_EMCoupling, status = get_dbentry(root.find('input_em_coupling'), 'r')
     if (status == 0):
       print('Reading em_coupling from the database')
       IMAS_EMCoupling.open()
@@ -394,23 +436,13 @@ class DINA_Workflow:
       idslist['em_coupling'] = None
 
 
-
     output = root.find('output')
-    self.IMAS_Output, status = self.get_dbentry(output, user_default)
-      
-    
-    
-    self.InterpStart = int(root.find('start_interp_mode').text)
-    self.Time_Start = float(root.find('time_start').text)
-    self.Time_Stop = float(root.find('time_stop').text)
-    self.Time_ExternalTranspStarts = float(root.find('time_ext').text)
-    self.MagneticController = root.find('controller').text
-    self.Decimation = int(root.find('decimation').text)
+    self.IMAS_Output, status = get_dbentry(output, 'w')
     
     
     input_transp = root.find('input_transp')
     if (input_transp != None):
-      self.IMAS_Transp, status = self.get_dbentry(input_transp, user_default)
+      self.IMAS_Transp, status = get_dbentry(input_transp, 'r')
       if (status == 0):
         print('External transport profiles are located')
         self.InterpTransp = int(root.find('transp_interp_mode').text)
