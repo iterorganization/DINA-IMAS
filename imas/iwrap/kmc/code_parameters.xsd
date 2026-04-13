@@ -21,6 +21,7 @@
      <xs:complexType>
        <xs:all>
          <xs:element ref="kpr" minOccurs="0"/>
+         <xs:element ref="tpl_dir" minOccurs="0"/>
          <xs:element ref="tcont2" minOccurs="0"/>
          <xs:element ref="dtcont2" minOccurs="0"/>
          <xs:element ref="Ip_div" minOccurs="0"/>
@@ -58,6 +59,12 @@
       </xs:annotation>
    </xs:element>
  
+   <xs:element name="tpl_dir" type="float_general">
+      <xs:annotation>
+          <xs:documentation></xs:documentation>
+      </xs:annotation>
+   </xs:element>
+
    <xs:element name="tcont2" type="float_general">
       <xs:annotation>
           <xs:documentation></xs:documentation>

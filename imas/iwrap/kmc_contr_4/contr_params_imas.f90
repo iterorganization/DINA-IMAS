@@ -37,7 +37,18 @@ logical :: errorflag
       !call file2buffer(ConfigFile, io_unit, buffer)
       call xml2eg_parse_memory(codeparam%parameters_value, doc)
 
-      call xml2eg_get(doc, 'kpr', kpr)
+      call xml2eg_get(doc, 'kpr', kpr, errorflag)
+      if (errorflag) then
+        print*, 'kpr reading error, set kpr = 1'
+        kpr = 1
+      end if
+      
+      call xml2eg_get(doc, 'tpl_dir', tpl_dir, errorflag)
+      if (errorflag) then
+        print*, 'tpl_dir reading error'
+        tpl_dir = -1.d0
+      end if
+      
       call xml2eg_get(doc, 'tcont2', tcont2)
       call xml2eg_get(doc, 'dtcont2', dtcont2)
       call xml2eg_get(doc, 'Ip_div', Ip_div)

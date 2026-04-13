@@ -1,7 +1,7 @@
 # Saved with iWrap 1.0.0
 ---
 actor_description:
-    actor_name: kav_mag_contr
+    actor_name: kav_mag_contr_4
     actor_type: python
     data_type: legacy
 code_description:
