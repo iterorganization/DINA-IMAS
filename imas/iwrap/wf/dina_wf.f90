@@ -60,7 +60,7 @@ type (ids_workflow) :: workflow
 
 
 ! IDS location data
-character(len=300) :: uri_prs, uri_psch, uri_pfa, uri_pfp, uri_mag, uri_wll, uri_ext, uri_out
+character(len=300) :: uri_prs, uri_psch, uri_pfa, uri_pfp, uri_mag, uri_emc, uri_wll, uri_ext, uri_out
 character (len=255) :: user_default
 
 
@@ -91,7 +91,7 @@ integer :: hh, mm
  type(ids_parameters_input) :: codeparam_green, codeparam_dina, codeparam_kmc
  integer :: error_flag
  character(len=:), pointer :: error_message
- logical:: error_em, error_mag
+ logical:: error_emc, error_mag
  
  real (ids_real) :: vs3_l, vs3_r
  real (ids_real) :: rs0, bt0
@@ -124,6 +124,7 @@ call xml2eg_parse_memory(buffer, doc)
   call xml2eg_get(doc, 'input_pf_active/uri', uri_pfa)
   call xml2eg_get(doc, 'input_pf_passive/uri', uri_pfp)
   call xml2eg_get(doc, 'input_magnetics/uri', uri_mag, error_mag)
+  call xml2eg_get(doc, 'input_em_coupling/uri', uri_emc, error_emc)
   call xml2eg_get(doc, 'input_wall/uri', uri_wll)
   call xml2eg_get(doc, 'input_start/uri', uri_prs)
   call xml2eg_get(doc, 'input_transp/uri', uri_ext)
@@ -286,7 +287,6 @@ call imas_close(idx0)
 
 
 
-call file2buffer('codeparam_green.xml', io_unit, codeparam_green%parameters_value)
 call file2buffer('codeparam_dina.xml', io_unit, codeparam_dina%parameters_value)
 call file2buffer('codeparam_kmc.xml', io_unit, codeparam_kmc%parameters_value)
 
@@ -295,6 +295,17 @@ workflow%ids_properties%homogeneous_time = 2
 if (associated(workflow%time_loop%component)) deallocate(workflow%time_loop%component)
 allocate(workflow%time_loop%component(3))
 
+
+if (.NOT.error_emc) then
+
+print *,' Using em_coupling from URI =', trim(uri_emc)
+call imas_open(uri_emc, OPEN_PULSE, idx0, error_flag)
+call ids_get_slice(idx0,"em_coupling",em_coupling, time_start, interp_start)
+call imas_close(idx0)
+
+else
+
+call file2buffer('codeparam_green.xml', io_unit, codeparam_green%parameters_value)
 
 call get_em_coupling(pf_active0, pf_passive0, magnetics0, equilibrium0, em_coupling &
 &, codeparam_green, error_flag, error_message)
@@ -335,7 +346,7 @@ pf_active0%coil(14)%resistance = 0.5d0*vs3_R
   CopyString(em_coupling%code%repository, workflow%time_loop%component(1)%repository)
   CopyString(em_coupling%code%parameters, workflow%time_loop%component(1)%parameters)
 
-
+endif
 
 
 write(*,*) 'Reading the pulse schedule'
