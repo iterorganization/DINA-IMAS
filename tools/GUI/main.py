@@ -29,16 +29,10 @@ import matplotlib.pyplot as plt
 import imas
 import xml.etree.ElementTree as ET
 from xml.dom import minidom
+from imasdb_widget import IMASDB_Widget
 
 
-from plequi import Second_window
-#import eq_win2
-#from equil_script_2 import Second_window
-#from MyCanvaseq import MyCanvas
-#------------------------NEW IMPORT
-#from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 from functools import partial
-#from matplotlib.figure import Figure
 from pathlib import Path
 from PySide6 import QtGui
 from PySide6 import QtCore
@@ -53,18 +47,11 @@ from PySide6.QtGui import  QAction
 
 from PySide6.QtUiTools import loadUiType
 
+import pulse_schedule
+import DINA_XML
+import KMC_XML
+from plequi import Second_window
 
-import viz_plug
-
-
-
-
-sys.path.append((os.environ['VIZ_HOME']))
-
-from imasviz.VizUtils import (QVizGlobalValues, QVizPreferences,QVizGlobalOperations)
-
-
-#--------------------------END NEW IMPORT
 
 
 class CodeParameter():
@@ -83,9 +70,11 @@ class CodeParameter():
     self.widget.setToolTip(self.comment)
     
   def SetValue(self, value):
-    self.widget.setText(str(value))
+    self.value = self.mytype(value)
+    self.widget.setText(str(self.value))
     
   def GetValue(self):
+    return self.value
     if self.mytype == int:
       return int(self.widget.text())
     if self.mytype == float:
@@ -152,34 +141,14 @@ class Graph():
     ax.set_xlabel('time, s')
     ax.set_ylabel(name)
     self.canvas.draw()
-#-----------NEW CLASSes
-
-class QVizMDI(QMdiArea):
-    """Class for Multiple Document Interface (MDI) area.
-    """
-
-    def __init__(self, parent):
-        super().__init__(parent)
-        self.setWindowTitle("MDI")
-        self.setObjectName("MDI")
 
 
 uiclass, baseclass = loadUiType('design.ui')
 class ExampleApp(uiclass, baseclass):
-#class ExampleApp(QMainWindow, design.Ui_MainWindow):
     def __init__(self):
         super().__init__()
-        #super(ExampleApp, self).__init__()
-        #self.MDI = QVizMDI(self)
-        #self.GUIVIZ = GUIFrame(self)
-        self.setObjectName("IMASViz root window")
-        self.MDI = QVizMDI(self)
-        self.startWindow = viz_plug.QVizStartWindow(self)
-        #self.viz_plug.QVizStartWindow.setStatusBar()
-        #self.GUIVIZ = viz_plug.QVizMainWindow(self)
+
         self.EQUIL_win = None
-        #self.setupUi(self)  # Initialise design
-        #self.initUi()      MAYBE DELETE
         #screen_resolution = app.desktop().screenGeometry()
         #width, height = screen_resolution.width(), screen_resolution.height()
         #print("width = " + str(width), "height = " + str(height))
@@ -201,19 +170,74 @@ class ExampleApp(uiclass, baseclass):
         super().setupUi(self)
         
         self.setWindowTitle('DINA GUI')
-        self.setObjectName("DINA-VIZ GUI")
+        self.setObjectName("DINA GUI")
         
         
         self.directoryLoad = os.path.normpath(os.getcwd() + '/../../machines/iter/')
         self.directorySave = os.path.normpath(os.getcwd() + '/../../imas/python_wf/')
-        self.labelDirLoad.setText(self.directoryLoad)
-        self.labelDirSave.setText(self.directorySave)
+        #self.labelDirLoad.setText(self.directoryLoad)
+        #self.labelDirSave.setText(self.directorySave)
         
-        self.btnLoad.clicked.connect(self.LoadSetups)
-        self.btnSave.clicked.connect(self.SaveSetups)
+        #self.btnLoad.clicked.connect(self.LoadSetups)
+        #self.btnSave.clicked.connect(self.SaveSetups)
+
+        self.actionImport_dat_files.triggered.connect(self.ImportSetups)
+        #self.actionExport_dat_files.triggered.connect(self.ExportSetups)
+        
+        self.actionLoad.triggered.connect(self.LoadSetups)
+        self.actionSave.triggered.connect(self.SaveSetups)
+        
+        #self.actionRun.triggered.connect(self.RunWorkflow)
+        
+
+
+
+        # Workflow tab
+        grid = QtWidgets.QGridLayout()
+        
+        #horizontalLayout = QHBoxLayout()
+        
+        #self.labelInputTime = QLabel(self.tabInput)
+        #self.labelInputTime.setText("Start time")
+        #self.lineEditInputTime = QLineEdit(self.tabInput)
+        #horizontalLayout.addWidget(self.labelInputTime)
+        #horizontalLayout.addWidget(self.lineEditInputTime)
+        
+        self.inptIMASDB_PS = IMASDB_Widget("Pulse Schedule")
+        self.inptIMASDB_SCEN = IMASDB_Widget("Initial plasma")
+        self.inptIMASDB_EXT = IMASDB_Widget("Kinetic profiles")
+        self.inptIMASDB_PFA = IMASDB_Widget("PF Active")
+        self.inptIMASDB_PFP = IMASDB_Widget("PF Passive")
+        self.inptIMASDB_WALL = IMASDB_Widget("Wall")
+        self.inptIMASDB_EM = IMASDB_Widget("EM Coupling")
+        self.inptIMASDB_MAG = IMASDB_Widget("Magnetics")
+
+        self.outIMASDB = IMASDB_Widget("Output")
         
         
+        grid.addWidget(self.inptIMASDB_PS, 0, 0)
+        grid.addWidget(self.inptIMASDB_SCEN, 0, 1)
+
+        grid.addWidget(self.inptIMASDB_PFA, 1, 0)
+        grid.addWidget(self.inptIMASDB_PFP, 1, 1)
+        grid.addWidget(self.inptIMASDB_WALL, 1, 2)
+
+        grid.addWidget(self.inptIMASDB_EM, 2, 0)
+        grid.addWidget(self.inptIMASDB_MAG, 2, 1)
+        grid.addWidget(self.inptIMASDB_EXT, 2, 2)
+
+        grid.addWidget(self.outIMASDB, 3, 0)
+
+
+        #grid.addLayout(horizontalLayout, 2, 1)
         
+        self.tabDatabase.setLayout(grid)
+
+
+        self.outIMASDB.SetURI("imas:mdsplus?path=sandbox")
+
+        
+        self.WorkflowData = {}
         self.TokamakData = {}
         self.controlData = {}
         self.DINAData = {}
@@ -221,7 +245,28 @@ class ExampleApp(uiclass, baseclass):
         self.externalData = []
         
         
+
+        self.timeTraceGraph = Graph(self)
         
+        #layGr = QtWidgets.QVBoxLayout()       
+        #layGr.addWidget(self.gridLayoutWidget_3, 0,0,1,1)
+        #layGr.addStretch(1)
+        #layGr.addLayout(self.timeTraceGraph.layout, 0,1,1,1)
+        
+
+        #layout = QtWidgets.QVBoxLayout()
+        #layout.addLayout(self.timeTraceGraph.layout)
+
+        #layout.addWidget(self.tabGeneralDataChild)
+        #self.tabPulseSchedule.setLayout(layout)
+
+        
+        self.tabWorkflowDataChild = QtWidgets.QTabWidget(self.tabWorkflow)
+        self.tabWorkflowDataChild.setObjectName("tabWorkflowDataChild")
+        verticalLayout = QtWidgets.QVBoxLayout(self.tabWorkflow)
+        verticalLayout.setObjectName("tabWorkflowDataLayout")       
+        verticalLayout.addWidget(self.tabWorkflowDataChild) 
+
         
         self.tabTokamakDataChild = QtWidgets.QTabWidget(self.tabTokamakData)
         self.tabTokamakDataChild.setObjectName("tabTokamakDataChild")
@@ -230,10 +275,11 @@ class ExampleApp(uiclass, baseclass):
         verticalLayout.addWidget(self.tabTokamakDataChild) 
         
         
-        self.tabGeneralDataChild = QtWidgets.QTabWidget(self.tabGeneralData)
+        self.tabGeneralDataChild = QtWidgets.QTabWidget(self.tabPulseSchedule)
         self.tabGeneralDataChild.setObjectName("tabGeneralDataChild")     
-        verticalLayout = QtWidgets.QVBoxLayout(self.tabGeneralData)
-        verticalLayout.setObjectName("tabGeneralDataLayout")       
+        verticalLayout = QtWidgets.QVBoxLayout(self.tabPulseSchedule)
+        verticalLayout.setObjectName("tabGeneralDataLayout")
+        verticalLayout.addLayout(self.timeTraceGraph.layout)
         verticalLayout.addWidget(self.tabGeneralDataChild)      
         
         
@@ -263,28 +309,15 @@ class ExampleApp(uiclass, baseclass):
         self.coilNames = self.CSHeaders + self.PFHeaders
         
         
-        user = os.getenv('USER')
-        
-        self.lineInputPulse.setText('170')
-        self.lineInputRun.setText('1')
-        self.lineInputTokamak.setText('test')
-        
-        
-        
+        user = os.getenv('USER')       
         
         # Output tab 
         self.btnLoadIDS.clicked.connect(self.PlotOutput)
         
-        self.textPulse.setPlainText('170')
-        self.textRun.setPlainText('6')
-        self.textUser.setPlainText(user)
-        self.textBase.setPlainText('test')
-        
-        
         self.outpGraph = []
         
         grid = QtWidgets.QGridLayout()
-        grid.addWidget(self.gridLayoutWidget_2, 0, 0) 
+        grid.addLayout(self.gridLayout_db_plot, 0, 0) 
 
         grid.addLayout(self.AddCanvas(0), 0, 1)    
         grid.addLayout(self.AddCanvas(1), 0, 2)
@@ -292,50 +325,37 @@ class ExampleApp(uiclass, baseclass):
         grid.addLayout(self.AddCanvas(3), 1, 1)    
         grid.addLayout(self.AddCanvas(4), 1, 2)        
         
+        self.IMASDB_plot = IMASDB_Widget("Plot")
+        self.gridLayout_db_plot.addWidget(self.IMASDB_plot, 1, 0)
+
         self.tabOutput.setLayout(grid)
         
+    
         
-        self.timeTraceGraph = Graph(self)
+        self.WorkflowData["time_ext"] = CodeParameter(mytype=float, value=1.e4, name='T_ext', comment = 'Time after which the external transport profiles are used', unit='s')
+        self.WorkflowData["time_start"] = CodeParameter(mytype=float, value=0.0, name='T_start', comment = 'Time at which the simulation starts', unit='s')
+        self.WorkflowData["time_stop"] = CodeParameter(mytype=float, value=1.e4, name='T_stop', comment = 'Time at which the simulation will be stopped', unit='s')
         
-        layGr = QtWidgets.QGridLayout()       
-        layGr.addWidget(self.gridLayoutWidget_3, 0,0,1,1)
-        #layGr.addStretch(1)
-        layGr.addLayout(self.timeTraceGraph.layout, 0,1,1,1)
-        
-        layout = QtWidgets.QGridLayout()
-        layout.addLayout(layGr,0,0,1,1)
+        self.WorkflowData["step_max"] = CodeParameter(mytype=int, value=1e6, comment = 'Time step at which the simulation will be stopped', name='N_stop')
+        self.WorkflowData["decimation"] = CodeParameter(mytype=int, value=10, comment = 'Time decimation of the outputs (pf_active, pf_passive, summary IDS always store each time step)', name='Decimation')
+        self.WorkflowData["start_interp_mode"] = CodeParameter(mytype=int, value=1, comment = 'IMAS interpolation mode of the starting input', name='Interp_start')
+        self.WorkflowData["transp_interp_mode"] = CodeParameter(mytype=int, value=1, comment = 'IMAS interpolation mode of the external transport', name='Interp_transp')
 
-        layout.addWidget(self.tabWidgetInput, 1,0,1,1)
-        self.tabInput.setLayout(layout)
+        self.WorkflowData["controller"] = CodeParameter(mytype=str, value="kmc", comment = 'Name of the magnetic controller to use', name='Controller')
+        self.WorkflowData["use_astra"] = CodeParameter(mytype=int, value=0, comment = 'Use ASTRA actor for external transport calculations', name='Use_ASTRA')
+        self.WorkflowData["vs3_l"] = CodeParameter(mytype=float, value=0.00152, comment = 'Self-inductance of the ITER VS3 circuit', name='L_VS3', unit='H')
+        self.WorkflowData["vs3_r"] = CodeParameter(mytype=float, value=0.012, comment = 'Resistance of the ITER VS3 circuit', name='R_VS3', unit='Ohm')
         
         
-        #---------------new
-        centralWidget = QWidget(self)
-        ###layout1 = QVBoxLayout()
-        layout1 = QGridLayout(centralWidget)
-        #layout1.addLayout(GUIFrame)
-        layout1.setColumnStretch(0, 1)
-        layout1.setColumnStretch(1, 7)
-        layout1.addWidget(self.startWindow, 0, 0, 1, 1)
-        layout1.addWidget(self.MDI, 0, 1, 1, 1)
-        #self.setCentralWidget(centralWidget)
-        QVizGlobalOperations.checkEnvSettings()
-        QVizPreferences().build()
-        #layout1.addWidget(self.GUIVIZ)
-        self.tabVIZ.setLayout(layout1)
-        #--------------------------------
-        
-        
-        
-        self.DINAData["kpr"] = CodeParameter(mytype=int, value=0, name='Key print', comment = 'Key to print debug and diagnostic logs')
-        self.DINAData["tt_kavin"] = CodeParameter(mytype=int, value=3.5, comment = 'Time to switch from 0D transport model to 1D', name='Time 0D->1D', unit='ms')
-        self.DINAData["tau"] = CodeParameter(mytype=float, value=2., name='dt start', comment = 'Time step before switching to 1D transport model', unit='ms')
-        self.DINAData["tau_sim"] = CodeParameter(mytype=float, value=10., comment = 'Time step for simulation after switching to 1D transport model and before plasma current rampdown', name='dt simulation', unit='ms')
-        self.DINAData["tau_dw"] = CodeParameter(mytype=float, value=5., comment = 'Time step for simulation during plasma current ramp-down', name='dt rampdown', unit='ms')
-        self.DINAData["rs0"] = CodeParameter(mytype=float, value=620., name='R_Btor', comment = 'R coordinate at which the toroidal field is represented internally', unit='cm')
-        self.DINAData["bt0"] = CodeParameter(mytype=float, value=53., name='Btor', comment = 'The toroidal field at the specified R coordinate', unit='Gs')
+        self.DINAData["kpr"] = CodeParameter(mytype=int, value=1, name='Key print', comment = 'Key to print debug and diagnostic logs')
+        self.DINAData["tt_kavin"] = CodeParameter(mytype=float, value=3.5, comment = 'Time to switch from 0D transport model to 1D', name='Time 0D->1D', unit='s')
+        self.DINAData["tau"] = CodeParameter(mytype=float, value=2.e-3, name='dt start', comment = 'Time step before switching to 1D transport model', unit='s')
+        self.DINAData["tau_sim"] = CodeParameter(mytype=float, value=10.e-3, comment = 'Time step for simulation after switching to 1D transport model and before plasma current rampdown', name='dt simulation', unit='s')
+        self.DINAData["tau_dw"] = CodeParameter(mytype=float, value=5.e-3, comment = 'Time step for simulation during plasma current ramp-down', name='dt rampdown', unit='s')
+        #self.DINAData["rs0"] = CodeParameter(mytype=float, value=6.20, name='R_Btor', comment = 'R coordinate at which the toroidal field is represented internally', unit='m')
+        #self.DINAData["bt0"] = CodeParameter(mytype=float, value=5.3, name='Btor', comment = 'The toroidal field at the specified R coordinate', unit='T')
         self.DINAData["key_t11"] = CodeParameter(mytype=int, value=1, comment = 'JET Ohmic scaling')
-        self.DINAData["tt_dina"] = CodeParameter(mytype=float, value=100000.e3, comment = 'Time after which input 1D transport profiles are used, internal transport model switches off', unit='ms')
+        self.DINAData["tt_dina"] = CodeParameter(mytype=float, value=10000., comment = 'Time after which input 1D transport profiles are used, internal transport model switches off', unit='s')
         
         self.DINAData["tpl_dir"] = CodeParameter(mytype=float, value=-1., name='Ip_dir', comment = 'Sign of the plasma current')
         
@@ -345,11 +365,12 @@ class ExampleApp(uiclass, baseclass):
         self.DINAData["gam"] = CodeParameter(mytype=float, value=0., comment = 'Initial ionization state of D')
         self.DINAData["gain_puff"] = CodeParameter(mytype=float, value=0., comment = 'Neutrals puffing gain to keep the prescribed waveform of D in 0D model')
         
-        self.DINAData["bohm_gbohm"] = CodeParameter(mytype=int, value=1, comment = 'Key to switch on (=1) or off (=0) Bohm-gyro-Bohm scaling')
+        self.DINAData["bohm_gbohm"] = CodeParameter(mytype=bool, value=1, comment = 'Key to switch on (=1) or off (=0) Bohm-gyro-Bohm scaling')
         
         self.DINAData["q_swth"] = CodeParameter(mytype=float, value=0.97, name='q_sawtooth', comment = 'Minimal q at axis when a sawtooth is triggered')
+        self.DINAData["coef_p_lh"] = CodeParameter(mytype=float, value=1., name='P_LH modifier', comment = 'Multiplier of LH threshold power')
         
-        self.DINAData["pcchp_end"] = CodeParameter(mytype=float, value=0., comment = 'The level to which plasma density decreases during 4 s after start of plasma current ramp-down phase')
+        self.DINAData["pcchp_end"] = CodeParameter(mytype=float, value=5.e19, comment = 'The level to which plasma density decreases during 4 s after start of plasma current ramp-down phase. After that Greenwald ratio is kept constant', unit='m^-3')
         
         self.DINAData["ener_ext"] = CodeParameter(mytype=bool, value=False, comment = 'When time>tt_dina, switch off internal energy transport calculations')
         self.DINAData["dens_ext"] = CodeParameter(mytype=bool, value=False, comment = 'When time>tt_dina, switch off internal density transport calculations')
@@ -361,32 +382,33 @@ class ExampleApp(uiclass, baseclass):
         self.DINAData["grid_alpha"] = CodeParameter(mytype=float, value=0.95, name='Grid compression', comment = '1D grid compression factor in the boundary region')
         
         
-        self.controlData["tcont2"] = CodeParameter(mytype=int, value=0., comment = 'Time when the limiter controller is switched on', name='tcont2', unit='s')
-        self.controlData["dtcont2"] = CodeParameter(mytype=int, value=0., comment = 'Transition time of the control voltages from the current controller to the limiter controller at the ramp-up phase', name='dtcont2', unit='s')
-        self.controlData["Ip_div"] = CodeParameter(mytype=int, value=0., comment = 'Negative value of plasma current when the first divertor controller is switched on at the ramp-up phase', name='Ip_div', unit='MA')
+        self.controlData["tcont2"] = CodeParameter(mytype=float, value=0., comment = 'Time when the limiter controller is switched on', name='tcont2', unit='s')
+        self.controlData["dtcont2"] = CodeParameter(mytype=float, value=0., comment = 'Transition time of the control voltages from the current controller to the limiter controller at the ramp-up phase', name='dtcont2', unit='s')
+        self.controlData["Ip_div"] = CodeParameter(mytype=float, value=0., comment = 'Negative value of plasma current when the first divertor controller is switched on at the ramp-up phase', name='Ip_div', unit='A')
         self.controlData["ref_ramp"] = CodeParameter(mytype=float, value=0., comment = 'Transition time of the control voltages after switching of the first divertor controller', name='ref_ramp', unit='s')
-        self.controlData["Ip_rd"] = CodeParameter(mytype=float, value=0., comment = 'Value of plasma current when the second divertor controller is switched on at the plasma current termination phase', name='Ip_rd', unit='MA')
+        self.controlData["Ip_rd"] = CodeParameter(mytype=float, value=0., comment = 'Value of plasma current when the second divertor controller is switched on at the plasma current termination phase', name='Ip_rd', unit='A')
         self.controlData["trd_ref"] = CodeParameter(mytype=float, value=0., comment = 'Last time moment in schedule of the gaps for the plasma termination phase', name='trd_ref', unit='s')
         self.controlData["max_VS_lim"] = CodeParameter(mytype=float, value=0., comment = 'Maximum value of the gain coefficient for VS controller at the limiter phase', name='max_VS_lim')
         self.controlData["c_a_tpl2_lim"] = CodeParameter(mytype=int, value=0., comment = 'Gain coefficient for the limiter controller at the ramp-up phase', name='c_a_tpl2_lim')
         self.controlData["time_stop"] = CodeParameter(mytype=float, value=0., comment = 'Time of simulation stop', name='time_stop', unit='s')
         
-        self.controlData["c_a_tpl1"] = CodeParameter(mytype=float, value=0., comment = 'Gain coefficient for the VS controller at the ramp-up and flattop phases')
-        self.controlData["c_a_tpl1_eob"] = CodeParameter(mytype=float, value=0., comment = 'Gain coefficient for the VS controller at the plasma current termination phase')
-        self.controlData["c_a_tpl2"] = CodeParameter(mytype=int, value=0., comment = 'Gain coefficient for the divertor controller at the ramp-up and flattop phases')
-        self.controlData["c_a_tpl_min"] = CodeParameter(mytype=float, value=0., comment = 'Minimum value of the gain coefficient for the VS controller at the plasma current termination phase')
-        self.controlData["y0"] = CodeParameter(mytype=float, value=0., comment = 'Tunable coefficient for divertor controller gain at the plasma current termination phase')
-        self.controlData["c1_y0"] = CodeParameter(mytype=float, value=0., comment = 'Tunable coefficient for divertor controller gain at the plasma current termination phase')
-        self.controlData["c2_y0"] = CodeParameter(mytype=float, value=0., comment = 'Tunable coefficient for divertor controller gain at the plasma current termination phase')
-        self.controlData["t_tran2D"] = CodeParameter(mytype=float, value=3500., comment = 'Time when the limiter controller starts to control extended set of the plasma shape parameters to maintain elongated plasma', unit='ms')
+        self.controlData["c_a_tpl1"] = CodeParameter(mytype=float, value=0., comment = 'Gain coefficient for the VS controller at the ramp-up and flattop phases', name='c_a_tpl1')
+        self.controlData["c_a_tpl1_eob"] = CodeParameter(mytype=float, value=0., comment = 'Gain coefficient for the VS controller at the plasma current termination phase', name='c_a_tpl1_eob')
+        self.controlData["c_a_tpl2"] = CodeParameter(mytype=float, value=0., comment = 'Gain coefficient for the divertor controller at the ramp-up and flattop phases', name='c_a_tpl2')
+        self.controlData["c_a_tpl_min"] = CodeParameter(mytype=float, value=0., comment = 'Minimum value of the gain coefficient for the VS controller at the plasma current termination phase', name='c_a_tpl2_min')
+        self.controlData["y0"] = CodeParameter(mytype=float, value=0., comment = 'Tunable coefficient for divertor controller gain at the plasma current termination phase', name='y0')
+        self.controlData["c1_y0"] = CodeParameter(mytype=float, value=0., comment = 'Tunable coefficient for divertor controller gain at the plasma current termination phase', name='c1_y0')
+        self.controlData["c2_y0"] = CodeParameter(mytype=float, value=0., comment = 'Tunable coefficient for divertor controller gain at the plasma current termination phase', name='c2_y0')
+
+        self.controlData["t_tran2D"] = CodeParameter(mytype=float, value=3.5, comment = 'Time when the limiter controller starts to control extended set of the plasma shape parameters to maintain elongated plasma', name='t_elong', unit='s')
         self.controlData["Tu"] = CodeParameter(mytype=float, value=0., comment = 'Minimum time of voltage variation from –Vmax to +Vmax for CS&PF power supplies', name='Tu', unit='s')
-        self.controlData["c_cur_max"] = CodeParameter(mytype=int, value=0., comment = 'Fraction of coil current limit when the current limitation alghorithm starts protection', name='c_cur_max')
+        self.controlData["c_cur_max"] = CodeParameter(mytype=float, value=0., comment = 'Fraction of coil current limit when the current limitation alghorithm starts protection', name='c_cur_max')
         
-        self.controlData["tt_rampup"] = CodeParameter(mytype=float, value=0., comment = 'Duration of the plasma current ramp-up', unit='ms')
-        self.controlData["dt_end_sim"] = CodeParameter(mytype=float, value=0., comment = 'Duration of the CS&PF current termination phase, starting after end of plasma', unit='s')
-        self.controlData["dtpl_term_l"] = CodeParameter(mytype=float, value=0., comment = 'Duration of the plasma current ramp-down', unit='s')
-        self.controlData["cIp_end"] = CodeParameter(mytype=float, value=0., comment = 'Minimum plasma current at the ramp-down phase', unit='MA')
-        self.controlData["Ics1_eob"] = CodeParameter(mytype=float, value=0., comment = 'Value of the current in CS1 circuit at which the current ramp-down starts', name='I_CS1 EOF', unit='kA')
+        self.controlData["tt_rampup"] = CodeParameter(mytype=float, value=0., comment = 'Duration of the plasma current ramp-up', name='T_ramp-up', unit='s')
+        self.controlData["dtpl_term_l"] = CodeParameter(mytype=float, value=0., comment = 'Duration of the plasma current ramp-down', name='T_ramp-down', unit='s')
+        self.controlData["dt_end_sim"] = CodeParameter(mytype=float, value=0., comment = 'Duration of the CS&PF current termination phase, starting after end of plasma', name='T_PF-term', unit='s')
+        self.controlData["cIp_end"] = CodeParameter(mytype=float, value=0., comment = 'Final plasma current at the ramp-down phase', name='Ip_end', unit='A')
+        self.controlData["Ics1_eob"] = CodeParameter(mytype=float, value=0., comment = 'Value of the current in CS1 circuit at which the current ramp-down starts', name='I_CS1 EOF', unit='A')
         self.controlData["rms_noise"] = CodeParameter(mytype=float, value=0., comment = 'RMS of noise in the diagnostic signal of dZ/dt for VS stabilization', name='VS RMS noise', unit='m/s')
         
         
@@ -838,21 +860,105 @@ class ExampleApp(uiclass, baseclass):
       table.resizeColumnsToContents()
       
       
+    def ImportSetups(self):
+      dirTmp = QtWidgets.QFileDialog.getExistingDirectory(self, "Select folder load from...", self.directoryLoad)
+
+      if dirTmp: 
+        self.directoryLoad = dirTmp
+        #self.labelDirLoad.setText(self.directoryLoad)
+        
+        self.generalData = {}
+        
+        imas_obj1 = imas.DBEntry('imas:mdsplus?user=public;pulse=111001;run=203;database=ITER_MD;version=3', 'r')
+        imas_obj1.open()
+        pfa_md = imas_obj1.get('pf_active')
+        imas_obj1.close()
+        
+        ion_label = 'D'
+        ps, ps_dw = pulse_schedule.GetPulseSchedule(self.directoryLoad, pfa_md, ion_label)
+
+        XML_root_DINA = DINA_XML.DINADataToXML(self.directoryLoad)
+        XML_root_KMC = KMC_XML.ControlDataToXML(self.directoryLoad)
+
+        #self.LoadTokamakData()
+        self.LoadDINAData(XML_root_DINA)
+        self.LoadControlData(XML_root_KMC)
+        self.LoadGeneralData(ps, ps_dw)
+        #self.LoadExternalData()
+       
+        self.RefreshUI()
+
+
+
     def LoadSetups(self):
       dirTmp = QtWidgets.QFileDialog.getExistingDirectory(self, "Select folder load from...", self.directoryLoad)
 
       if dirTmp: 
         self.directoryLoad = dirTmp
-        self.labelDirLoad.setText(self.directoryLoad)
+        #self.labelDirLoad.setText(self.directoryLoad)
         
+        filepath = os.path.join(dirTmp, "wfconfig.xml")
+        if os.path.isfile(filepath):
+          f = open(filepath, 'rt')
+          configstr = f.read()
+          f.close()
+        else:
+          print('File ' + filepath + ' is not found')
+        tree = ET.parse(filepath)
+        root = tree.getroot()
+        XML_root_Workflow = root
+
+
+        self.inptIMASDB_PS.SetXML(root.find("pulse_schedule"))
+        self.inptIMASDB_SCEN.SetXML(root.find("input_scenario"))
+        self.inptIMASDB_EXT.SetXML(root.find("input_transp"))
+        self.inptIMASDB_PFA.SetXML(root.find("input_pf_active"))
+        self.inptIMASDB_PFP.SetXML(root.find("input_pf_passive"))
+        self.inptIMASDB_WALL.SetXML(root.find("input_wall"))
+        self.inptIMASDB_EM.SetXML(root.find("input_em_coupling"))
+        self.inptIMASDB_MAG.SetXML(root.find("input_magnetics"))
+
+        self.outIMASDB.SetXML(root.find("output"))
+
+        
+        
+
+        imas_db = self.inptIMASDB_PS.GetDBEntry()
+        imas_db.open()
+        ps = imas_db.get("pulse_schedule")
+        ps_dw = imas_db.get("pulse_schedule", occurrence = 1)
+        imas_db.close()
+
+
+        filepath = os.path.join(dirTmp, "codeparam_dina.xml")
+        if os.path.isfile(filepath):
+          f = open(filepath, 'rt')
+          configstr = f.read()
+          f.close()
+        else:
+          print('File ' + filepath + ' is not found')
+        tree = ET.parse(filepath)
+        XML_root_DINA = tree.getroot()
+
+
+        filepath = os.path.join(dirTmp, "codeparam_kmc.xml")
+        if os.path.isfile(filepath):
+          f = open(filepath, 'rt')
+          configstr = f.read()
+          f.close()
+        else:
+          print('File ' + filepath + ' is not found')
+        tree = ET.parse(filepath)
+        XML_root_KMC = tree.getroot()
+
         
         self.generalData = {}
-        
-        
-        self.LoadTokamakData()
-        self.LoadControlData()
-        self.LoadDINAData()
-        self.LoadGeneralData()
+
+        self.LoadWorkflowData(XML_root_Workflow)
+        #self.LoadTokamakData()
+        self.LoadDINAData(XML_root_DINA)
+        self.LoadControlData(XML_root_KMC)
+        self.LoadGeneralData(ps, ps_dw)
         #self.LoadExternalData()
        
         self.RefreshUI()
@@ -860,12 +966,26 @@ class ExampleApp(uiclass, baseclass):
        
     def RefreshUI(self):
       
-      self.RefreshTokamakData()
+      self.RefreshWorkflowData()
+      #self.RefreshTokamakData()
       self.RefreshGeneralData()
       self.RefreshDINAData()
       self.RefreshControlData()
-      self.RefreshExternalData()
+      #self.RefreshExternalData()
       
+
+    def RefreshWorkflowData(self):
+      self.tabWorkflowDataChild.clear()
+      
+      params = []
+      
+      names = ('time_start','time_ext','time_stop')
+      params.append([self.WorkflowData[k] for k in names])
+
+      names = ('decimation','step_max')
+      params.append([self.WorkflowData[k] for k in names])
+
+      self.CreateInputTab(self.tabWorkflowDataChild, params, 'Parameters')
       
     
     def RefreshTokamakData(self):
@@ -876,31 +996,23 @@ class ExampleApp(uiclass, baseclass):
     def RefreshGeneralData(self):
       self.tabGeneralDataChild.clear()
       
-      
-      self.CreateInputTabTimed(self.tabGeneralDataChild, self.generalData['pfres'], "SNU")
-      self.CreateInputTabTimed(self.tabGeneralDataChild, self.generalData['scr_data'], "PF Currents")
-      self.CreateInputTabTimed(self.tabGeneralDataChild, self.generalData['volt'], "PF Voltages")
+      self.CreateInputTabTimed(self.tabGeneralDataChild, self.generalData['ip'], "Plasma current")
+      self.CreateInputTabTimed(self.tabGeneralDataChild, self.generalData['pf_curr'], "PF currents")
+      self.CreateInputTabTimed(self.tabGeneralDataChild, self.generalData['pf_volt'], "PF voltages")
+      self.CreateInputTabTimed(self.tabGeneralDataChild, self.generalData['pf_res'], "PF resistances")
       
       self.CreateInputTabTimed(self.tabGeneralDataChild, self.generalData['elong'], "Elongation")
-      for ig in range(len(self.generalData['gaps'])):
-        self.CreateInputTabTimed(self.tabGeneralDataChild, self.generalData['gaps'][ig], "Gap" + str(ig+1))
-      for ig in range(len(self.generalData['gaps_term'])):
-        self.CreateInputTabTimed(self.tabGeneralDataChild, self.generalData['gaps_term'][ig], "Gap" + str(ig+1) + "_term")
+      self.CreateInputTabTimed(self.tabGeneralDataChild, self.generalData['gaps'], "Gaps")
+      self.CreateInputTabTimed(self.tabGeneralDataChild, self.generalData['gaps_term'], "Gaps_term")
+      self.CreateInputTabTimed(self.tabGeneralDataChild, self.generalData['r_ax'], "R axis")
+      self.CreateInputTabTimed(self.tabGeneralDataChild, self.generalData['a_pl'], "Minor radius")
+
+      self.CreateInputTabTimed(self.tabGeneralDataChild, self.generalData['power_ec'], "ECRH")
+      self.CreateInputTabTimed(self.tabGeneralDataChild, self.generalData['power_ic'], "ICRH")
       
-      self.CreateInputTabTimed(self.tabGeneralDataChild, self.generalData['ech'], "ECRH 0D")
-      self.CreateInputTabTimed(self.tabGeneralDataChild, self.generalData['emo'], "ECRH and ICRH 1D")
+      self.CreateInputTabTimed(self.tabGeneralDataChild, self.generalData['density'], "Ion density")
       
-      self.CreateInputTabTimed(self.tabGeneralDataChild, self.generalData['n_d'], "Main ion1 density")
-      self.CreateInputTabTimed(self.tabGeneralDataChild, self.generalData['dens'], "Main ion2 density")
-      
-      
-      self.CreateInputTabTimed(self.tabGeneralDataChild, self.generalData['gamma_z'], "Impurity 0D")
-      self.CreateInputTabTimed(self.tabGeneralDataChild, self.generalData['gamma_z1'], "Impurity1 1D")
-      self.CreateInputTabTimed(self.tabGeneralDataChild, self.generalData['gamma_z2'], "Impurity2 0D and 1D")
-      self.CreateInputTabTimed(self.tabGeneralDataChild, self.generalData['gamma_z3'], "Impurity3 1D")
-      self.CreateInputTabTimed(self.tabGeneralDataChild, self.generalData['gamma_z4'], "Impurity4 1D")
-      
-      
+         
       
     def RefreshDINAData(self):
       self.tabDINADataChild.clear()
@@ -923,8 +1035,8 @@ class ExampleApp(uiclass, baseclass):
       names = ('tau', 'tau_sim', 'tau_dw')
       params.append([self.DINAData[k] for k in names])
       
-      names = ('rs0', 'bt0')
-      params.append([self.DINAData[k] for k in names])
+      #names = ('rs0', 'bt0')
+      #params.append([self.DINAData[k] for k in names])
       
       names = ('p', 'T_e', 'T_i', 'gam', 'gain_puff')
       params.append([self.DINAData[k] for k in names])
@@ -935,7 +1047,7 @@ class ExampleApp(uiclass, baseclass):
       
       params = []
       
-      names = ('bohm_gbohm', 'key_t11', 'pcchp_end', 'q_swth')
+      names = ('bohm_gbohm', 'key_t11', 'pcchp_end', 'q_swth', 'coef_p_lh')
       params.append([self.DINAData[k] for k in names])
       
       names = ('ener_ext', 'dens_ext', 'ajb_ext')
@@ -943,7 +1055,7 @@ class ExampleApp(uiclass, baseclass):
       
       self.CreateInputTab(self.tabDINADataChild, params, 'Parameters2')
       
-      self.CreateInputTabGaps(self.tabDINADataChild, self.gapsData, 'Gaps')
+      #self.CreateInputTabGaps(self.tabDINADataChild, self.gapsData, 'Gaps')
       
       
       
@@ -1027,153 +1139,73 @@ class ExampleApp(uiclass, baseclass):
 
  
  
-    def LoadControlData(self):
-      filename = self.directoryLoad + '/control_init_1.dat'
-      if os.path.isfile(filename):
-        f = open(filename, 'rt')
-        
-        #control_data2.dat
-        names = ('tcont2', 'dtcont2', 'Ip_div', 'ref_ramp', 'Ip_rd', 'trd_ref', 'max_VS_lim', 'c_a_tpl2_lim', 'time_stop')
-        self.ReadParameters(f, [self.controlData[k] for k in names])
-        names = ('c_a_tpl1', 'c_a_tpl1_eob', 'c_a_tpl2', 'c_a_tpl_min', 'y0', 'c1_y0', 'c2_y0')
-        self.ReadParameters(f, [self.controlData[k] for k in names])
-        names = ('t_tran2D',)
-        self.ReadParameters(f, [self.controlData[k] for k in names])
-        
-        #elong.dat
-        timedData = self.ReadTimeTable(f)
-        self.generalData['elong'] = Waveform(timedData['time'], timedData['waves'])
-        
-        self.generalData['gaps'] = []
-        self.generalData['gaps_term'] = []
-        
-        #g1.dat
-        timedData = self.ReadTimeTable(f)
-        self.generalData['gaps'].append(Waveform(timedData['time'], timedData['waves']))
-        
-        #g1_term.dat
-        timedData = self.ReadTimeTable(f)
-        self.generalData['gaps_term'].append(Waveform(timedData['time'], timedData['waves']))
-        
-        #g2.dat
-        timedData = self.ReadTimeTable(f)
-        self.generalData['gaps'].append(Waveform(timedData['time'], timedData['waves']))
-        
-        #g2_term.dat
-        timedData = self.ReadTimeTable(f)
-        self.generalData['gaps_term'].append(Waveform(timedData['time'], timedData['waves']))
-        
-        #g3.dat
-        timedData = self.ReadTimeTable(f)
-        self.generalData['gaps'].append(Waveform(timedData['time'], timedData['waves']))
-        
-        #g3_term.dat
-        timedData = self.ReadTimeTable(f)
-        self.generalData['gaps_term'].append(Waveform(timedData['time'], timedData['waves']))
-        
-        #g4.dat
-        timedData = self.ReadTimeTable(f)
-        self.generalData['gaps'].append(Waveform(timedData['time'], timedData['waves']))
-        
-        #g4_term.dat
-        timedData = self.ReadTimeTable(f)
-        self.generalData['gaps_term'].append(Waveform(timedData['time'], timedData['waves']))
-        
-        #g5.dat
-        timedData = self.ReadTimeTable(f)
-        self.generalData['gaps'].append(Waveform(timedData['time'], timedData['waves']))
-        
-        #g5_term.dat
-        timedData = self.ReadTimeTable(f)
-        self.generalData['gaps_term'].append(Waveform(timedData['time'], timedData['waves']))
-        
-        #g6.dat
-        timedData = self.ReadTimeTable(f)
-        self.generalData['gaps'].append(Waveform(timedData['time'], timedData['waves']))
-        
-        #g6_term.dat
-        timedData = self.ReadTimeTable(f)
-        self.generalData['gaps_term'].append(Waveform(timedData['time'], timedData['waves']))
-        
-        #tt_kavin2.dat
-        names = ['tt_rampup']
-        self.ReadParameters(f, [self.controlData[k] for k in names])
-        names = ['dt_end_sim', 'dtpl_term_l', 'cIp_end']
-        self.ReadParameters(f, [self.controlData[k] for k in names])
-        names = ['Ics1_eob', 'rms_noise']
-        self.ReadParameters(f, [self.controlData[k] for k in names])
-        
-        
-        #control_data.dat
-        names = ['Tu', 'c_cur_max']
-        f.readline()
-        data = self.ReadRow(f)
-        self.controlData['Tu'].SetValue(data[-1])
-        
-        f.readline()
-        data = self.ReadRow(f)
-        self.controlData['c_cur_max'].SetValue(data[0])
-        
+    def LoadControlData(self, xmlroot):
 
-        #self.CreateInputTab(parentObject, params["data"], params["title"])
-        
-        
-        # number of coil turns
-        #params = self.ReadParameters(f)
-        #self.controlData.append(params)
-        #self.CreateInputTab(parentObject, [params], params["title"]) 
-        
-        
-        f.close()
-        
+      for name in self.controlData:
+        print(name)
+        self.controlData[name].SetValue(xmlroot.find(name).text)    
         
         
     
-    def LoadGeneralData(self):
+    def LoadGeneralData(self, ps, ps_dw):
       
+      data = [coil.resistance_additional.reference.data for coil in ps.pf_active.coil]
+      time = ps.pf_active.coil[0].resistance_additional.reference.time
+      self.generalData['pf_res'] = Waveform(time, data)
+
+      data = [ps.flux_control.i_plasma.reference.data]
+      time = ps.flux_control.i_plasma.reference.time
+      self.generalData['ip'] = Waveform(time, data)
+
+      data = [coil.current.reference.data for coil in ps.pf_active.coil]
+      time = ps.pf_active.coil[0].current.reference.time
+      nt = len(time)
+      for i in range(len(data)):
+        if len(data[i]) != nt:
+          data[i] = numpy.zeros(nt)
+      self.generalData['pf_curr'] = Waveform(time, data)
+
+      data = [supply.voltage.reference.data for supply in ps.pf_active.supply]
+      time = ps.pf_active.supply[0].voltage.reference.time
+      nt = len(time)
+      for i in range(len(data)):
+        if len(data[i]) != nt:
+          data[i] = numpy.zeros(nt)
+      self.generalData['pf_volt'] = Waveform(time, data)
+
+      data = [ps.ec.power.reference.data]
+      time = ps.ec.power.reference.time
+      self.generalData['power_ec'] = Waveform(time, data)
+
+      data = [ps.ic.power.reference.data]
+      time = ps.ic.power.reference.time
+      self.generalData['power_ic'] = Waveform(time, data)
+
+      data = [ion.n_i_volume_average.reference.data for ion in ps.density_control.ion]
+      time = ps.density_control.ion[0].n_i_volume_average.reference.time
+      self.generalData['density'] = Waveform(time, data)
+
+      data = [ps.position_control.elongation.reference.data]
+      time = ps.position_control.elongation.reference.time
+      self.generalData['elong'] = Waveform(time, data)
+
+      data = [gap.value.reference.data for gap in ps.position_control.gap]
+      time = ps.position_control.gap[0].value.reference.time
+      self.generalData['gaps'] = Waveform(time, data)    
+
+      data = [gap.value.reference.data for gap in ps_dw.position_control.gap]
+      time = ps_dw.position_control.gap[0].value.reference.time
+      self.generalData['gaps_term'] = Waveform(time, data)  
+
+      data = [ps.position_control.geometric_axis.r.reference.data]
+      time = ps.position_control.geometric_axis.r.reference.time
+      self.generalData['r_ax'] = Waveform(time, data)   
       
-      filename = self.directoryLoad + '/scr_data.dat'
-      if os.path.isfile(filename):
-        ntur=[554.,554.,554.,554.,554.,  248.6, 115.2, 185.9, 169.9, 216.8, 459.4]
-        
-        f = open(filename, 'rt')
-        
-        # scr_data.dat
-        timedData = self.ReadScrData(f)
-        f.close()
-        
-        timedData["title"] = "scr_data.dat"
-        
-        # Ip
-        timedData["waves"][0] = [Ip*(-1.e6) for Ip in timedData["waves"][0]]
-        
-        # CS&PF currents
-        for j in range(len(timedData["waves"])-1):
-          timedData["waves"][j+1] = [I*(-1.e6/ntur[j]) for I in timedData["waves"][j+1]]
-          
-        self.generalData['scr_data'] = Waveform(timedData['time'], timedData['waves'])
-        
-      
-      
-      filename = self.directoryLoad + '/volt.dat'
-      if os.path.isfile(filename):
-        f = open(filename, 'rt')
-        
-        # volt.dat
-        timedData = self.ReadScrData(f)
-        f.close()
-        
-        timedData["title"] = "volt.dat"
-        # ms -> s
-        timedData['time'] = [t*1.e-3 for t in timedData['time']]
-        
-        # CS&PF voltages
-        for j in range(len(timedData["waves"])):
-          timedData["waves"][j] = [U*(-ntur[j]) for U in timedData["waves"][j]]
-        
-        self.generalData['volt'] = Waveform(timedData['time'], timedData['waves'])
-        
-        
+      data = [ps.position_control.minor_radius.reference.data]
+      time = ps.position_control.minor_radius.reference.time
+      self.generalData['a_pl'] = Waveform(time, data) 
+
+
         
     def LoadTokamakData(self):
       
@@ -1204,664 +1236,34 @@ class ExampleApp(uiclass, baseclass):
         f.close()
         
         
-        
+    def LoadWorkflowData(self, xmlroot):
+      for name in self.WorkflowData:
+        print(name)
+        self.WorkflowData[name].SetValue(xmlroot.find(name).text)
     
     
-    def LoadDINAData(self):
-      filename = self.directoryLoad + '/dina_data.dat'
-      if os.path.isfile(filename):
-        f = open(filename, 'rt')
+    def LoadDINAData(self, xmlroot):
+      
+      for name in self.DINAData:
+        print(name)
+        self.DINAData[name].SetValue(xmlroot.find(name).text)
         
-        # tt_kavin.dat
-        self.ReadParameters(f, [self.DINAData['tt_kavin']])
-        
-        # kpr.dat
-        self.ReadParameters(f, [self.DINAData['kpr']])
-        
-        # for002_kav.dat
-        names = ['tau', 'rs0', 'key_t11', 'bt0']
-        self.ReadParameters(f, [self.DINAData[k] for k in names])
-        
-        
-        f.readline()
-        line = self.ReadRow(f)
-        ng = line[0]
-        print('n_gaps = ' + str(ng))
-        f.readline()
-        gaps_r = self.ReadRow(f)
-        f.readline()
-        gaps_z = self.ReadRow(f)
-        
-        self.gapsData = []
-        for i in range(ng):
-          self.gapsData.append(ControlPoint(r=gaps_r[i], z=gaps_z[i]))
-          
-        # tran_times.dat
-        names = ['tt_dina']
-        self.ReadParameters(f, [self.DINAData['tt_dina']])
-        
-        #pfres.dat
-        turns = [554., 554., 554., 554., 554., 248.6, 115.2, 185.9, 169.9, 216.8, 459.4, 4.0]
-        timedData = self.ReadTimeTable(f)
-        for iw in range(len(timedData['waves'])):
-          for it in range(len(timedData['waves'][iw])):
-            timedData['waves'][iw][it] = timedData['waves'][iw][it]*turns[iw]*turns[iw]
-        self.generalData['pfres'] = Waveform(timedData['time'], timedData['waves'])
- 
-        #ech.dat
-        timedData = self.ReadTimeTable(f)
-        self.generalData['ech'] = Waveform(timedData['time'], timedData['waves'])
- 
-        #n_d.dat
-        timedData = self.ReadTimeTable(f)
-        self.generalData['n_d'] = Waveform(timedData['time'], timedData['waves'])
- 
-        #gamma_z.dat - 0D transport only
-        timedData = self.ReadTimeTable(f)
-        timedData['time'] = [t*1.e-3 for t in timedData['time']]
-        self.generalData['gamma_z'] = WaveformImpurity(timedData['time'], timedData['waves'], z=timedData['add'][0])
- 
-        #gamma_z2.dat - 0D and 1D transport, shared
-        timedData = self.ReadTimeTable(f)
-        timedData['time'] = [t*1.e-3 for t in timedData['time']]
-        self.generalData['gamma_z2'] = WaveformImpurity(timedData['time'], timedData['waves'], z=timedData['add'][0])
-
-        # init.dat
-        names = ('p', 'T_e', 'T_i', 'gam', 'gain_puff')
-        self.ReadParametersRow(f, [self.DINAData[k] for k in names])
-        
-        #emo.dat
-        timedData = self.ReadTimeTable(f)
-        self.generalData['emo'] = Waveform(timedData['time'], timedData['waves'])
-        
-        #dens.dat
-        timedData = self.ReadTimeTable(f)
-        self.generalData['dens'] = Waveform(timedData['time'], timedData['waves'])
- 
-        #gamma_z1.dat - 1D transport only
-        timedData = self.ReadTimeTable(f)
-        timedData['time'] = [t*1.e-3 for t in timedData['time']]
-        self.generalData['gamma_z1'] = WaveformImpurity(timedData['time'], timedData['waves'], z=timedData['add'][0])
- 
-        #gamma_z3.dat - 1D transport only
-        timedData = self.ReadTimeTable(f)
-        timedData['time'] = [t*1.e-3 for t in timedData['time']]
-        self.generalData['gamma_z3'] = WaveformImpurity(timedData['time'], timedData['waves'], z=timedData['add'][0])
-
-        #gamma_z4.dat - 1D transport only
-        timedData = self.ReadTimeTable(f)
-        timedData['time'] = [t*1.e-3 for t in timedData['time']]
-        self.generalData['gamma_z4'] = WaveformImpurity(timedData['time'], timedData['waves'], z=timedData['add'][0])
-
-        # bohm_gbohm.dat
-        self.ReadParameters(f, [self.DINAData['bohm_gbohm']])
-
-        # tay_simul.dat
-        self.ReadParameters(f, [self.DINAData['tau_sim']])
-
-        # dw.dat
-        self.ReadParameters(f, [self.DINAData['tau_dw']])
-        
-        # pcchp_end.dat
-        self.ReadParameters(f, [self.DINAData['pcchp_end']])
-        
-        # transp_ext.dat
-        names = ('ener_ext', 'dens_ext', 'ajb_ext')
-        self.ReadParameters(f, [self.DINAData[k] for k in names])
-        
-        
-        f.close()
-        
-        
-    
-    def ReadCoilData(self, f):
-      output = {}      
-      output["type"] = "coil"
-      
-      output["name"] = f.readline().strip()
-      
-      props = self.ReadRowStr(f)
-      if len(props) != 4:
-        print("Incorrect properties amount: " + str(len(props)))
-      output["items_p"] = [QtWidgets.QTableWidgetItem(x) for x in props]
-      
-      geometry = self.ReadRowStr(f)
-      if len(geometry) != 6:
-        print("Incorrect geometry items amount: " + str(len(geometry)))     
-      output["items_g"] = [QtWidgets.QTableWidgetItem(x) for x in geometry]
-      return output
-
-
-
-    def ReadResistanceData(self, f, n):
-      output = {}
-      output["type"] = "resist-list"
-      data = []
-      
-      for i in range(n):
-        line = f.readline().rstrip()
-        description = line.split()
-        data.append(float(description[0]))
-        
-      output["items"] = [QtWidgets.QTableWidgetItem(str(x)) for x in data]
-      return output
-    
-    
-    
-    def ReadTokamakConfig(self, f):
-      output = {}
-      
-      # Coils
-      record = {}
-      data = []
-      f.readline()
-      NPF = self.ReadRow(f)
-      NPF_items = [QtWidgets.QTableWidgetItem(str(x)) for x in NPF]
-      record["common_geom"] = NPF_items
-      npf = NPF[0]
-      print("npf = " + str(npf))
-      for i in range(npf):
-        data.append(self.ReadCoilData(f))
-      record["geometry"] = data
-      
-      # Coil resistances
-      data = []
-      f.readline()
-      NPF = self.ReadRow(f)
-      record["common_res"] = NPF
-      npf = NPF[0]
-      print("npf res = " + str(npf))
-      record["resist"] = self.ReadResistanceData(f, npf) 
-      
-      output["coils"] = record
-      
-      
-      # Vessel
-      record = {}
-      data = []
-      f.readline()
-      NCAM = self.ReadRow(f)
-      record["common_geom"] = NCAM
-      ncam = NCAM[0]
-      print("ncam = " + str(ncam))
-      for i in range(ncam):
-        data.append(self.ReadCoilData(f))
-      record["geometry"] = data
-      
-      # Vessel resistances
-      f.readline()
-      NCAM = self.ReadRow(f)
-      record["common_res"] = NCAM
-      ncam = NCAM[0]
-      print("ncam res = " + str(ncam))
-      record["resist"] = self.ReadResistanceData(f, ncam)
-      
-      output["vessel"] = record
-      
-      
-      # Loops
-      record = {}
-      f.readline()
-      NLOOP = self.ReadRow(f)
-      record["common"] = NLOOP
-      nloop = NLOOP[0]
-      print("nloop = " + str(nloop))
-      loops = [] 
-      #loopR = []
-      #loopZ = []
-      for i in range(nloop):
-        line = self.ReadRow(f)
-        #loopR.append(line[0])
-        #loopZ.append(line[1])  
-        loop = {}
-        loop["r"] = QtWidgets.QTableWidgetItem(str(line[0]))
-        loop["z"] = QtWidgets.QTableWidgetItem(str(line[1]))
-        loops.append(loop)
-      #record["items_r"] = [QtWidgets.QTableWidgetItem(str(x)) for x in loopR] 
-      #record["items_z"] = [QtWidgets.QTableWidgetItem(str(x)) for x in loopZ] 
-      record["items"] = loops
-      output["loops"] = record
-      
-      
-      # Probes
-      record = {}
-      f.readline()
-      NPROB = self.ReadRow(f)
-      NPROB_items = [QtWidgets.QTableWidgetItem(str(x)) for x in NPROB]
-      record["common"] = NPROB_items
-      nprob = NPROB[0]
-      print("nprob = " + str(nprob))
-      #probR = []
-      #probZ = []
-      #probA = []
-      #probL = []
-      probes = []
-      for i in range(nprob):
-        line = self.ReadRow(f)
-        #probR.append(line[0])
-        #probZ.append(line[1])    
-        #probA.append(line[2])
-        #probL.append(line[3])         
-        probe = {}
-        probe["r"] = QtWidgets.QTableWidgetItem(str(line[0]))
-        probe["z"] = QtWidgets.QTableWidgetItem(str(line[1]))
-        probe["a"] = QtWidgets.QTableWidgetItem(str(line[2]))
-        probe["l"] = QtWidgets.QTableWidgetItem(str(line[3]))
-        probes.append(probe)       
-      #record["items_r"] = [QtWidgets.QTableWidgetItem(str(x)) for x in probR]
-      #record["items_z"] = [QtWidgets.QTableWidgetItem(str(x)) for x in probZ]
-      #record["items_a"] = [QtWidgets.QTableWidgetItem(str(x)) for x in probA]
-      #record["items_l"] = [QtWidgets.QTableWidgetItem(str(x)) for x in probL]
-      record["items"] = probes
-      output["probes"] = record
-      
-      
-      # Limiter
-      record = {}
-      f.readline()
-      NLIM = self.ReadRow(f)
-      record["common"] = NLIM
-      nlim = NLIM[0]
-      print("nlim = " + str(nlim))
-      limR = []
-      limZ = []
-      for i in range(nlim):
-        line = self.ReadRow(f)
-        limR.append(line[0])
-        limZ.append(line[1])         
-      record["items_r"] = [QtWidgets.QTableWidgetItem(str(x)) for x in limR] 
-      record["items_z"] = [QtWidgets.QTableWidgetItem(str(x)) for x in limZ] 
-      output["limiter"] = record
-      
-      
-      # Area
-      record = {}
-      record["name"] = f.readline().rstrip()
-      lineR = self.ReadRow(f)
-      lineZ = self.ReadRow(f)
-      record["items_r"] = [QtWidgets.QTableWidgetItem(str(x)) for x in lineR]
-      record["items_z"] = [QtWidgets.QTableWidgetItem(str(x)) for x in lineZ]
-      output["area"] = record
-      
-      
-      output["type"] = "tokamakdata"
-      
-      return output
-
-
-    
-    def SaveTokamakConfig(self, f, record):
-      
-      # Coils
-      recsave = record["coils"]
-      f.write("COILS   number:   npf   !tokamak_config.dat  \n") # comment
-      f.write(recsave["common_geom"][0].text() + "\n") # npf
-      for coil in recsave["geometry"]:
-        self.SaveFilePart(f, coil)
-      f.write("res_PF:   npf  \n") # comment
-      f.write(str(recsave["common_res"][0]) + "\n") # npf
-      self.SaveFilePart(f, recsave["resist"])
-      
-      
-      # Vessel
-      recsave = record["vessel"]
-      f.write("Vessel   number:   ncam  \n") # comment
-      f.write(str(recsave["common_geom"][0]) + "\n") # ncam
-      for coil in recsave["geometry"]:       
-        self.SaveFilePart(f, coil)     
-      f.write("res_ves:   ncam  \n") # comment
-      f.write(str(recsave["common_res"][0]) + "\n") # ncam
-      self.SaveFilePart(f, recsave["resist"])
-      
-      
-      # Loops
-      recsave = record["loops"]
-      f.write("Loops   number:   kloop  \n") # comment
-      f.write(str(recsave["common"][0]) + "\n") # nloop
-      nloop = len(recsave["items"])
-      for i in range(nloop):
-        s1 = recsave["items"][i]["r"].text()
-        s2 = recsave["items"][i]["z"].text()
-        f.write("  " + s1 + "  " + s2 + "\n")
-      
-      
-      # Probes
-      recsave = record["probes"]
-      f.write("Probes   number   and   division:   kprobe   kpb \n") # comment
-      f.write(recsave["common"][0].text() + "  " + recsave["common"][1].text() + "\n") # nprobes, subdivisions
-      #self.SaveFilePart(f, recsave["common"])
-      nprobes = len(recsave["items"])
-      for i in range(nprobes):
-        s1 = recsave["items"][i]["r"].text()
-        s2 = recsave["items"][i]["z"].text()
-        s3 = recsave["items"][i]["a"].text()
-        s4 = recsave["items"][i]["l"].text()
-        f.write("  " + s1 + "  " + s2 + "  " + s3 + "  " + s4 + "\n")
-
-
-      # Limiter
-      recsave = record["limiter"]
-      f.write("Limiter   number:   n_limiter  \n") # comment
-      f.write(str(recsave["common"][0]) + "\n") # nlim
-      nlim = len(recsave["items_r"])
-      for i in range(nlim):
-        s1 = recsave["items_r"][i].text()
-        s2 = recsave["items_z"][i].text()
-        f.write("  " + s1 + "  " + s2 + "\n")
-        
-        
-      # Area
-      recsave = record["area"]
-      f.write(recsave["name"] + "\n")
-      s1 = recsave["items_r"][0].text()
-      s2 = recsave["items_r"][1].text()
-      f.write("  " + s1 + "  " + s2 + "\n")
-      s1 = recsave["items_z"][0].text()
-      s2 = recsave["items_z"][1].text()
-      f.write("  " + s1 + "  " + s2 + "\n") 
- 
- 
- 
-    def JoinListStr(self, lst):
-      s = ""
-      for x in lst:
-        s += str(x) + "   "
-      return s  
-
- 
- 
-    def SaveFilePart(self, f, record):
-      if isinstance(record, dict):
-        #print("Dictionary found")
-        if record["type"] == "heap":
-          f.write(record["header"] + "\n")
-          data = record["data"]
-          for item in data:
-            s = ""
-            if isinstance(item, list):
-              for x in item:       
-                s += str(x) + "   "  
-              f.write(s + "\n") 
-            else:
-              f.write(str(item) + "\n") 
-        elif record["type"] == "params":
-          strWr = ""
-          for s in record["names"]:
-            strWr = strWr + s + "   "
-          if "title" in record:
-            strWr = strWr + "!" + record["title"]
-          f.write(strWr + "\n") 
-          strWr = ""
-          for item in record["items"]:
-            strWr = strWr + item.text() + "   "
-          f.write(strWr + "\n")  
-          
-        elif record["type"] == "paramsrow":
-          for i in range(len(record["items"])):
-            strWr = " " + record["items"][i].text() + "   " + record["names"][i]
-            if i == 0 and "title" in record:
-              strWr += "  !" + record["title"]
-            f.write(strWr + "\n")                     
-          
-        elif record["type"] == "timed":
-          n = len(record["items"])
-          s = self.JoinListStr(record["names1"])
-          if "title" in record:
-            s += "!" + record["title"]
-          f.write(s + "\n") 
-          s = str(n)
-          if "add" in record:
-            for x in record["add"]:
-              s += "  " + str(x)
-          f.write(s + "\n")
-          
-          f.write(self.JoinListStr(record["names2"]) + "\n")
-          
-          for i in range(n):
-            s = ""
-            for item in record["items"][i]:
-              s += item.text() + "  "
-            f.write(s + "\n")
-        
-        elif record["type"] == "coil":
-          s = record["name"]
-          f.write(s + "\n") 
-          f.write("  " + self.JoinListStr([item.text() for item in record["items_p"]]) + "\n")
-          f.write("  " + self.JoinListStr([item.text() for item in record["items_g"]]) + "\n")
-        
-        elif record["type"] == "resist-list":
-          for item in record["items"]:
-            s = item.text()
-            f.write("  " + s + "\n")        
-        
-        elif record["type"] == "set":
-          for item in record["data"]:
-            self.SaveFilePart(f,item)
-      elif isinstance(record, list):
-        for item in record:
-          self.SaveFilePart(f,item)
-    
-    
-    
-    def SaveDataToFile(self, data, filename):
-      f = open(filename, 'wt')
-      for record in data:
-        self.SaveFilePart(f, record)
-      f.close()
-      
-      
-    
-    
-    def GetStuctWithFieldValue(self, record, field, value):
-      for item in record:
-        if field in item:
-          if item[field] == value:
-            return item
-      print("item is not found")    
-      return []  
-   
-   
-    def ReadParametersRow(self, f, CodeParameters):
-      output = {}
-      data = []
-      names = []
-      
-      nrows = len(CodeParameters)
-      for i in range(nrows):
-        line = f.readline().rstrip()
-        if i == 0:
-          header = line.split("!")
-          if len(header) > 1:
-            line = header[0]
-        description = line.split()
-        data.append(float(description[0]))
-        names.append(description[1])
-        
-      for i in range(nrows):
-        CodeParameters[i].SetValue(data[i])
-        CodeParameters[i].rawname = names[i]
-      
       return
     
-    
-    
-    def ReadParameters(self, f, CodeParameters):
-      output = {}
-      data = []
+      f = open(os.path.join(self.directoryLoad, "gaps_data_ramp"))
+      f.readline()
+      line = self.ReadRow(f)
+      ng = line[0]
+      print('n_gaps = ' + str(ng))
+      f.readline()
+      gaps_r = self.ReadRow(f)
+      f.readline()
+      gaps_z = self.ReadRow(f)
       
-      line = f.readline().rstrip()
-      if not line:
-        print('Unexpected end of file')
-        return
-      #data.append(line)
-      
-      header = line.split("!")
-      params = header[0]
-      names = params.split()
-      print(names)
-      #if len(header) > 1:
-        #output["title"] = header[1].strip()
-           
-      data = self.ReadRow(f)    
-      print(data)
-      
-      if len(data) != len(CodeParameters):
-        print('Found ' + str(len(data)) + ' parameters when expected ' + str(len(CodeParameters)))
-      
-      n = len(CodeParameters)
-      
-      for i in range(n):
-        CodeParameters[i].SetValue(data[i])
-        if i < len(names):
-          CodeParameters[i].rawname = names[i]
-      
-      
-    
-    
-    
-    
-    def ReadTimeTable(self, f):
-      output = {}
-      
-      line = f.readline().rstrip()
-      if not line:
-        print('Unexpected end of file')
-        return
-      
-      header = line.split("!")
-      params = header[0]
-      names1 = params.split()
-      print(names1)
-      output["names1"] = names1
-      if len(header) > 1:
-        output["title"] = header[1].strip()
-      
-      datant = self.ReadRow(f)
-      if len(datant) == 0:
-        return []
-      nt = datant[0]
-
-      if len(datant) > 1:
-        output["add"] = datant[1:]
-      
-      names2 = f.readline().rstrip().split()
-      output["names2"] = names2
-      
-      data = []
-      for it in range(nt):
-        row = self.ReadRow(f)
-        #items.append([QtWidgets.QTableWidgetItem(str(x)) for x in row])
-        data.append(row)
-      
-      nw = len(data[0])
-      waves = []
-      for iw in range(1,nw):
-        wave = []
-        for it in range(nt):
-          wave.append(data[it][iw])
-        waves.append(wave)
-      
-      time = []
-      for it in range(nt):
-        time.append(data[it][0])
-      
-      output["data"] = data
-      output["waves"] = waves
-      output["time"] = time
-
-      return output
-    
-    
-    
-    def ReadScrData(self, f):
-      
-      output = {}
-      
-      line = f.readline().rstrip()
-      if not line:
-        print('Unexpected end of file')
-        return
-      
-      names2 = line.split()
-      output["names2"] = names2
-      
-      data = []
-      while True:
-        line = f.readline()
-        if not line:
-          break
-        dataStr = line.rstrip().split()
-        if len(dataStr) > 0:
-          row = []
-          for i in range(len(dataStr)):
-            row.append(float(dataStr[i]))
-          data.append(row)
+      self.gapsData = []
+      for i in range(ng):
+        self.gapsData.append(ControlPoint(r=gaps_r[i], z=gaps_z[i]))
         
-      nt = len(data)
-        #if (len(data) > 0):
-          #items.append([QtWidgets.QTableWidgetItem(str(x)) for x in data])
-          #items.append([x for x in data])
-        
-        #lineFl = [float(dataStr[i]) for i in range(len(dataStr))]
-        #data.append(lineFl)
-      
-      nw = len(data[0])
-      waves = []
-      for iw in range(1,nw):
-        wave = []
-        for it in range(nt):
-          wave.append(data[it][iw])
-        waves.append(wave)
-      
-      time = []
-      for it in range(nt):
-        time.append(data[it][0])
-      
-      output["data"] = data
-      output["waves"] = waves
-      output["time"] = time
-      
-      
-      return output
-    
-    
-    
-    def ReadHeap(self, f, nrows):
-      record = {}
-      data = []
-      record["header"] = self.ReadLineStripped(f)
-      for i in range(nrows-1):
-        #data.append(self.ReadRow(f))
-        data.append(self.ReadLineStripped(f))
-      record["data"] = data 
-      record["type"] = "heap" 
-      return record
-    
-    
-    def ReadLineStripped(self, f):
-      line = f.readline()
-      if not line:
-        print('Unexpected end of file')
-        return ""
-      return line.rstrip()
-
-
-    def ReadRowStr(self, f):
-      line = self.ReadLineStripped(f)
-      dataStr = line.split()    
-      return dataStr  
-    
-    
-    def ReadRow(self, f):
-      dataStr = self.ReadRowStr(f)
-      data = []
-      for i in range(len(dataStr)):
-        if dataStr[i].isdigit():
-          data.append(int(dataStr[i]))
-        else:
-          data.append(float(dataStr[i])) 
-      
-      return data
  
  
     def FillIonElement(self, ion, z:int, m:float=None):

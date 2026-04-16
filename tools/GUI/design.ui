@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1598</width>
-    <height>1102</height>
+    <width>1105</width>
+    <height>721</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,188 +16,44 @@
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
-     <widget class="QTabWidget" name="tabWidget">
+     <widget class="QTabWidget" name="tabWidgetInput">
       <property name="currentIndex">
        <number>0</number>
       </property>
-      <widget class="QWidget" name="tabInput">
+      <widget class="QWidget" name="tabDatabase">
        <attribute name="title">
-        <string>Input</string>
+        <string>Database</string>
        </attribute>
-       <widget class="QTabWidget" name="tabWidgetInput">
-        <property name="geometry">
-         <rect>
-          <x>10</x>
-          <y>380</y>
-          <width>1421</width>
-          <height>541</height>
-         </rect>
-        </property>
-        <property name="currentIndex">
-         <number>2</number>
-        </property>
-        <widget class="QWidget" name="tabTokamakData">
-         <attribute name="title">
-          <string>Tokamak Data</string>
-         </attribute>
-        </widget>
-        <widget class="QWidget" name="tabGeneralData">
-         <attribute name="title">
-          <string>General Data</string>
-         </attribute>
-        </widget>
-        <widget class="QWidget" name="tabDINAData">
-         <attribute name="title">
-          <string>DINA Data</string>
-         </attribute>
-        </widget>
-        <widget class="QWidget" name="tabControlData">
-         <attribute name="title">
-          <string>Controller Data</string>
-         </attribute>
-        </widget>
-        <widget class="QWidget" name="tabExternalData">
-         <attribute name="title">
-          <string>External Data</string>
-         </attribute>
-        </widget>
-       </widget>
-       <widget class="QWidget" name="gridLayoutWidget_3">
-        <property name="geometry">
-         <rect>
-          <x>0</x>
-          <y>0</y>
-          <width>591</width>
-          <height>291</height>
-         </rect>
-        </property>
-        <layout class="QGridLayout" name="layoutInputSetup" rowstretch="0,0,0,0,0,0,0,0,0,0,0">
-         <item row="9" column="1">
-          <widget class="QLabel" name="label_2">
-           <property name="text">
-            <string/>
-           </property>
-          </widget>
-         </item>
-         <item row="10" column="1">
-          <layout class="QGridLayout" name="gridLayout">
-           <item row="2" column="2">
-            <widget class="QLineEdit" name="lineInputRun"/>
-           </item>
-           <item row="1" column="2">
-            <widget class="QLineEdit" name="lineInputPulse"/>
-           </item>
-           <item row="0" column="2">
-            <widget class="QLineEdit" name="lineInputTokamak"/>
-           </item>
-           <item row="2" column="0">
-            <widget class="QLabel" name="labelInputRun">
-             <property name="text">
-              <string>Run</string>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="0">
-            <widget class="QLabel" name="labelInputTokamak">
-             <property name="text">
-              <string>Database</string>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="0">
-            <widget class="QLabel" name="labelInputPulse">
-             <property name="text">
-              <string>Pulse</string>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </item>
-         <item row="8" column="0">
-          <widget class="QPushButton" name="btnLoad2">
-           <property name="text">
-            <string>Load from work directory</string>
-           </property>
-          </widget>
-         </item>
-         <item row="4" column="1">
-          <widget class="QPushButton" name="btnSave2">
-           <property name="text">
-            <string>Save *.dat files</string>
-           </property>
-          </widget>
-         </item>
-         <item row="5" column="1">
-          <widget class="QLabel" name="label">
-           <property name="text">
-            <string/>
-           </property>
-          </widget>
-         </item>
-         <item row="8" column="1">
-          <widget class="QPushButton" name="btnSave">
-           <property name="text">
-            <string>Save to work directory</string>
-           </property>
-          </widget>
-         </item>
-         <item row="4" column="0">
-          <widget class="QPushButton" name="btnLoad">
-           <property name="text">
-            <string>Load *.dat files</string>
-           </property>
-          </widget>
-         </item>
-         <item row="7" column="1">
-          <widget class="QLabel" name="labelDirSave">
-           <property name="text">
-            <string>Select DINA work directory</string>
-           </property>
-          </widget>
-         </item>
-         <item row="10" column="0">
-          <layout class="QGridLayout" name="gridLayout_4">
-           <item row="2" column="2">
-            <widget class="QLineEdit" name="lineInputRun_2"/>
-           </item>
-           <item row="1" column="2">
-            <widget class="QLineEdit" name="lineInputPulse_2"/>
-           </item>
-           <item row="0" column="2">
-            <widget class="QLineEdit" name="lineInputTokamak_2"/>
-           </item>
-           <item row="2" column="0">
-            <widget class="QLabel" name="labelInputRun_2">
-             <property name="text">
-              <string>Run</string>
-             </property>
-            </widget>
-           </item>
-           <item row="0" column="0">
-            <widget class="QLabel" name="labelInputTokamak_2">
-             <property name="text">
-              <string>Database</string>
-             </property>
-            </widget>
-           </item>
-           <item row="1" column="0">
-            <widget class="QLabel" name="labelInputPulse_2">
-             <property name="text">
-              <string>Pulse</string>
-             </property>
-            </widget>
-           </item>
-          </layout>
-         </item>
-         <item row="3" column="1">
-          <widget class="QLabel" name="labelDirLoad">
-           <property name="text">
-            <string>Select setups source folder</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </widget>
+      </widget>
+      <widget class="QWidget" name="tabWorkflow">
+       <attribute name="title">
+        <string>Workflow</string>
+       </attribute>
+      </widget>
+      <widget class="QWidget" name="tabTokamakData">
+       <attribute name="title">
+        <string>Machine Description</string>
+       </attribute>
+      </widget>
+      <widget class="QWidget" name="tabPulseSchedule">
+       <attribute name="title">
+        <string>Pulse Schedule</string>
+       </attribute>
+      </widget>
+      <widget class="QWidget" name="tabDINAData">
+       <attribute name="title">
+        <string>DINA Parameters</string>
+       </attribute>
+      </widget>
+      <widget class="QWidget" name="tabControlData">
+       <attribute name="title">
+        <string>Controller Parameters</string>
+       </attribute>
+      </widget>
+      <widget class="QWidget" name="tabExternalData">
+       <attribute name="title">
+        <string>External Data</string>
+       </attribute>
       </widget>
       <widget class="QWidget" name="tabOutput">
        <attribute name="title">
@@ -206,118 +62,20 @@
        <widget class="QWidget" name="gridLayoutWidget_2">
         <property name="geometry">
          <rect>
-          <x>40</x>
-          <y>30</y>
-          <width>401</width>
-          <height>271</height>
+          <x>10</x>
+          <y>10</y>
+          <width>311</width>
+          <height>191</height>
          </rect>
         </property>
-        <layout class="QGridLayout" name="gridLayout_2">
+        <layout class="QGridLayout" name="gridLayout_db_plot">
          <property name="sizeConstraint">
           <enum>QLayout::SetMinAndMaxSize</enum>
          </property>
          <property name="horizontalSpacing">
           <number>6</number>
          </property>
-         <item row="3" column="1">
-          <widget class="QPlainTextEdit" name="textUser">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
-           </property>
-           <property name="maximumSize">
-            <size>
-             <width>250</width>
-             <height>50</height>
-            </size>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="0">
-          <widget class="QLabel" name="labelRun">
-           <property name="maximumSize">
-            <size>
-             <width>100</width>
-             <height>50</height>
-            </size>
-           </property>
-           <property name="text">
-            <string>Run</string>
-           </property>
-          </widget>
-         </item>
          <item row="0" column="0">
-          <widget class="QLabel" name="labelPulse">
-           <property name="maximumSize">
-            <size>
-             <width>100</width>
-             <height>50</height>
-            </size>
-           </property>
-           <property name="text">
-            <string>Pulse</string>
-           </property>
-          </widget>
-         </item>
-         <item row="0" column="1">
-          <widget class="QTextEdit" name="textPulse">
-           <property name="maximumSize">
-            <size>
-             <width>250</width>
-             <height>50</height>
-            </size>
-           </property>
-          </widget>
-         </item>
-         <item row="1" column="1">
-          <widget class="QPlainTextEdit" name="textRun">
-           <property name="maximumSize">
-            <size>
-             <width>250</width>
-             <height>50</height>
-            </size>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="1">
-          <widget class="QPlainTextEdit" name="textBase">
-           <property name="maximumSize">
-            <size>
-             <width>250</width>
-             <height>50</height>
-            </size>
-           </property>
-          </widget>
-         </item>
-         <item row="2" column="0">
-          <widget class="QLabel" name="labelBase">
-           <property name="maximumSize">
-            <size>
-             <width>100</width>
-             <height>50</height>
-            </size>
-           </property>
-           <property name="text">
-            <string>Database</string>
-           </property>
-          </widget>
-         </item>
-         <item row="3" column="0">
-          <widget class="QLabel" name="labelUser">
-           <property name="maximumSize">
-            <size>
-             <width>100</width>
-             <height>50</height>
-            </size>
-           </property>
-           <property name="text">
-            <string>User</string>
-           </property>
-          </widget>
-         </item>
-         <item row="4" column="1">
           <widget class="QPushButton" name="btnLoadIDS">
            <property name="maximumSize">
             <size>
@@ -330,36 +88,7 @@
            </property>
           </widget>
          </item>
-         <item row="4" column="0">
-          <widget class="QLabel" name="labelIDSInfo">
-           <property name="maximumSize">
-            <size>
-             <width>100</width>
-             <height>50</height>
-            </size>
-           </property>
-           <property name="text">
-            <string/>
-           </property>
-          </widget>
-         </item>
         </layout>
-       </widget>
-      </widget>
-      <widget class="QWidget" name="tabVIZ">
-       <attribute name="title">
-        <string>VIZ</string>
-       </attribute>
-       <widget class="QWidget" name="gridLayoutWidget">
-        <property name="geometry">
-         <rect>
-          <x>0</x>
-          <y>0</y>
-          <width>1571</width>
-          <height>1011</height>
-         </rect>
-        </property>
-        <layout class="QGridLayout" name="gridLayout_3"/>
        </widget>
       </widget>
      </widget>
@@ -371,18 +100,67 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1598</width>
-     <height>22</height>
+     <width>1105</width>
+     <height>19</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
     <property name="title">
      <string>File</string>
     </property>
+    <addaction name="actionImport_dat_files"/>
+    <addaction name="actionExport_dat_files"/>
+    <addaction name="separator"/>
+    <addaction name="actionLoad"/>
+    <addaction name="actionSave"/>
+   </widget>
+   <widget class="QMenu" name="menuRun">
+    <property name="title">
+     <string>Run</string>
+    </property>
+    <addaction name="actionStart"/>
+    <addaction name="actionPause"/>
+    <addaction name="actionStop"/>
    </widget>
    <addaction name="menuFile"/>
+   <addaction name="menuRun"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
+  <action name="actionImport_dat_files">
+   <property name="text">
+    <string>Import *.dat files</string>
+   </property>
+  </action>
+  <action name="actionSave">
+   <property name="text">
+    <string>Save</string>
+   </property>
+  </action>
+  <action name="actionExport_dat_files">
+   <property name="text">
+    <string>Export *.dat files</string>
+   </property>
+  </action>
+  <action name="actionLoad">
+   <property name="text">
+    <string>Load</string>
+   </property>
+  </action>
+  <action name="actionStart">
+   <property name="text">
+    <string>Start</string>
+   </property>
+  </action>
+  <action name="actionPause">
+   <property name="text">
+    <string>Pause</string>
+   </property>
+  </action>
+  <action name="actionStop">
+   <property name="text">
+    <string>Stop</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections/>
