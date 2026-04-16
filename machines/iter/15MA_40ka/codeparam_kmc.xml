@@ -1,6 +1,7 @@
 <?xml version="1.0" ?>
 <parameters>
    <kpr>1</kpr>
+   <tpl_dir>-1</tpl_dir>
    <tcont2>2</tcont2>
    <dtcont2>0.3</dtcont2>
    <Ip_div>-3.3e6</Ip_div>
