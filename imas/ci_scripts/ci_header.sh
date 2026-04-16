@@ -66,8 +66,6 @@ fi
 #FC2K/4.14.2-Java-21
 
 module load iWrap
-export PYTHONPATH=${HOME}/IWRAP_ACTORS:${PYTHONPATH}
-
 
 module load Viz/2.8.0-foss-2023b
 
@@ -79,6 +77,9 @@ export GIT_URL=$(git remote get-url origin)
 export GIT_COMMIT_ID=$(git rev-parse --verify HEAD)
 export GIT_VERSION=$(git describe --tags --abbrev=0)
 
+
+export PYTHONPATH=${HOME}/IWRAP_ACTORS:${PYTHONPATH}
+export PYTHONPATH=${DINA_ROOT}/tools/pyutil:${PYTHONPATH}
 
 
 

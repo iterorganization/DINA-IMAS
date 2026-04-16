@@ -33,6 +33,12 @@ class Waveform():
       for i in range(nd):
         self.data[i] *= fmult[i]
 
+  def SetTime(self, time_new):
+    nd = len(self.data)
+    for i in range(nd):
+      self.data[i] = np.interp(time_new, self.time, self.data[i])
+    self.time = time_new
+
 
 
 def ReadFileParameters(directory, filename, nrow:int=1):
@@ -184,12 +190,16 @@ def FillGapRecords(psch, gaprecords):
     psch.position_control.gap[j].identifier = 'g%d'%(ind[j]+1)
     psch.position_control.gap[j].value.reference_name = refname
   
-  record_Rmax = gaprecords[2]
-  record_Rmin = gaprecords[5]
-  time = jointime([record_Rmax.time, record_Rmin.time])
-  Rmax = np.interp(time, record_Rmax.time, record_Rmax.data[0])
-  Rmin = np.interp(time, record_Rmin.time, record_Rmin.data[0])
+  #record_Rmax = gaprecords[2]
+  #record_Rmin = gaprecords[5]
+  #time = jointime([record_Rmax.time, record_Rmin.time])
+  #Rmax = np.interp(time, record_Rmax.time, record_Rmax.data[0])
+  #Rmin = np.interp(time, record_Rmin.time, record_Rmin.data[0])
   
+  time = gaprecords[2].time
+  Rmax = gaprecords[2].data[0]
+  Rmin = gaprecords[5].data[0]
+
   psch.position_control.geometric_axis.r.reference.time = time
   psch.position_control.geometric_axis.r.reference.data = 0.5*(Rmax + Rmin)
   
@@ -213,9 +223,12 @@ def GetIonLabel(path):
 
 
   
+
+def GetPulseSchedule(path, pfa, ion_label):
   
-def FillSchedule(psch, psch_dw, path, pfa, ion_label):
-  
+  psch = imas.pulse_schedule()
+  psch_dw = imas.pulse_schedule()
+
   psch.ids_properties.homogeneous_time = 0
   psch_dw.ids_properties.homogeneous_time = 0
   
@@ -360,21 +373,28 @@ def FillSchedule(psch, psch_dw, path, pfa, ion_label):
   record0 = ReadFileTimeTable(path, "ech.dat")
   record0.Rescale(tmult=1., fmult=1.e6)
 
+  record0_i = copy.deepcopy(record0)
+  for i in range(len(record0_i.data[0])):
+    record0_i.data[0][i] = 0.0
+
   # EC+EQ heating (1D)
   if os.path.isfile(os.path.join(path, "emo.dat")):
     record = ReadFileTimeTable(path, "emo.dat")
     record.Rescale(tmult=1., fmult=1.e6)
-    record_e_total = copy.deepcopy(record)
-    record_i_total = copy.deepcopy(record)
-    record_e_total.data.pop(1)
-    record_i_total.data.pop(0)
 
-    psch.ic.power.reference.time = record_i_total.time
-    psch.ic.power.reference.data = record_i_total.data[0]
+    record_e_total = Waveform(time=record.time, data=[record.data[0],])
+    record_i_total = Waveform(time=record.time, data=[record.data[1],])
   else:
     record_e_total = None
+    record_i_total = None
 
+  time_list = []
   
+  hasICH = False
+  if record_i_total != None:
+    for p in record_i_total.data[0]:
+      hasICH = hasICH or p > 0.
+
   if os.path.isfile(os.path.join(path, "emo1.dat")):
     n_beam = 4
     psch.ec.launcher.resize(n_beam)
@@ -382,7 +402,13 @@ def FillSchedule(psch, psch_dw, path, pfa, ion_label):
     for i in range(n_beam):
       record[i] = ReadFileTimeTable(path, "emo%d.dat"%(i+1))
       record[i].Rescale(tmult=1., fmult=1.e6)
-    time = jointime([rec.time for rec in record])
+      time_list.append(record[i].time)
+    
+    if hasICH:
+      time_list.append(record_i_total.time)
+
+    time = jointime(time_list)
+
 
     power = [None,]*n_beam
     p_total = np.zeros(len(time))
@@ -398,6 +424,9 @@ def FillSchedule(psch, psch_dw, path, pfa, ion_label):
       psch.ec.launcher[i].deposition_rho_tor_norm.reference.data = np.ones(len(time))*(0.1 + float(i)*0.2)
     
     record_e_beams = Waveform(time, [p_total,], '', [], [])
+
+    if record_i_total != None:
+      record_i_total.data[0] = np.interp(time, record_i_total[i].time, record_i_total[i].data[0])
   else:
     record_e_beams = None
 
@@ -406,10 +435,19 @@ def FillSchedule(psch, psch_dw, path, pfa, ion_label):
     record_e = joinrecords(record0, record_e_beams, t_1D)
   elif record_e_total != None:
     record_e = joinrecords(record0, record_e_total, t_1D)
+
+  if record_i_total != None:
+    record_i = joinrecords(record0_i, record_i_total, t_1D)
+  else:
+    record_i = Waveform(record_e.time, [np.zeros(len(record_e.time)),], '', [], [])
   
+
+
   psch.ec.power.reference.time = record_e.time
   psch.ec.power.reference.data = record_e.data[0]
   
+  psch.ic.power.reference.time = record_i.time
+  psch.ic.power.reference.data = record_i.data[0]
 
   
   if os.path.isfile(os.path.join(path, "emo1_r.dat")):
@@ -464,9 +502,7 @@ def FillSchedule(psch, psch_dw, path, pfa, ion_label):
 
   ## Magnetic control
   # Elongation
-  record = ReadFileTimeTable(path, "elong_ref.dat")
-  FillPulseScheduleItem(psch.position_control.elongation.reference, record)
-  
+  record_elong = ReadFileTimeTable(path, "elong_ref.dat")
   
   # Gaps on ramp-up and flat-top
   ng = 6
@@ -475,6 +511,18 @@ def FillSchedule(psch, psch_dw, path, pfa, ion_label):
     record = ReadFileTimeTable(path, 'g%d.dat'%(j+1))
     record.Rescale(tmult=1., fmult=1.e-2)
     gaprecords.append(record)
+    
+  # Common time array
+  time_list = [record_elong.time,]
+  for rec in gaprecords:
+    time_list.append(rec.time)
+  time = jointime(time_list)
+
+  record_elong.SetTime(time)
+  for rec in gaprecords:
+    rec.SetTime(time)
+
+  FillPulseScheduleItem(psch.position_control.elongation.reference, record_elong)
   FillGapRecords(psch, gaprecords)
   
   
@@ -484,6 +532,16 @@ def FillSchedule(psch, psch_dw, path, pfa, ion_label):
     record = ReadFileTimeTable(path, 'g%d_term.dat'%(j+1))
     record.Rescale(tmult=1., fmult=1.e-2)
     gaprecords.append(record)
+
+  # Common time array
+  time_list = []
+  for rec in gaprecords:
+    time_list.append(rec.time)
+  time = jointime(time_list)
+  
+  for rec in gaprecords:
+    rec.SetTime(time)
+
   FillGapRecords(psch_dw, gaprecords)
   
   
@@ -651,7 +709,7 @@ def FillSchedule(psch, psch_dw, path, pfa, ion_label):
     if err == 1:
       print("Oxygen in dens_o.dat is found but not set to the pulse_schedule!")
   
-  
+  return psch, psch_dw
   
   
 def main():
@@ -677,11 +735,6 @@ def main():
   if ion_label == None:
     ion_label = 'D'
     print("Main ion type is not identified, using default: " + ion_label)
-
-
-  
-  ps = imas.pulse_schedule()
-  ps_dw = imas.pulse_schedule()
     
   
   imas_obj1 = imas.DBEntry('imas:mdsplus?user=public;pulse=111001;run=203;database=ITER_MD;version=3', 'r')
@@ -690,7 +743,7 @@ def main():
   imas_obj1.close()
   
 
-  FillSchedule(ps, ps_dw, path, pfa_md, ion_label)
+  ps, ps_dw = GetPulseSchedule(path, pfa_md, ion_label)
   
   
   imas_obj = imas.DBEntry(uri, 'a')
