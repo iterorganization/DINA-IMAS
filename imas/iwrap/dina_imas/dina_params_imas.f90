@@ -517,14 +517,14 @@ call xml2eg_get(doc, 'ajb_ext', k_ajb_ext_c16)
           !read (49,*)tt_rampup
           !read (49,*) 
           !read (49,*)dt_end_sim,dtpl_term_l,cIp_end
-call xml2eg_get(doc, 'tt_rampup', tt_rampup)
-call xml2eg_get(doc, 'dt_end_sim', dt_end_sim)
-call xml2eg_get(doc, 'dtpl_term_l', dtpl_term_l)
+!call xml2eg_get(doc, 'tt_rampup', tt_rampup)
+!call xml2eg_get(doc, 'dt_end_sim', dt_end_sim)
+!call xml2eg_get(doc, 'dtpl_term_l', dtpl_term_l)
 call xml2eg_get(doc, 'cIp_end', cIp_end)
 
-          tt_rampup_c1=tt_rampup*1.d3
-          dt_end_sim_c1=dt_end_sim
-          dtpl_term_l_c1=dtpl_term_l
+          tt_rampup_c1=50.d3
+          dt_end_sim_c1=50.0
+          dtpl_term_l_c1=50.0
           cIp_end_c1=cIp_end*1.d-6*tpl_dir
 
           dtpl_term_h=0
@@ -532,10 +532,10 @@ call xml2eg_get(doc, 'cIp_end', cIp_end)
           !read (49,*) 
           !read (49,*)CS1_eob,rms_noise
 call xml2eg_get(doc, 'Ics1_eob', CS1_eob)
-call xml2eg_get(doc, 'rms_noise', rms_noise)
+!call xml2eg_get(doc, 'rms_noise', rms_noise)
 
           CS1_eob_c1=CS1_eob*1.d-3*tpl_dir
-          rms_noise_c1=rms_noise
+          rms_noise_c1=0.0
           
           
 call xml2eg_free_doc(doc)

@@ -53,6 +53,10 @@ import KMC_XML
 from plequi import Second_window
 
 
+def InsertSubElement(root, element, name):
+    element.tag = name
+    root.insert(0, element)
+
 
 class CodeParameter():
   def __init__(self, mytype=float, value=0, unit="", widget=None, comment="", rawname="", name=""):
@@ -107,6 +111,24 @@ class Waveform():
       
     self.unit = unit
     self.name = name
+
+  def GetTime(self):
+    nt = len(self.timeWidgets)
+    time = numpy.zeros(nt)
+    for i in range(nt):
+      time[i] = float(self.timeWidgets[i].text())
+    return time
+  
+  def GetData(self, iw:int=0):
+    nt = len(self.timeWidgets)
+    data = numpy.zeros(nt)
+    for it in range(nt):
+      data[it] = float(self.waveWidgets[iw][it].text())
+    return data
+  
+  def NumData(self):
+    return len(self.waveWidgets)
+
 
 
 class WaveformImpurity(Waveform):
@@ -240,8 +262,9 @@ class ExampleApp(uiclass, baseclass):
         self.WorkflowData = {}
         self.TokamakData = {}
         self.controlData = {}
-        self.DINAData = {}
         self.generalData = {}
+        self.DINAData = {}
+        self.PulseSchedule = {}
         self.externalData = []
         
         
@@ -257,7 +280,7 @@ class ExampleApp(uiclass, baseclass):
         #layout = QtWidgets.QVBoxLayout()
         #layout.addLayout(self.timeTraceGraph.layout)
 
-        #layout.addWidget(self.tabGeneralDataChild)
+        #layout.addWidget(self.tabPulseScheduleChild)
         #self.tabPulseSchedule.setLayout(layout)
 
         
@@ -275,12 +298,12 @@ class ExampleApp(uiclass, baseclass):
         verticalLayout.addWidget(self.tabTokamakDataChild) 
         
         
-        self.tabGeneralDataChild = QtWidgets.QTabWidget(self.tabPulseSchedule)
-        self.tabGeneralDataChild.setObjectName("tabGeneralDataChild")     
+        self.tabPulseScheduleChild = QtWidgets.QTabWidget(self.tabPulseSchedule)
+        self.tabPulseScheduleChild.setObjectName("tabPulseScheduleChild")     
         verticalLayout = QtWidgets.QVBoxLayout(self.tabPulseSchedule)
-        verticalLayout.setObjectName("tabGeneralDataLayout")
+        verticalLayout.setObjectName("tabPulseScheduleLayout")
         verticalLayout.addLayout(self.timeTraceGraph.layout)
-        verticalLayout.addWidget(self.tabGeneralDataChild)      
+        verticalLayout.addWidget(self.tabPulseScheduleChild)      
         
         
         self.tabDINADataChild = QtWidgets.QTabWidget(self.tabDINAData)
@@ -345,43 +368,46 @@ class ExampleApp(uiclass, baseclass):
         self.WorkflowData["use_astra"] = CodeParameter(mytype=int, value=0, comment = 'Use ASTRA actor for external transport calculations', name='Use_ASTRA')
         self.WorkflowData["vs3_l"] = CodeParameter(mytype=float, value=0.00152, comment = 'Self-inductance of the ITER VS3 circuit', name='L_VS3', unit='H')
         self.WorkflowData["vs3_r"] = CodeParameter(mytype=float, value=0.012, comment = 'Resistance of the ITER VS3 circuit', name='R_VS3', unit='Ohm')
-        
+        self.WorkflowData["rs0"] = CodeParameter(mytype=float, value=6.20, name='R_Btor', comment = 'R coordinate at which the toroidal field is represented internally', unit='m')
+        self.WorkflowData["bt0"] = CodeParameter(mytype=float, value=-5.3, name='Btor', comment = 'The toroidal field at the specified R coordinate', unit='T')
+        self.WorkflowData["rmin"] = CodeParameter(mytype=float, value=3.0, name='R_min', comment = 'Leftmost R coordinate of the 2D equilibrium grid', unit='m')
+        self.WorkflowData["rmax"] = CodeParameter(mytype=float, value=9.0, name='R_max', comment = 'Rightmost R coordinate of the 2D equilibrium grid', unit='m')
+        self.WorkflowData["zmin"] = CodeParameter(mytype=float, value=-6.0, name='Z_min', comment = 'Uppermost Z coordinate of the 2D equilibrium grid', unit='m')
+        self.WorkflowData["zmax"] = CodeParameter(mytype=float, value=6.0, name='Z_max', comment = 'Bottommost Z coordinate of the 2D equilibrium grid', unit='m')
+  
         
         self.DINAData["kpr"] = CodeParameter(mytype=int, value=1, name='Key print', comment = 'Key to print debug and diagnostic logs')
         self.DINAData["tt_kavin"] = CodeParameter(mytype=float, value=3.5, comment = 'Time to switch from 0D transport model to 1D', name='Time 0D->1D', unit='s')
         self.DINAData["tau"] = CodeParameter(mytype=float, value=2.e-3, name='dt start', comment = 'Time step before switching to 1D transport model', unit='s')
         self.DINAData["tau_sim"] = CodeParameter(mytype=float, value=10.e-3, comment = 'Time step for simulation after switching to 1D transport model and before plasma current rampdown', name='dt simulation', unit='s')
         self.DINAData["tau_dw"] = CodeParameter(mytype=float, value=5.e-3, comment = 'Time step for simulation during plasma current ramp-down', name='dt rampdown', unit='s')
-        #self.DINAData["rs0"] = CodeParameter(mytype=float, value=6.20, name='R_Btor', comment = 'R coordinate at which the toroidal field is represented internally', unit='m')
-        #self.DINAData["bt0"] = CodeParameter(mytype=float, value=5.3, name='Btor', comment = 'The toroidal field at the specified R coordinate', unit='T')
-        self.DINAData["key_t11"] = CodeParameter(mytype=int, value=1, comment = 'JET Ohmic scaling')
-        self.DINAData["tt_dina"] = CodeParameter(mytype=float, value=10000., comment = 'Time after which input 1D transport profiles are used, internal transport model switches off', unit='s')
+        self.DINAData["key_t11"] = CodeParameter(mytype=int, value=1, name='key_t11', comment = 'JET Ohmic scaling')
+        self.DINAData["tt_dina"] = CodeParameter(mytype=float, value=10000., name='time_transp', comment = 'Time after which input 1D transport profiles are used instead of internal transport model', unit='s')
         
-        self.DINAData["tpl_dir"] = CodeParameter(mytype=float, value=-1., name='Ip_dir', comment = 'Sign of the plasma current')
+        self.DINAData["p"] = CodeParameter(mytype=float, value=0., name='Pressure', comment = 'Initial neutral D particles pressure', unit='Pa')
+        self.DINAData["T_e"] = CodeParameter(mytype=float, value=0., name='Te', comment = 'Initial electron temperature', unit='eV')
+        self.DINAData["T_i"] = CodeParameter(mytype=float, value=0., name='Ti', comment = 'Initial ion temperature', unit='eV')
+        self.DINAData["gam"] = CodeParameter(mytype=float, value=0., name='D+/D0', comment = 'Initial ionization state of D')
+        self.DINAData["gain_puff"] = CodeParameter(mytype=float, value=0., name='D puff', comment = 'Neutrals puffing gain to keep the prescribed waveform of D in 0D model')
         
-        self.DINAData["p"] = CodeParameter(mytype=float, value=0., comment = 'Initial neutral D particles pressure', unit='Pa')
-        self.DINAData["T_e"] = CodeParameter(mytype=float, value=0., comment = 'Initial electron temperature', unit='eV')
-        self.DINAData["T_i"] = CodeParameter(mytype=float, value=0., comment = 'Initial ion temperature', unit='eV')
-        self.DINAData["gam"] = CodeParameter(mytype=float, value=0., comment = 'Initial ionization state of D')
-        self.DINAData["gain_puff"] = CodeParameter(mytype=float, value=0., comment = 'Neutrals puffing gain to keep the prescribed waveform of D in 0D model')
-        
-        self.DINAData["bohm_gbohm"] = CodeParameter(mytype=bool, value=1, comment = 'Key to switch on (=1) or off (=0) Bohm-gyro-Bohm scaling')
+        self.DINAData["bohm_gbohm"] = CodeParameter(mytype=int, value=1, name='G-Bohm', comment = 'Key to switch on (=1) or off (=0) Bohm-gyro-Bohm scaling')
         
         self.DINAData["q_swth"] = CodeParameter(mytype=float, value=0.97, name='q_sawtooth', comment = 'Minimal q at axis when a sawtooth is triggered')
         self.DINAData["coef_p_lh"] = CodeParameter(mytype=float, value=1., name='P_LH modifier', comment = 'Multiplier of LH threshold power')
         
-        self.DINAData["pcchp_end"] = CodeParameter(mytype=float, value=5.e19, comment = 'The level to which plasma density decreases during 4 s after start of plasma current ramp-down phase. After that Greenwald ratio is kept constant', unit='m^-3')
+        self.DINAData["pcchp_end"] = CodeParameter(mytype=float, value=5.e19, name='N_i EOF+4s', comment = 'The level to which plasma density decreases during 4 s after start of plasma current ramp-down phase. After that Greenwald ratio is kept constant', unit='m^-3')
         
-        self.DINAData["ener_ext"] = CodeParameter(mytype=bool, value=False, comment = 'When time>tt_dina, switch off internal energy transport calculations')
-        self.DINAData["dens_ext"] = CodeParameter(mytype=bool, value=False, comment = 'When time>tt_dina, switch off internal density transport calculations')
-        self.DINAData["ajb_ext"] = CodeParameter(mytype=bool, value=False, comment = 'When time>tt_dina, switch off internal conductivity and bootstrap current calculations')
-        
+        self.DINAData["ener_ext"] = CodeParameter(mytype=int, value=0, name='ener_ext', comment = 'When time>tt_dina, switch off internal energy transport calculations')
+        self.DINAData["dens_ext"] = CodeParameter(mytype=int, value=0, name='dens_ext', comment = 'When time>tt_dina, switch off internal density transport calculations')
+        self.DINAData["ajb_ext"] = CodeParameter(mytype=int, value=0, name='ajb_ext', comment = 'When time>tt_dina, switch off internal conductivity and bootstrap current calculations')
         
         self.DINAData["grid_n"] = CodeParameter(mytype=int, value=50, name='Grid n', comment = 'Amount of 1D grid points')
         self.DINAData["grid_rho"] = CodeParameter(mytype=float, value=0.5, name='Grid rho', comment = 'Rho value after which the 1D grid gradually increases density')
         self.DINAData["grid_alpha"] = CodeParameter(mytype=float, value=0.95, name='Grid compression', comment = '1D grid compression factor in the boundary region')
         
         
+        self.controlData["kpr"] = CodeParameter(mytype=int, value=1, name='Key print', comment = 'Key to print debug and diagnostic logs')
+                
         self.controlData["tcont2"] = CodeParameter(mytype=float, value=0., comment = 'Time when the limiter controller is switched on', name='tcont2', unit='s')
         self.controlData["dtcont2"] = CodeParameter(mytype=float, value=0., comment = 'Transition time of the control voltages from the current controller to the limiter controller at the ramp-up phase', name='dtcont2', unit='s')
         self.controlData["Ip_div"] = CodeParameter(mytype=float, value=0., comment = 'Negative value of plasma current when the first divertor controller is switched on at the ramp-up phase', name='Ip_div', unit='A')
@@ -407,11 +433,12 @@ class ExampleApp(uiclass, baseclass):
         self.controlData["tt_rampup"] = CodeParameter(mytype=float, value=0., comment = 'Duration of the plasma current ramp-up', name='T_ramp-up', unit='s')
         self.controlData["dtpl_term_l"] = CodeParameter(mytype=float, value=0., comment = 'Duration of the plasma current ramp-down', name='T_ramp-down', unit='s')
         self.controlData["dt_end_sim"] = CodeParameter(mytype=float, value=0., comment = 'Duration of the CS&PF current termination phase, starting after end of plasma', name='T_PF-term', unit='s')
-        self.controlData["cIp_end"] = CodeParameter(mytype=float, value=0., comment = 'Final plasma current at the ramp-down phase', name='Ip_end', unit='A')
-        self.controlData["Ics1_eob"] = CodeParameter(mytype=float, value=0., comment = 'Value of the current in CS1 circuit at which the current ramp-down starts', name='I_CS1 EOF', unit='A')
         self.controlData["rms_noise"] = CodeParameter(mytype=float, value=0., comment = 'RMS of noise in the diagnostic signal of dZ/dt for VS stabilization', name='VS RMS noise', unit='m/s')
         
-        
+        self.generalData["cIp_end"] = CodeParameter(mytype=float, value=0., comment = 'Final plasma current at the ramp-down phase', name='Ip_end', unit='A')
+        self.generalData["Ics1_eob"] = CodeParameter(mytype=float, value=0., comment = 'Value of the current in CS1 circuit at which the current ramp-down starts', name='I_CS1 EOF', unit='A')
+        self.generalData["tpl_dir"] = CodeParameter(mytype=float, value=-1., name='Ip_dir', comment = 'Sign of the plasma current')
+
             
         
         
@@ -867,7 +894,7 @@ class ExampleApp(uiclass, baseclass):
         self.directoryLoad = dirTmp
         #self.labelDirLoad.setText(self.directoryLoad)
         
-        self.generalData = {}
+        self.PulseSchedule = {}
         
         imas_obj1 = imas.DBEntry('imas:mdsplus?user=public;pulse=111001;run=203;database=ITER_MD;version=3', 'r')
         imas_obj1.open()
@@ -883,7 +910,7 @@ class ExampleApp(uiclass, baseclass):
         #self.LoadTokamakData()
         self.LoadDINAData(XML_root_DINA)
         self.LoadControlData(XML_root_KMC)
-        self.LoadGeneralData(ps, ps_dw)
+        self.LoadPulseSchedule(ps, ps_dw)
         #self.LoadExternalData()
        
         self.RefreshUI()
@@ -891,8 +918,67 @@ class ExampleApp(uiclass, baseclass):
 
 
     def LoadSetups(self):
-      dirTmp = QtWidgets.QFileDialog.getExistingDirectory(self, "Select folder load from...", self.directoryLoad)
 
+      currentTab = self.tabWidgetInput.currentWidget()
+
+      if (currentTab == self.tabWorkflow):
+        (filepath, selectedFilter) = QtWidgets.QFileDialog.getOpenFileName(self, "Open code parameters XML", self.directoryLoad, "XML Files (*.xml)")
+        print(currentTab.objectName() + ' load file: ' + filepath)
+        tree = ET.parse(filepath)
+        root = tree.getroot()
+        self.LoadWorkflowData(root)
+        self.RefreshWorkflowData()
+
+        self.inptIMASDB_PS.SetXML(root.find("pulse_schedule"))
+        self.inptIMASDB_SCEN.SetXML(root.find("input_scenario"))
+        self.inptIMASDB_EXT.SetXML(root.find("input_transp"))
+        self.inptIMASDB_PFA.SetXML(root.find("input_pf_active"))
+        self.inptIMASDB_PFP.SetXML(root.find("input_pf_passive"))
+        self.inptIMASDB_WALL.SetXML(root.find("input_wall"))
+        self.inptIMASDB_EM.SetXML(root.find("input_em_coupling"))
+        self.inptIMASDB_MAG.SetXML(root.find("input_magnetics"))
+
+        self.outIMASDB.SetXML(root.find("output"))
+
+
+
+      if (currentTab == self.tabDatabase):
+        print(currentTab + ' is selected')
+
+      if (currentTab == self.tabDINAData):
+        (filepath, selectedFilter) = QtWidgets.QFileDialog.getOpenFileName(self, "Open code parameters XML", self.directoryLoad, "XML Files (*.xml)")
+        print(currentTab.objectName() + ' load file: ' + filepath)
+        tree = ET.parse(filepath)
+        XML_root = tree.getroot()
+        self.LoadDINAData(XML_root)
+        self.RefreshDINAData()
+
+      if (currentTab == self.tabControlData):
+        (filepath, selectedFilter) = QtWidgets.QFileDialog.getOpenFileName(self, "Open code parameters XML", self.directoryLoad, "XML Files (*.xml)")
+        print(currentTab.objectName() + ' load file: ' + filepath)
+        tree = ET.parse(filepath)
+        print('tabControlData is selected')
+        XML_root = tree.getroot()
+        self.LoadControlData(XML_root)
+        self.RefreshControlData()
+
+      if (currentTab == self.tabPulseSchedule):
+        imas_obj = self.inptIMASDB_PS.GetDBEntry('r')
+        imas_obj.open()
+        ps = imas_obj.get('pulse_schedule', occurrence = 0)
+        ps_dw = imas_obj.get('pulse_schedule', occurrence = 1)
+        imas_obj.close()
+        self.LoadPulseSchedule(ps, ps_dw)
+        self.RefreshPulseSchedule()
+
+      if (currentTab == self.tabTokamakData):
+        print(currentTab + ' is selected')
+
+      return
+    
+
+    def LoadSetupsOld(self):
+      dirTmp = QtWidgets.QFileDialog.getExistingDirectory(self, "Select folder load from...", self.directoryLoad)
       if dirTmp: 
         self.directoryLoad = dirTmp
         #self.labelDirLoad.setText(self.directoryLoad)
@@ -952,23 +1038,111 @@ class ExampleApp(uiclass, baseclass):
         XML_root_KMC = tree.getroot()
 
         
-        self.generalData = {}
+        self.PulseSchedule = {}
 
         self.LoadWorkflowData(XML_root_Workflow)
         #self.LoadTokamakData()
         self.LoadDINAData(XML_root_DINA)
         self.LoadControlData(XML_root_KMC)
-        self.LoadGeneralData(ps, ps_dw)
+        self.LoadPulseSchedule(ps, ps_dw)
         #self.LoadExternalData()
        
         self.RefreshUI()
-       
+
+
+    def SaveSetups(self): 
+
+      currentTab = self.tabWidgetInput.currentWidget()
+
+      if (currentTab == self.tabWorkflow):
+        (filepath, selectedFilter) = QtWidgets.QFileDialog.getSaveFileName(self, "Save workflow configuration",
+                                        self.directoryLoad + '/wfconfig.xml',
+                                        "Workflow config (*.xml)")
+        
+        root = self.SaveWorkflowData()
+
+        InsertSubElement(root, self.inptIMASDB_PS.GetXML(), 'pulse_schedule')
+        InsertSubElement(root, self.inptIMASDB_SCEN.GetXML(), 'input_scenario')
+        InsertSubElement(root, self.inptIMASDB_EXT.GetXML(), 'input_transp')
+        InsertSubElement(root, self.inptIMASDB_PFA.GetXML(), 'input_pf_active')
+        InsertSubElement(root, self.inptIMASDB_PFP.GetXML(), 'input_pf_passive')
+        InsertSubElement(root, self.inptIMASDB_WALL.GetXML(), 'input_wall')
+        InsertSubElement(root, self.inptIMASDB_EM.GetXML(), 'input_em_coupling')
+        InsertSubElement(root, self.inptIMASDB_MAG.GetXML(), 'input_magnetics')
+        InsertSubElement(root, self.outIMASDB.GetXML(), 'output')
+      
+
+        # element = ET.SubElement(root, 'pulse_schedule')
+        # element.text = self.inptIMASDB_PS.GetXML()
+        
+        # element = ET.SubElement(root, 'input_scenario')
+        # element.text = self.inptIMASDB_SCEN.GetXML()
+
+        # element = ET.SubElement(root, 'input_transp')
+        # element.text = self.inptIMASDB_EXT.GetXML()
+
+        # element = ET.SubElement(root, 'input_pf_active')
+        # element.text = self.inptIMASDB_PFA.GetXML()
+
+        # element = ET.SubElement(root, 'input_pf_passive')
+        # element.text = self.inptIMASDB_PFP.GetXML()
+        
+        # element = ET.SubElement(root, 'input_wall')
+        # element.text = self.inptIMASDB_WALL.GetXML()
+
+        # element = ET.SubElement(root, 'input_em_coupling')
+        # element.text = self.inptIMASDB_EM.GetXML()
+
+        # element = ET.SubElement(root, 'input_magnetics')
+        # element.text = self.inptIMASDB_MAG.GetXML()
+
+        # element = ET.SubElement(root, 'output')
+        # element.text = self.outIMASDB.GetXML()
+        
+        xmlstr = minidom.parseString(ET.tostring(root)).toprettyxml(indent="   ")
+        f = open(filepath, 'w')
+        f.write(xmlstr)
+        f.close()
+
+      if (currentTab == self.tabDINAData):
+        (filepath, selectedFilter) = QtWidgets.QFileDialog.getSaveFileName(self, "Save DINA parameters",
+                                        self.directoryLoad + '/codeparam_dina.xml',
+                                        "DINA parameters (*.xml)")
+        xmlroot = self.SaveDINAData()
+        xmlstr = minidom.parseString(ET.tostring(xmlroot)).toprettyxml(indent="   ")
+        f = open(filepath, 'w')
+        f.write(xmlstr)
+        f.close()
+
+      if (currentTab == self.tabControlData):
+        (filepath, selectedFilter) = QtWidgets.QFileDialog.getSaveFileName(self, "Save KMC parameters",
+                                        self.directoryLoad + '/codeparam_kmc.xml',
+                                        "KMC parameters (*.xml)")
+        xmlroot = self.SaveControlData()
+        xmlstr = minidom.parseString(ET.tostring(xmlroot)).toprettyxml(indent="   ")
+        f = open(filepath, 'w')
+        f.write(xmlstr)
+        f.close()
+
+      if (currentTab == self.tabPulseSchedule):
+        psch,psch_dw = self.SavePulseSchedule()
+        imas_obj = self.inptIMASDB_PS.GetDBEntry('w')
+        imas_obj.open()
+        imas_obj.put(psch, occurrence = 0)
+        imas_obj.put(psch_dw, occurrence = 1)
+        imas_obj.close()
+
+      if (currentTab == self.tabTokamakData):
+        print(currentTab + ' is selected')
+        pfa1, pfp1, wall, magnetics = self.TokamakDataToIDS()
+
+
        
     def RefreshUI(self):
       
       self.RefreshWorkflowData()
       #self.RefreshTokamakData()
-      self.RefreshGeneralData()
+      self.RefreshPulseSchedule()
       self.RefreshDINAData()
       self.RefreshControlData()
       #self.RefreshExternalData()
@@ -982,7 +1156,13 @@ class ExampleApp(uiclass, baseclass):
       names = ('time_start','time_ext','time_stop')
       params.append([self.WorkflowData[k] for k in names])
 
-      names = ('decimation','step_max')
+      names = ('decimation','step_max','start_interp_mode','transp_interp_mode')
+      params.append([self.WorkflowData[k] for k in names])
+
+      names = ('controller','use_astra','vs3_l','vs3_r')
+      params.append([self.WorkflowData[k] for k in names])
+
+      names = ('rmin','rmax','zmin','zmax')
       params.append([self.WorkflowData[k] for k in names])
 
       self.CreateInputTab(self.tabWorkflowDataChild, params, 'Parameters')
@@ -993,24 +1173,24 @@ class ExampleApp(uiclass, baseclass):
       self.CreateInputTabCoils(self.tabTokamakDataChild, self.TokamakData)
       
       
-    def RefreshGeneralData(self):
-      self.tabGeneralDataChild.clear()
+    def RefreshPulseSchedule(self):
+      self.tabPulseScheduleChild.clear()
       
-      self.CreateInputTabTimed(self.tabGeneralDataChild, self.generalData['ip'], "Plasma current")
-      self.CreateInputTabTimed(self.tabGeneralDataChild, self.generalData['pf_curr'], "PF currents")
-      self.CreateInputTabTimed(self.tabGeneralDataChild, self.generalData['pf_volt'], "PF voltages")
-      self.CreateInputTabTimed(self.tabGeneralDataChild, self.generalData['pf_res'], "PF resistances")
+      self.CreateInputTabTimed(self.tabPulseScheduleChild, self.PulseSchedule['ip'], "Plasma current")
+      self.CreateInputTabTimed(self.tabPulseScheduleChild, self.PulseSchedule['pf_curr'], "PF currents")
+      self.CreateInputTabTimed(self.tabPulseScheduleChild, self.PulseSchedule['pf_volt'], "PF voltages")
+      self.CreateInputTabTimed(self.tabPulseScheduleChild, self.PulseSchedule['pf_res'], "PF resistances")
       
-      self.CreateInputTabTimed(self.tabGeneralDataChild, self.generalData['elong'], "Elongation")
-      self.CreateInputTabTimed(self.tabGeneralDataChild, self.generalData['gaps'], "Gaps")
-      self.CreateInputTabTimed(self.tabGeneralDataChild, self.generalData['gaps_term'], "Gaps_term")
-      self.CreateInputTabTimed(self.tabGeneralDataChild, self.generalData['r_ax'], "R axis")
-      self.CreateInputTabTimed(self.tabGeneralDataChild, self.generalData['a_pl'], "Minor radius")
+      self.CreateInputTabTimed(self.tabPulseScheduleChild, self.PulseSchedule['elong'], "Elongation")
+      self.CreateInputTabTimed(self.tabPulseScheduleChild, self.PulseSchedule['gaps'], "Gaps")
+      self.CreateInputTabTimed(self.tabPulseScheduleChild, self.PulseSchedule['gaps_term'], "Gaps_term")
+      self.CreateInputTabTimed(self.tabPulseScheduleChild, self.PulseSchedule['r_ax'], "R axis")
+      self.CreateInputTabTimed(self.tabPulseScheduleChild, self.PulseSchedule['a_pl'], "Minor radius")
 
-      self.CreateInputTabTimed(self.tabGeneralDataChild, self.generalData['power_ec'], "ECRH")
-      self.CreateInputTabTimed(self.tabGeneralDataChild, self.generalData['power_ic'], "ICRH")
+      self.CreateInputTabTimed(self.tabPulseScheduleChild, self.PulseSchedule['power_ec'], "ECRH")
+      self.CreateInputTabTimed(self.tabPulseScheduleChild, self.PulseSchedule['power_ic'], "ICRH")
       
-      self.CreateInputTabTimed(self.tabGeneralDataChild, self.generalData['density'], "Ion density")
+      self.CreateInputTabTimed(self.tabPulseScheduleChild, self.PulseSchedule['density'], "Ion density")
       
          
       
@@ -1023,8 +1203,8 @@ class ExampleApp(uiclass, baseclass):
       names = ('kpr',)
       params.append([self.DINAData[k] for k in names])
       
-      names = ('tpl_dir',)
-      params.append([self.DINAData[k] for k in names])
+      names = ('tpl_dir','Ics1_eob','cIp_end')
+      params.append([self.generalData[k] for k in names])
       
       names = ('grid_n', 'grid_rho', 'grid_alpha')
       params.append([self.DINAData[k] for k in names])
@@ -1055,7 +1235,7 @@ class ExampleApp(uiclass, baseclass):
       
       self.CreateInputTab(self.tabDINADataChild, params, 'Parameters2')
       
-      #self.CreateInputTabGaps(self.tabDINADataChild, self.gapsData, 'Gaps')
+      self.CreateInputTabGaps(self.tabDINADataChild, self.gapsData, 'Gaps')
       
       
       
@@ -1064,13 +1244,27 @@ class ExampleApp(uiclass, baseclass):
       
       params = []
       
-      names = ('tcont2', 'dtcont2', 'Ip_div', 'ref_ramp', 'Ip_rd', 'trd_ref', 'max_VS_lim', 'c_a_tpl2_lim', 'time_stop')
+      names = ('tpl_dir', 'Ics1_eob', 'cIp_end')
+      params.append([self.generalData[k] for k in names])
+
+      names = ('kpr', 'Ip_div', 'Ip_rd')
+      params.append([self.controlData[k] for k in names])
+
+      names = ('tt_rampup','dt_end_sim','dtpl_term_l','trd_ref','time_stop')
+      params.append([self.controlData[k] for k in names])
+      
+      names = ('t_tran2D','rms_noise')
+      params.append([self.controlData[k] for k in names])
+      
+      self.CreateInputTab(self.tabControlDataChild, params, 'Pulse supervision')
+
+
+      params = []
+      
+      names = ('tcont2', 'dtcont2', 'ref_ramp', 'max_VS_lim', 'c_a_tpl2_lim')
       params.append([self.controlData[k] for k in names])
       
       names = ('c_a_tpl1', 'c_a_tpl1_eob', 'c_a_tpl2', 'c_a_tpl_min', 'y0', 'c1_y0', 'c2_y0')
-      params.append([self.controlData[k] for k in names])
-      
-      names = ('t_tran2D',)
       params.append([self.controlData[k] for k in names])
       
       names = ('Tu', 'c_cur_max')
@@ -1079,20 +1273,7 @@ class ExampleApp(uiclass, baseclass):
       self.CreateInputTab(self.tabControlDataChild, params, 'Controller Parameters')
       
       
-      
-      params = []
-      
-      names = ('tt_rampup',)
-      params.append([self.controlData[k] for k in names])
-      
-      names = ('dt_end_sim', 'dtpl_term_l', 'cIp_end')
-      params.append([self.controlData[k] for k in names])
-      
-      names = ('Ics1_eob', 'rms_noise')
-      params.append([self.controlData[k] for k in names])
-      
-      self.CreateInputTab(self.tabControlDataChild, params, 'Kavin2')
-    
+         
     
     def RefreshExternalData(self):
       self.tabExternalDataChild.clear()
@@ -1143,19 +1324,34 @@ class ExampleApp(uiclass, baseclass):
 
       for name in self.controlData:
         print(name)
-        self.controlData[name].SetValue(xmlroot.find(name).text)    
+        self.controlData[name].SetValue(xmlroot.find(name).text)
+      for name in self.generalData:
+        print(name)
+        self.generalData[name].SetValue(xmlroot.find(name).text) 
+
         
+    def SaveControlData(self):
+      root = ET.Element("parameters")
+      for key in self.controlData:
+        element = ET.SubElement(root, key)
+        element.text = self.controlData[key].widget.text()
+
+      for key in self.generalData:
+        element = ET.SubElement(root, key)
+        element.text = self.generalData[key].widget.text()
+
+      return root
         
     
-    def LoadGeneralData(self, ps, ps_dw):
+    def LoadPulseSchedule(self, ps, ps_dw):
       
-      data = [coil.resistance_additional.reference.data for coil in ps.pf_active.coil]
-      time = ps.pf_active.coil[0].resistance_additional.reference.time
-      self.generalData['pf_res'] = Waveform(time, data)
-
       data = [ps.flux_control.i_plasma.reference.data]
       time = ps.flux_control.i_plasma.reference.time
-      self.generalData['ip'] = Waveform(time, data)
+      self.PulseSchedule['ip'] = Waveform(time, data)
+
+      data = [coil.resistance_additional.reference.data for coil in ps.pf_active.coil]
+      time = ps.pf_active.coil[0].resistance_additional.reference.time
+      self.PulseSchedule['pf_res'] = Waveform(time, data)
 
       data = [coil.current.reference.data for coil in ps.pf_active.coil]
       time = ps.pf_active.coil[0].current.reference.time
@@ -1163,7 +1359,7 @@ class ExampleApp(uiclass, baseclass):
       for i in range(len(data)):
         if len(data[i]) != nt:
           data[i] = numpy.zeros(nt)
-      self.generalData['pf_curr'] = Waveform(time, data)
+      self.PulseSchedule['pf_curr'] = Waveform(time, data)
 
       data = [supply.voltage.reference.data for supply in ps.pf_active.supply]
       time = ps.pf_active.supply[0].voltage.reference.time
@@ -1171,41 +1367,111 @@ class ExampleApp(uiclass, baseclass):
       for i in range(len(data)):
         if len(data[i]) != nt:
           data[i] = numpy.zeros(nt)
-      self.generalData['pf_volt'] = Waveform(time, data)
+      self.PulseSchedule['pf_volt'] = Waveform(time, data)
 
       data = [ps.ec.power.reference.data]
       time = ps.ec.power.reference.time
-      self.generalData['power_ec'] = Waveform(time, data)
+      self.PulseSchedule['power_ec'] = Waveform(time, data)
 
       data = [ps.ic.power.reference.data]
       time = ps.ic.power.reference.time
-      self.generalData['power_ic'] = Waveform(time, data)
+      self.PulseSchedule['power_ic'] = Waveform(time, data)
 
       data = [ion.n_i_volume_average.reference.data for ion in ps.density_control.ion]
       time = ps.density_control.ion[0].n_i_volume_average.reference.time
-      self.generalData['density'] = Waveform(time, data)
+      self.PulseSchedule['density'] = Waveform(time, data)
 
       data = [ps.position_control.elongation.reference.data]
       time = ps.position_control.elongation.reference.time
-      self.generalData['elong'] = Waveform(time, data)
+      self.PulseSchedule['elong'] = Waveform(time, data)
 
       data = [gap.value.reference.data for gap in ps.position_control.gap]
       time = ps.position_control.gap[0].value.reference.time
-      self.generalData['gaps'] = Waveform(time, data)    
+      self.PulseSchedule['gaps'] = Waveform(time, data)    
 
       data = [gap.value.reference.data for gap in ps_dw.position_control.gap]
       time = ps_dw.position_control.gap[0].value.reference.time
-      self.generalData['gaps_term'] = Waveform(time, data)  
+      self.PulseSchedule['gaps_term'] = Waveform(time, data)  
 
       data = [ps.position_control.geometric_axis.r.reference.data]
       time = ps.position_control.geometric_axis.r.reference.time
-      self.generalData['r_ax'] = Waveform(time, data)   
+      self.PulseSchedule['r_ax'] = Waveform(time, data)   
       
       data = [ps.position_control.minor_radius.reference.data]
       time = ps.position_control.minor_radius.reference.time
-      self.generalData['a_pl'] = Waveform(time, data) 
+      self.PulseSchedule['a_pl'] = Waveform(time, data) 
 
 
+    def SavePulseSchedule(self):
+
+      ps = imas.pulse_schedule()
+      ps.ids_properties.homogeneous_time = 0
+      
+      ps_dw = imas.pulse_schedule()
+      ps_dw.ids_properties.homogeneous_time = 0
+      
+      wf = self.PulseSchedule['ip']
+      ps.flux_control.i_plasma.reference.time = wf.GetTime()
+      ps.flux_control.i_plasma.reference.data = wf.GetData(0)
+
+      
+      wf = self.PulseSchedule['pf_res']
+      ps.pf_active.coil.resize(wf.NumData())
+      for i in range(wf.NumData()):
+        ps.pf_active.coil[i].resistance_additional.reference.time = wf.GetTime()
+        ps.pf_active.coil[i].resistance_additional.reference.data = wf.GetData(i)
+      wf = self.PulseSchedule['pf_curr']
+      for i in range(wf.NumData()):
+        ps.pf_active.coil[i].current.reference.time = wf.GetTime()
+        ps.pf_active.coil[i].current.reference.data = wf.GetData(i)
+
+      wf = self.PulseSchedule['pf_volt']
+      ps.pf_active.supply.resize(wf.NumData())
+      for i in range(wf.NumData()):
+        ps.pf_active.supply[i].voltage.reference.time = wf.GetTime()
+        ps.pf_active.supply[i].voltage.reference.data = wf.GetData(i)
+
+
+      wf = self.PulseSchedule['power_ec']
+      ps.ec.power.reference.time = wf.GetTime()
+      ps.ec.power.reference.data = wf.GetData(0)
+
+      wf = self.PulseSchedule['power_ic']
+      ps.ic.power.reference.time = wf.GetTime()
+      ps.ic.power.reference.data = wf.GetData(0)
+
+      wf = self.PulseSchedule['density']
+      ps.density_control.ion.resize(wf.NumData())
+      for i in range(wf.NumData()):
+        ps.density_control.ion[i].n_i_volume_average.reference.time = wf.GetTime()
+        ps.density_control.ion[i].n_i_volume_average.reference.data = wf.GetData(i)
+
+      wf = self.PulseSchedule['elong']
+      ps.position_control.elongation.reference.time = wf.GetTime()
+      ps.position_control.elongation.reference.data = wf.GetData(0)
+
+      wf = self.PulseSchedule['gaps']
+      ps.position_control.gap.resize(wf.NumData())
+      for i in range(wf.NumData()):
+        ps.position_control.gap[i].value.reference.time = wf.GetTime()
+        ps.position_control.gap[i].value.reference.data = wf.GetData(i)
+
+      wf = self.PulseSchedule['gaps_term']
+      ps_dw.position_control.gap.resize(wf.NumData())
+      for i in range(wf.NumData()):
+        ps_dw.position_control.gap[i].value.reference.time = wf.GetTime()
+        ps_dw.position_control.gap[i].value.reference.data = wf.GetData(i)
+ 
+      wf = self.PulseSchedule['r_ax']
+      ps.position_control.geometric_axis.r.reference.time = wf.GetTime()
+      ps.position_control.geometric_axis.r.reference.data = wf.GetData(0)
+
+      wf = self.PulseSchedule['a_pl']
+      ps.position_control.minor_radius.reference.time = wf.GetTime()
+      ps.position_control.minor_radius.reference.data = wf.GetData(0)
+
+      return ps, ps_dw
+    
         
     def LoadTokamakData(self):
       
@@ -1240,31 +1506,72 @@ class ExampleApp(uiclass, baseclass):
       for name in self.WorkflowData:
         print(name)
         self.WorkflowData[name].SetValue(xmlroot.find(name).text)
+
+    def SaveWorkflowData(self):
+      root = ET.Element("parameters")
+      for key in self.WorkflowData:
+        element = ET.SubElement(root, key)
+        element.text = self.WorkflowData[key].widget.text()
+      return root
     
-    
+
     def LoadDINAData(self, xmlroot):
       
       for name in self.DINAData:
         print(name)
         self.DINAData[name].SetValue(xmlroot.find(name).text)
-        
-      return
-    
-      f = open(os.path.join(self.directoryLoad, "gaps_data_ramp"))
-      f.readline()
-      line = self.ReadRow(f)
-      ng = line[0]
-      print('n_gaps = ' + str(ng))
-      f.readline()
-      gaps_r = self.ReadRow(f)
-      f.readline()
-      gaps_z = self.ReadRow(f)
-      
+      for name in self.generalData:
+        print(name)
+        self.generalData[name].SetValue(xmlroot.find(name).text) 
+
+      gaps = xmlroot.find('gaps')
+      ng = int(gaps.find('ngaps').text)
+      gaps_r = gaps.find('gaps_r').text.split()
+      gaps_z = gaps.find('gaps_z').text.split()
       self.gapsData = []
       for i in range(ng):
-        self.gapsData.append(ControlPoint(r=gaps_r[i], z=gaps_z[i]))
+        self.gapsData.append(ControlPoint(r=float(gaps_r[i]), z=float(gaps_z[i])))
+      
         
- 
+    
+    def SaveDINAData(self):
+      
+      root = ET.Element("parameters")
+      for key in self.DINAData:
+        element = ET.SubElement(root, key)
+        element.text = self.DINAData[key].widget.text()
+      
+      for key in self.generalData:
+        element = ET.SubElement(root, key)
+        element.text = self.generalData[key].widget.text()
+
+      ngaps = len(self.gapsData)
+      gaps = ET.SubElement(root, 'gaps')
+      element = ET.SubElement(gaps, 'ngaps')
+      element.text = str(ngaps)
+      
+      element_r = ET.SubElement(gaps, 'gaps_r')
+      element_z = ET.SubElement(gaps, 'gaps_z')
+      element_r.text = ''
+      element_z.text = ''
+      for gap in self.gapsData:
+        element_r.text = element_r.text + ' ' + gap.widget_r.text() + ' '
+        element_z.text = element_z.text + ' ' + gap.widget_z.text() + ' '
+      
+      
+      ncirc = 14
+      circuit = ET.SubElement(root, 'circuit')
+      element = ET.SubElement(circuit, 'ncirc')
+      element.text = str(ncirc)
+      
+      connection = ET.SubElement(circuit, 'connection')
+      connection.text = '1 2 3 3 4 5 6 7 8 9 10 11 12 12'
+      
+      direction = ET.SubElement(circuit, 'direction')
+      direction.text = '1 1 1 1 1 1 1 1 1 1 1 1 1 -1'
+
+      return root
+    
  
     def FillIonElement(self, ion, z:int, m:float=None):
       if z == 1:
@@ -1630,16 +1937,20 @@ class ExampleApp(uiclass, baseclass):
       
       # Toroidal field
       equilibrium.vacuum_toroidal_field.b0.resize(1)
-      equilibrium.vacuum_toroidal_field.b0[0] = -0.1*self.DINAData["bt0"].GetValue()
-      equilibrium.vacuum_toroidal_field.r0 = 0.01*self.DINAData["rs0"].GetValue()
+      equilibrium.vacuum_toroidal_field.b0[0] = self.WorkflowData["bt0"].GetValue()
+      equilibrium.vacuum_toroidal_field.r0 = self.WorkflowData["rs0"].GetValue()
       
       # Grid dimensions
       nr = 65
       nz = 129
+      rmin = self.WorkflowData["rmin"].GetValue()
+      rmax = self.WorkflowData["rmax"].GetValue()
+      zmin = self.WorkflowData["zmin"].GetValue()
+      zmax = self.WorkflowData["zmax"].GetValue()
       equilibrium.time_slice[0].profiles_2d.resize(1)
       equilibrium.time_slice[0].profiles_2d[0].grid_type.index = 1 # Rectangular a la eqdsk
-      equilibrium.time_slice[0].profiles_2d[0].grid.dim1 = numpy.linspace(3., 9., num=nr)
-      equilibrium.time_slice[0].profiles_2d[0].grid.dim2 = numpy.linspace(-6., 6., num=nz)
+      equilibrium.time_slice[0].profiles_2d[0].grid.dim1 = numpy.linspace(rmin, rmax, num=nr)
+      equilibrium.time_slice[0].profiles_2d[0].grid.dim2 = numpy.linspace(zmin, zmax, num=nz)
 
 
       
@@ -1655,19 +1966,19 @@ class ExampleApp(uiclass, baseclass):
       psch.density_control.ion.resize(7)
       
       # Deuterium density
-      record = self.generalData['n_d'] #self.GetStuctWithFieldValue(self.generalData, "title", "n_d.dat")
+      record = self.PulseSchedule['n_d'] #self.GetStuctWithFieldValue(self.PulseSchedule, "title", "n_d.dat")
       ion = 0
       self.FillIonElement(psch.density_control.ion[ion], 1, 2.)
       self.FillPulseScheduleItem(psch.density_control.ion[ion].n_i_volume_average.reference, record, mult=1.e19)
       
       # Tritium density
-      record = self.generalData['dens'] #self.GetStuctWithFieldValue(self.generalData, "title", "dens.dat")
+      record = self.PulseSchedule['dens'] #self.GetStuctWithFieldValue(self.PulseSchedule, "title", "dens.dat")
       ion = 1
       self.FillIonElement(psch.density_control.ion[ion], 1, 3.)
       self.FillPulseScheduleItem(psch.density_control.ion[ion].n_i_volume_average.reference, record, mult=1.e19)
       
       # Be content (0D transport)
-      record = self.generalData['gamma_z'] #self.GetStuctWithFieldValue(self.generalData, "title", "gamma_z.dat")
+      record = self.PulseSchedule['gamma_z'] #self.GetStuctWithFieldValue(self.PulseSchedule, "title", "gamma_z.dat")
       ion = 2
       #print('Be waveform for 0D, z='+str(z))
       #print(record)
@@ -1675,7 +1986,7 @@ class ExampleApp(uiclass, baseclass):
       self.FillPulseScheduleItem(psch.density_control.ion[ion].n_i_volume_average.reference, record)
       
       # Be content (1D transport)
-      record = self.generalData['gamma_z1'] #self.GetStuctWithFieldValue(self.generalData, "title", "gamma_z1.dat")
+      record = self.PulseSchedule['gamma_z1'] #self.GetStuctWithFieldValue(self.PulseSchedule, "title", "gamma_z1.dat")
       ion = 3
       #print('Be waveform for 1D, z='+str(z))
       #print(record)
@@ -1683,19 +1994,19 @@ class ExampleApp(uiclass, baseclass):
       self.FillPulseScheduleItem(psch.density_control.ion[ion].n_i_volume_average.reference, record)
       
       # W content
-      record = self.generalData['gamma_z2'] #self.GetStuctWithFieldValue(self.generalData, "title", "gamma_z2.dat")
+      record = self.PulseSchedule['gamma_z2'] #self.GetStuctWithFieldValue(self.PulseSchedule, "title", "gamma_z2.dat")
       ion = 4
       self.FillIonElement(psch.density_control.ion[ion], record.z)
       self.FillPulseScheduleItem(psch.density_control.ion[ion].n_i_volume_average.reference, record)
        
       # Ar content
-      record = self.generalData['gamma_z3'] #self.GetStuctWithFieldValue(self.generalData, "title", "gamma_z3.dat")
+      record = self.PulseSchedule['gamma_z3'] #self.GetStuctWithFieldValue(self.PulseSchedule, "title", "gamma_z3.dat")
       ion = 5
       self.FillIonElement(psch.density_control.ion[ion], record.z)
       self.FillPulseScheduleItem(psch.density_control.ion[ion].n_i_volume_average.reference, record)
       
       # Ne content
-      record = self.generalData['gamma_z4'] #self.GetStuctWithFieldValue(self.generalData, "title", "gamma_z4.dat")
+      record = self.PulseSchedule['gamma_z4'] #self.GetStuctWithFieldValue(self.PulseSchedule, "title", "gamma_z4.dat")
       ion = 6
       self.FillIonElement(psch.density_control.ion[ion], record.z)
       self.FillPulseScheduleItem(psch.density_control.ion[ion].n_i_volume_average.reference, record)
@@ -1704,23 +2015,23 @@ class ExampleApp(uiclass, baseclass):
       # Aux heating
       psch.ec.launcher.resize(1)
       # EC heating (Ip < 1.5 MA)
-      record = self.generalData['ech'] #self.GetStuctWithFieldValue(self.generalData, "title", "ech.dat")
+      record = self.PulseSchedule['ech'] #self.GetStuctWithFieldValue(self.PulseSchedule, "title", "ech.dat")
       self.FillPulseScheduleItem(psch.ec.launcher[0].power.reference, record, mult=1.e6)
  
       # EC+EQ heating (Ip > 1.5 MA)
-      record = self.generalData['emo'] #self.GetStuctWithFieldValue(self.generalData, "title", "emo.dat")
+      record = self.PulseSchedule['emo'] #self.GetStuctWithFieldValue(self.PulseSchedule, "title", "emo.dat")
       self.FillPulseScheduleItem(psch.ec.power.reference, record, col=0, mult=1.e6)
       self.FillPulseScheduleItem(psch.ic.power.reference, record, col=1, mult=1.e6)
  
  
       ## Magnetic control
       # Elongation
-      record = self.generalData['elong'] #self.GetStuctWithFieldValue(self.generalData, "title", "elong_ref.dat")
+      record = self.PulseSchedule['elong'] #self.GetStuctWithFieldValue(self.PulseSchedule, "title", "elong_ref.dat")
       self.FillPulseScheduleItem(psch.position_control.elongation.reference, record)
       psch.position_control.elongation.reference_name = "Elongation"
 
 
-      ng = len(self.generalData['gaps'])
+      ng = len(self.PulseSchedule['gaps'])
       psch.position_control.gap.resize(ng)
       psch_dw.position_control.gap.resize(ng)
       
@@ -1734,7 +2045,7 @@ class ExampleApp(uiclass, baseclass):
       for j in range(ng):
         gapname = GapName[j]
         refname = gapname
-        record = self.generalData['gaps'][j] #self.GetStuctWithFieldValue(self.generalData, "title", 'g' + str(j+1) + '.dat')
+        record = self.PulseSchedule['gaps'][j] #self.GetStuctWithFieldValue(self.PulseSchedule, "title", 'g' + str(j+1) + '.dat')
         self.FillPulseScheduleItem(psch.position_control.gap[j].value.reference, record, mult=1.e-2)
         psch.position_control.gap[j].r = Rg[j]*1.e-2
         psch.position_control.gap[j].z = Zg[j]*1.e-2
@@ -1747,7 +2058,7 @@ class ExampleApp(uiclass, baseclass):
       for j in range(ng):
         gapname = GapName[j]
         refname = gapname + "_Rampdown"
-        record = self.generalData['gaps_term'][j] #self.GetStuctWithFieldValue(self.generalData, "title", 'g' + str(j+1) + '_term.dat')
+        record = self.PulseSchedule['gaps_term'][j] #self.GetStuctWithFieldValue(self.PulseSchedule, "title", 'g' + str(j+1) + '_term.dat')
         self.FillPulseScheduleItem(psch_dw.position_control.gap[j].value.reference, record, mult=1.e-2)
         psch_dw.position_control.gap[j].r = Rg[j]*1.e-2
         psch_dw.position_control.gap[j].z = Zg[j]*1.e-2
@@ -1763,7 +2074,7 @@ class ExampleApp(uiclass, baseclass):
       ntur=[554.,554.,554.,554.,554.,  248.6, 115.2, 185.9, 169.9, 216.8, 459.4]
       cm = [0, 1, 2, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 11]
       vm = [1., 1., 0.5, 0.5, 1., 1., 1., 1., 1., 1., 1., 1., 0.5, 0.5]
-      record = self.generalData['scr_data']
+      record = self.PulseSchedule['scr_data']
       
       # Plasma current
       self.FillPulseScheduleItem(psch.flux_control.i_plasma.reference, record, col=0, mult=1.0)
@@ -1780,7 +2091,7 @@ class ExampleApp(uiclass, baseclass):
       
       
       # CSPF voltages
-      record = self.generalData['volt']
+      record = self.PulseSchedule['volt']
       psch.pf_active.supply.resize(ncirc)
       for j in range(ncirc):
         circname = CircuitName[j]
@@ -1792,7 +2103,7 @@ class ExampleApp(uiclass, baseclass):
       
       
       # CSPF resistances
-      record = self.generalData['pfres']
+      record = self.PulseSchedule['pfres']
       
       for j in range(14):
         circname = CircuitName[j]
@@ -1804,11 +2115,10 @@ class ExampleApp(uiclass, baseclass):
       return psch,psch_dw,equilibrium
       
       
-      
-    def SaveSetups(self): 
+
+    def SaveSetupsOld(self): 
       dirTmp = QtWidgets.QFileDialog.getExistingDirectory(self, "Select folder save into...", self.directorySave)
       #dirTmp = self.directoryLoad + '/temp'
-
       if dirTmp:
         self.directorySave = dirTmp
         self.labelDirSave.setText(self.directorySave)
@@ -2087,18 +2397,8 @@ class ExampleApp(uiclass, baseclass):
       
 
     def PlotOutput(self):
-      
-        self.pulseout = int(self.textPulse.toPlainText(), 10)
-        self.runout = int(self.textRun.toPlainText(), 10)
-        self.userout = self.textUser.toPlainText()
-        self.baseout = self.textBase.toPlainText()
-        print('selected pulse = ', self.pulseout)
-        print('selected run = ', self.runout)
-        print('selected base = ', self.baseout)
 
-        
-
-        imas_entry_init = imas.DBEntry(imas.imasdef.MDSPLUS_BACKEND, self.baseout, self.pulseout, self.runout, self.userout, data_version = '3')
+        imas_entry_init = self.IMASDB_plot.GetDBEntry()
         imas_entry_init.open()
         
         idslist = {}
@@ -2138,17 +2438,8 @@ class ExampleApp(uiclass, baseclass):
         self.outpGraph[4].Plot(t1, li_3, 'li_3')
         
         
-        #if not self.EQUIL_win:
-        #QVizGlobalOperations.checkEnvSettings()
-        #QVizPreferences().build()
         self.EQUIL_win = Second_window(idslist)
         self.EQUIL_win.show()
-    #--------------------
-    def getMDI(self):
-      if self.MDI != None:
-          return self.MDI
-      return None
-    #-------------------------------
 
 
 def main():

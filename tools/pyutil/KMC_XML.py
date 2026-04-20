@@ -16,6 +16,9 @@ def ControlDataToXML(directoryLoad):
     element = ET.SubElement(root, 'kpr')
     element.text = str(1)
 
+    element = ET.SubElement(root, 'tpl_dir')
+    element.text = str(-1.0)
+
     #control_data2.dat
     f = open(os.path.join(directoryLoad, "control_data2.dat"))
     
@@ -73,7 +76,7 @@ def ControlDataToXML(directoryLoad):
 
     f.close()
     
-
+    
     #control_data.dat
     f = open(os.path.join(directoryLoad, "control_data.dat"))
     names = ['Tu', 'c_cur_max']
