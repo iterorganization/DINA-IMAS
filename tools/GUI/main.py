@@ -6,7 +6,7 @@ import subprocess
 import copy
 
 from PySide6 import QtWidgets, QtGui
-import design
+#import design
 import captions
 
 import math
@@ -29,7 +29,7 @@ import matplotlib.pyplot as plt
 import imas
 import xml.etree.ElementTree as ET
 from xml.dom import minidom
-from imasdb_widget import IMASDB_Widget
+
 
 
 from functools import partial
@@ -47,10 +47,13 @@ from PySide6.QtGui import  QAction
 
 from PySide6.QtUiTools import loadUiType
 
+
 import pulse_schedule
 import DINA_XML
 import KMC_XML
 from plequi import Second_window
+from imasdb_widget import IMASDB_Widget
+
 
 
 def InsertSubElement(root, element, name):
@@ -67,22 +70,31 @@ class CodeParameter():
     self.rawname = rawname
     self.name = name
     self.size = 1
-    if widget == None:
-      self.widget = QtWidgets.QTableWidgetItem(str(value))
-    else:
-      self.widget = widget
-    self.widget.setToolTip(self.comment)
-    
+    self.widget = widget
+    if (self.widget != None):
+      self.widget.setText(str(self.value))
+      self.widget.setToolTip(self.comment)
+
+
+  def GetValue(self):
+    if self.widget != None:
+      self.value = self.mytype(self.widget.text())
+    return self.value
+  
   def SetValue(self, value):
     self.value = self.mytype(value)
-    self.widget.setText(str(self.value))
-    
-  def GetValue(self):
-    return self.value
-    if self.mytype == int:
-      return int(self.widget.text())
-    if self.mytype == float:
-      return float(self.widget.text())
+    if self.widget != None:
+      self.widget.setText(str(self.value))
+
+  def SetWidget(self, widget):
+    if self.widget != None:
+      self.value = self.mytype(self.widget.text())
+    self.widget = widget
+    if (self.widget != None):
+      self.widget.setText(str(self.value))
+      self.widget.setToolTip(self.comment)
+     
+
 
 class Wave():
   def __init__(self):
@@ -166,7 +178,7 @@ class Graph():
 
 
 uiclass, baseclass = loadUiType('design.ui')
-class ExampleApp(uiclass, baseclass):
+class DINA_GUI(uiclass, baseclass):
     def __init__(self):
         super().__init__()
 
@@ -327,11 +339,6 @@ class ExampleApp(uiclass, baseclass):
         verticalLayout.addWidget(self.tabExternalDataChild)
         
         
-        self.CSHeaders = ['CSU3','CSU2','CS1','CSL2','CSL3']
-        self.PFHeaders = ['PF1','PF2','PF3','PF4','PF5','PF6']
-        self.coilNames = self.CSHeaders + self.PFHeaders
-        
-        
         user = os.getenv('USER')       
         
         # Output tab 
@@ -353,6 +360,10 @@ class ExampleApp(uiclass, baseclass):
 
         self.tabOutput.setLayout(grid)
         
+
+        self.CoilName = ["CS3U", "CS2U", "CS1U", "CS1L", "CS2L", "CS3L", "PF1", "PF2", "PF3", "PF4", "PF5", "PF6", "VS3U", "VS3L"]
+        self.SupplyName = ["CS3U", "CS2U", "CS1U", "CS1L", "CS2L", "CS3L", "PF1", "PF2", "PF3", "PF4", "PF5", "VS1", "PF6", "VS3"]
+        self.GapName = ['g1', 'g2', 'g4', 'g5']
     
         
         self.WorkflowData["time_ext"] = CodeParameter(mytype=float, value=1.e4, name='T_ext', comment = 'Time after which the external transport profiles are used', unit='s')
@@ -366,8 +377,8 @@ class ExampleApp(uiclass, baseclass):
 
         self.WorkflowData["controller"] = CodeParameter(mytype=str, value="kmc", comment = 'Name of the magnetic controller to use', name='Controller')
         self.WorkflowData["use_astra"] = CodeParameter(mytype=int, value=0, comment = 'Use ASTRA actor for external transport calculations', name='Use_ASTRA')
-        self.WorkflowData["vs3_l"] = CodeParameter(mytype=float, value=0.00152, comment = 'Self-inductance of the ITER VS3 circuit', name='L_VS3', unit='H')
-        self.WorkflowData["vs3_r"] = CodeParameter(mytype=float, value=0.012, comment = 'Resistance of the ITER VS3 circuit', name='R_VS3', unit='Ohm')
+        self.WorkflowData["vs3_l"] = CodeParameter(mytype=float, value=0.00138, comment = 'Self-inductance of the ITER VS3 circuit', name='L_VS3', unit='H')
+        self.WorkflowData["vs3_r"] = CodeParameter(mytype=float, value=0.01771, comment = 'Resistance of the ITER VS3 circuit', name='R_VS3', unit='Ohm')
         self.WorkflowData["rs0"] = CodeParameter(mytype=float, value=6.20, name='R_Btor', comment = 'R coordinate at which the toroidal field is represented internally', unit='m')
         self.WorkflowData["bt0"] = CodeParameter(mytype=float, value=-5.3, name='Btor', comment = 'The toroidal field at the specified R coordinate', unit='T')
         self.WorkflowData["rmin"] = CodeParameter(mytype=float, value=3.0, name='R_min', comment = 'Leftmost R coordinate of the 2D equilibrium grid', unit='m')
@@ -439,7 +450,20 @@ class ExampleApp(uiclass, baseclass):
         self.generalData["Ics1_eob"] = CodeParameter(mytype=float, value=0., comment = 'Value of the current in CS1 circuit at which the current ramp-down starts', name='I_CS1 EOF', unit='A')
         self.generalData["tpl_dir"] = CodeParameter(mytype=float, value=-1., name='Ip_dir', comment = 'Sign of the plasma current')
 
-            
+        #self.RefreshUI()
+
+        Rg = [4.2230, 5.5650, 7.5095, 5.3315]
+        Zg = [-3.7920, -4.4040, 2.9971, 4.5804]
+        self.gapsData = []
+        ng = 4
+        for i in range(ng):
+          self.gapsData.append(ControlPoint(r=Rg[i], z=Zg[i]))
+
+        self.RefreshWorkflowData()
+        #self.RefreshTokamakData()
+        #self.RefreshPulseSchedule()
+        self.RefreshDINAData()
+        self.RefreshControlData()
         
         
     def AddCanvas(self, i, toolbar = 1):
@@ -844,6 +868,7 @@ class ExampleApp(uiclass, baseclass):
         table.setRowCount(1)
         labels = []
         for j in range(m):
+          datarow[j].SetWidget(QtWidgets.QTableWidgetItem())
           table.setItem(0, j, datarow[j].widget)
           label = ""
           if datarow[j].name != "":
@@ -1056,7 +1081,7 @@ class ExampleApp(uiclass, baseclass):
 
       if (currentTab == self.tabWorkflow):
         (filepath, selectedFilter) = QtWidgets.QFileDialog.getSaveFileName(self, "Save workflow configuration",
-                                        self.directoryLoad + '/wfconfig.xml',
+                                        self.directorySave + '/wfconfig.xml',
                                         "Workflow config (*.xml)")
         
         root = self.SaveWorkflowData()
@@ -1071,33 +1096,6 @@ class ExampleApp(uiclass, baseclass):
         InsertSubElement(root, self.inptIMASDB_MAG.GetXML(), 'input_magnetics')
         InsertSubElement(root, self.outIMASDB.GetXML(), 'output')
       
-
-        # element = ET.SubElement(root, 'pulse_schedule')
-        # element.text = self.inptIMASDB_PS.GetXML()
-        
-        # element = ET.SubElement(root, 'input_scenario')
-        # element.text = self.inptIMASDB_SCEN.GetXML()
-
-        # element = ET.SubElement(root, 'input_transp')
-        # element.text = self.inptIMASDB_EXT.GetXML()
-
-        # element = ET.SubElement(root, 'input_pf_active')
-        # element.text = self.inptIMASDB_PFA.GetXML()
-
-        # element = ET.SubElement(root, 'input_pf_passive')
-        # element.text = self.inptIMASDB_PFP.GetXML()
-        
-        # element = ET.SubElement(root, 'input_wall')
-        # element.text = self.inptIMASDB_WALL.GetXML()
-
-        # element = ET.SubElement(root, 'input_em_coupling')
-        # element.text = self.inptIMASDB_EM.GetXML()
-
-        # element = ET.SubElement(root, 'input_magnetics')
-        # element.text = self.inptIMASDB_MAG.GetXML()
-
-        # element = ET.SubElement(root, 'output')
-        # element.text = self.outIMASDB.GetXML()
         
         xmlstr = minidom.parseString(ET.tostring(root)).toprettyxml(indent="   ")
         f = open(filepath, 'w')
@@ -1106,7 +1104,7 @@ class ExampleApp(uiclass, baseclass):
 
       if (currentTab == self.tabDINAData):
         (filepath, selectedFilter) = QtWidgets.QFileDialog.getSaveFileName(self, "Save DINA parameters",
-                                        self.directoryLoad + '/codeparam_dina.xml',
+                                        self.directorySave + '/codeparam_dina.xml',
                                         "DINA parameters (*.xml)")
         xmlroot = self.SaveDINAData()
         xmlstr = minidom.parseString(ET.tostring(xmlroot)).toprettyxml(indent="   ")
@@ -1116,7 +1114,7 @@ class ExampleApp(uiclass, baseclass):
 
       if (currentTab == self.tabControlData):
         (filepath, selectedFilter) = QtWidgets.QFileDialog.getSaveFileName(self, "Save KMC parameters",
-                                        self.directoryLoad + '/codeparam_kmc.xml',
+                                        self.directorySave + '/codeparam_kmc.xml',
                                         "KMC parameters (*.xml)")
         xmlroot = self.SaveControlData()
         xmlstr = minidom.parseString(ET.tostring(xmlroot)).toprettyxml(indent="   ")
@@ -1301,22 +1299,8 @@ class ExampleApp(uiclass, baseclass):
         self.externalData.append(timedData)
         self.CreateInputTab(parentObject, [timedData], timedData["title"])
         
-        
-        #consist = setOfParams["data"] + [timedData]
-        #self.CreateInputTab(parentObject, consist, "together")
-        
-
-        #heap = self.ReadHeap(f, 335)
-        #self.externalData.append(heap)
-
-        
-        
+              
         f.close()
-        
-        #1print('External data:')
-        #for x in self.externalData:
-        #  print(x)
-        #print(self.externalData)
 
  
  
@@ -1344,6 +1328,10 @@ class ExampleApp(uiclass, baseclass):
         
     
     def LoadPulseSchedule(self, ps, ps_dw):
+      
+      self.CoilName = [coil.name for coil in ps.pf_active.coil]
+      self.SupplyName = [supply.name for supply in ps.pf_active.supply]
+      self.GapName = [gap.name for gap in ps.position_control.gap]
       
       data = [ps.flux_control.i_plasma.reference.data]
       time = ps.flux_control.i_plasma.reference.time
@@ -1410,63 +1398,97 @@ class ExampleApp(uiclass, baseclass):
       ps_dw = imas.pulse_schedule()
       ps_dw.ids_properties.homogeneous_time = 0
       
+      RefName_RUFT = 'RU+FT'
+      RefName_RD = 'RD'
+
       wf = self.PulseSchedule['ip']
+      ps.flux_control.i_plasma.reference_name = RefName_RUFT
       ps.flux_control.i_plasma.reference.time = wf.GetTime()
       ps.flux_control.i_plasma.reference.data = wf.GetData(0)
 
       
+      CoilName = ["CS3U", "CS2U", "CS1U", "CS1L", "CS2L", "CS3L", "PF1", "PF2", "PF3", "PF4", "PF5", "PF6", "VS3U", "VS3L"]
       wf = self.PulseSchedule['pf_res']
       ps.pf_active.coil.resize(wf.NumData())
       for i in range(wf.NumData()):
+        ps.pf_active.coil[i].name = self.CoilName[i]
+        ps.pf_active.coil[i].identifier = self.CoilName[i]
+
+      for i in range(wf.NumData()):
+        ps.pf_active.coil[i].resistance_additional.reference_name = RefName_RUFT
         ps.pf_active.coil[i].resistance_additional.reference.time = wf.GetTime()
         ps.pf_active.coil[i].resistance_additional.reference.data = wf.GetData(i)
       wf = self.PulseSchedule['pf_curr']
       for i in range(wf.NumData()):
+        ps.pf_active.coil[i].current.reference_name = RefName_RUFT
         ps.pf_active.coil[i].current.reference.time = wf.GetTime()
         ps.pf_active.coil[i].current.reference.data = wf.GetData(i)
+
 
       wf = self.PulseSchedule['pf_volt']
       ps.pf_active.supply.resize(wf.NumData())
       for i in range(wf.NumData()):
+        ps.pf_active.supply[i].name = self.SupplyName[i]
+        ps.pf_active.supply[i].identifier = self.SupplyName[i]
+        ps.pf_active.supply[i].voltage.reference_name = RefName_RUFT
         ps.pf_active.supply[i].voltage.reference.time = wf.GetTime()
         ps.pf_active.supply[i].voltage.reference.data = wf.GetData(i)
 
 
       wf = self.PulseSchedule['power_ec']
+      ps.ec.power.reference_name = RefName_RUFT
       ps.ec.power.reference.time = wf.GetTime()
       ps.ec.power.reference.data = wf.GetData(0)
 
       wf = self.PulseSchedule['power_ic']
+      ps.ic.power.reference_name = RefName_RUFT
       ps.ic.power.reference.time = wf.GetTime()
       ps.ic.power.reference.data = wf.GetData(0)
 
       wf = self.PulseSchedule['density']
       ps.density_control.ion.resize(wf.NumData())
       for i in range(wf.NumData()):
+        ps.density_control.ion[i].n_i_volume_average.reference_name = RefName_RUFT
         ps.density_control.ion[i].n_i_volume_average.reference.time = wf.GetTime()
         ps.density_control.ion[i].n_i_volume_average.reference.data = wf.GetData(i)
 
       wf = self.PulseSchedule['elong']
+      ps.position_control.elongation.reference_name = RefName_RUFT
       ps.position_control.elongation.reference.time = wf.GetTime()
       ps.position_control.elongation.reference.data = wf.GetData(0)
 
+      Rg = [4.2230, 5.5650, 7.5095, 5.3315]
+      Zg = [-3.7920, -4.4040, 2.9971, 4.5804]
+      #Ag = [-65.0, -150.0, -135.0, -90.0]
       wf = self.PulseSchedule['gaps']
       ps.position_control.gap.resize(wf.NumData())
       for i in range(wf.NumData()):
+        ps.position_control.gap[i].r = Rg[i]
+        ps.position_control.gap[i].z = Zg[i]
+        ps.position_control.gap[i].name = self.GapName[i]
+        ps.position_control.gap[i].identifier = self.GapName[i]
+        ps.position_control.gap[i].value.reference_name = RefName_RUFT
         ps.position_control.gap[i].value.reference.time = wf.GetTime()
         ps.position_control.gap[i].value.reference.data = wf.GetData(i)
 
       wf = self.PulseSchedule['gaps_term']
       ps_dw.position_control.gap.resize(wf.NumData())
       for i in range(wf.NumData()):
+        ps_dw.position_control.gap[i].r = Rg[i]*1.e-2
+        ps_dw.position_control.gap[i].z = Zg[i]*1.e-2
+        ps_dw.position_control.gap[i].name = self.GapName[i] + '_term'
+        ps_dw.position_control.gap[i].identifier = self.GapName[i] + '_term'
+        ps_dw.position_control.gap[i].value.reference_name = RefName_RD
         ps_dw.position_control.gap[i].value.reference.time = wf.GetTime()
         ps_dw.position_control.gap[i].value.reference.data = wf.GetData(i)
  
       wf = self.PulseSchedule['r_ax']
+      ps.position_control.geometric_axis.r.reference_name = RefName_RUFT
       ps.position_control.geometric_axis.r.reference.time = wf.GetTime()
       ps.position_control.geometric_axis.r.reference.data = wf.GetData(0)
 
       wf = self.PulseSchedule['a_pl']
+      ps.position_control.minor_radius.reference_name = RefName_RUFT
       ps.position_control.minor_radius.reference.time = wf.GetTime()
       ps.position_control.minor_radius.reference.data = wf.GetData(0)
 
@@ -1924,7 +1946,7 @@ class ExampleApp(uiclass, baseclass):
       
       
       
-    def CreateInputIDS(self):
+    def CreateInputEquilibrium(self):
       
       
       equilibrium = imas.equilibrium()
@@ -1952,167 +1974,8 @@ class ExampleApp(uiclass, baseclass):
       equilibrium.time_slice[0].profiles_2d[0].grid.dim1 = numpy.linspace(rmin, rmax, num=nr)
       equilibrium.time_slice[0].profiles_2d[0].grid.dim2 = numpy.linspace(zmin, zmax, num=nz)
 
-
       
-      # Pulse schedule
-      psch = imas.pulse_schedule()
-      psch.ids_properties.homogeneous_time = 0
-      
-      psch_dw = imas.pulse_schedule()
-      psch_dw.ids_properties.homogeneous_time = 0
-      
-      
-      # Densities
-      psch.density_control.ion.resize(7)
-      
-      # Deuterium density
-      record = self.PulseSchedule['n_d'] #self.GetStuctWithFieldValue(self.PulseSchedule, "title", "n_d.dat")
-      ion = 0
-      self.FillIonElement(psch.density_control.ion[ion], 1, 2.)
-      self.FillPulseScheduleItem(psch.density_control.ion[ion].n_i_volume_average.reference, record, mult=1.e19)
-      
-      # Tritium density
-      record = self.PulseSchedule['dens'] #self.GetStuctWithFieldValue(self.PulseSchedule, "title", "dens.dat")
-      ion = 1
-      self.FillIonElement(psch.density_control.ion[ion], 1, 3.)
-      self.FillPulseScheduleItem(psch.density_control.ion[ion].n_i_volume_average.reference, record, mult=1.e19)
-      
-      # Be content (0D transport)
-      record = self.PulseSchedule['gamma_z'] #self.GetStuctWithFieldValue(self.PulseSchedule, "title", "gamma_z.dat")
-      ion = 2
-      #print('Be waveform for 0D, z='+str(z))
-      #print(record)
-      self.FillIonElement(psch.density_control.ion[ion], record.z)
-      self.FillPulseScheduleItem(psch.density_control.ion[ion].n_i_volume_average.reference, record)
-      
-      # Be content (1D transport)
-      record = self.PulseSchedule['gamma_z1'] #self.GetStuctWithFieldValue(self.PulseSchedule, "title", "gamma_z1.dat")
-      ion = 3
-      #print('Be waveform for 1D, z='+str(z))
-      #print(record)
-      self.FillIonElement(psch.density_control.ion[ion], record.z)
-      self.FillPulseScheduleItem(psch.density_control.ion[ion].n_i_volume_average.reference, record)
-      
-      # W content
-      record = self.PulseSchedule['gamma_z2'] #self.GetStuctWithFieldValue(self.PulseSchedule, "title", "gamma_z2.dat")
-      ion = 4
-      self.FillIonElement(psch.density_control.ion[ion], record.z)
-      self.FillPulseScheduleItem(psch.density_control.ion[ion].n_i_volume_average.reference, record)
-       
-      # Ar content
-      record = self.PulseSchedule['gamma_z3'] #self.GetStuctWithFieldValue(self.PulseSchedule, "title", "gamma_z3.dat")
-      ion = 5
-      self.FillIonElement(psch.density_control.ion[ion], record.z)
-      self.FillPulseScheduleItem(psch.density_control.ion[ion].n_i_volume_average.reference, record)
-      
-      # Ne content
-      record = self.PulseSchedule['gamma_z4'] #self.GetStuctWithFieldValue(self.PulseSchedule, "title", "gamma_z4.dat")
-      ion = 6
-      self.FillIonElement(psch.density_control.ion[ion], record.z)
-      self.FillPulseScheduleItem(psch.density_control.ion[ion].n_i_volume_average.reference, record)
- 
- 
-      # Aux heating
-      psch.ec.launcher.resize(1)
-      # EC heating (Ip < 1.5 MA)
-      record = self.PulseSchedule['ech'] #self.GetStuctWithFieldValue(self.PulseSchedule, "title", "ech.dat")
-      self.FillPulseScheduleItem(psch.ec.launcher[0].power.reference, record, mult=1.e6)
- 
-      # EC+EQ heating (Ip > 1.5 MA)
-      record = self.PulseSchedule['emo'] #self.GetStuctWithFieldValue(self.PulseSchedule, "title", "emo.dat")
-      self.FillPulseScheduleItem(psch.ec.power.reference, record, col=0, mult=1.e6)
-      self.FillPulseScheduleItem(psch.ic.power.reference, record, col=1, mult=1.e6)
- 
- 
-      ## Magnetic control
-      # Elongation
-      record = self.PulseSchedule['elong'] #self.GetStuctWithFieldValue(self.PulseSchedule, "title", "elong_ref.dat")
-      self.FillPulseScheduleItem(psch.position_control.elongation.reference, record)
-      psch.position_control.elongation.reference_name = "Elongation"
-
-
-      ng = len(self.PulseSchedule['gaps'])
-      psch.position_control.gap.resize(ng)
-      psch_dw.position_control.gap.resize(ng)
-      
-      GapName = ['Gap_1', 'Gap_2', 'R_LFS', 'Gap_4', 'Gap_5', 'R_HFS']
-      #Rg = [422.30, 556.50, 828.06, 750.95, 533.15, 405.99]
-      Rg = [422.30, 556.50, 0.0, 750.95, 533.15, 0.0]
-      Zg = [-379.20, -440.40, 46.65, 299.71, 458.04, 77.77]
-      #Ag = [-65.0, -150.0, 0.0, -135.0, -90.0, 0.0]
-      
-      # Gaps on ramp-up and flat-top
-      for j in range(ng):
-        gapname = GapName[j]
-        refname = gapname
-        record = self.PulseSchedule['gaps'][j] #self.GetStuctWithFieldValue(self.PulseSchedule, "title", 'g' + str(j+1) + '.dat')
-        self.FillPulseScheduleItem(psch.position_control.gap[j].value.reference, record, mult=1.e-2)
-        psch.position_control.gap[j].r = Rg[j]*1.e-2
-        psch.position_control.gap[j].z = Zg[j]*1.e-2
-        #psch.position_control.gap[j].angle = Ag[j]*numpy.pi/180.
-        psch.position_control.gap[j].name = gapname
-        psch.position_control.gap[j].identifier = 'g' + str(j+1)
-        psch.position_control.gap[j].value.reference_name = refname
-      
-      # Gaps on current ramp-down
-      for j in range(ng):
-        gapname = GapName[j]
-        refname = gapname + "_Rampdown"
-        record = self.PulseSchedule['gaps_term'][j] #self.GetStuctWithFieldValue(self.PulseSchedule, "title", 'g' + str(j+1) + '_term.dat')
-        self.FillPulseScheduleItem(psch_dw.position_control.gap[j].value.reference, record, mult=1.e-2)
-        psch_dw.position_control.gap[j].r = Rg[j]*1.e-2
-        psch_dw.position_control.gap[j].z = Zg[j]*1.e-2
-        #psch_dw.position_control.gap[j].z = Ag[j]*numpy.pi/180.
-        psch_dw.position_control.gap[j].name = gapname
-        psch_dw.position_control.gap[j].identifier = 'g' + str(j+1)
-        psch_dw.position_control.gap[j].value.reference_name = refname
-      
-      
-      # scr_data.dat
-      CircuitName = ["CS3U", "CS2U", "CS1", "CS2L", "CS3L", "PF1", "PF2", "PF3", "PF4", "PF5", "PF6", "VS3", "TRI_SUPP",  "COPP_CLAD", "INB_RAIL"]
-      ncirc = 11
-      ntur=[554.,554.,554.,554.,554.,  248.6, 115.2, 185.9, 169.9, 216.8, 459.4]
-      cm = [0, 1, 2, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 11]
-      vm = [1., 1., 0.5, 0.5, 1., 1., 1., 1., 1., 1., 1., 1., 0.5, 0.5]
-      record = self.PulseSchedule['scr_data']
-      
-      # Plasma current
-      self.FillPulseScheduleItem(psch.flux_control.i_plasma.reference, record, col=0, mult=1.0)
-      
-      # CSPF currents
-      psch.pf_active.coil.resize(14)
-      for j in range(12):
-        circname = CircuitName[cm[j]]
-        refname = circname
-        self.FillPulseScheduleItem(psch.pf_active.coil[j].current.reference, record, col=cm[j]+1, mult=1.0)
-        psch.pf_active.coil[j].name = circname
-        psch.pf_active.coil[j].identifier = circname
-        psch.pf_active.coil[j].current.reference_name = refname
-      
-      
-      # CSPF voltages
-      record = self.PulseSchedule['volt']
-      psch.pf_active.supply.resize(ncirc)
-      for j in range(ncirc):
-        circname = CircuitName[j]
-        refname = circname
-        self.FillPulseScheduleItem(psch.pf_active.supply[j].voltage.reference, record, col=j, mult=1.0)
-        psch.pf_active.supply[j].name = circname
-        psch.pf_active.supply[j].identifier = circname
-        psch.pf_active.supply[j].voltage.reference_name = refname
-      
-      
-      # CSPF resistances
-      record = self.PulseSchedule['pfres']
-      
-      for j in range(14):
-        circname = CircuitName[j]
-        refname = circname + 'res'
-        self.FillPulseScheduleItem(psch.pf_active.coil[j].resistance_additional.reference, record, col=cm[j], mult = vm[j])
-        psch.pf_active.coil[j].resistance_additional.reference_name = refname
-      
-      
-      return psch,psch_dw,equilibrium
+      return equilibrium
       
       
 
@@ -2444,8 +2307,8 @@ class ExampleApp(uiclass, baseclass):
 
 def main():
     app = QApplication(sys.argv)  # New instance QApplication
-    window = ExampleApp()  # Create instance of ExampleApp
-    window.setObjectName("IMASViz root window")
+    window = DINA_GUI()  # Create instance of DINA_GUI
+    window.setObjectName("DINA GUI")
     window.show() 
     sys.exit(app.exec())  # Start application
 
