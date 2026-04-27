@@ -88,64 +88,84 @@ class CodeParameter():
 
   def SetWidget(self, widget):
     if self.widget != None:
-      self.value = self.mytype(self.widget.text())
+      if widget.text() != "":
+        self.value = self.mytype(self.widget.text())
     self.widget = widget
     if (self.widget != None):
       self.widget.setText(str(self.value))
       self.widget.setToolTip(self.comment)
      
 
-
-class Wave():
-  def __init__(self):
-    data = []
-    name = []
-    unit = []
     
 class Waveform():
-  def __init__(self, time=[], data=[], unit='', name=''):
+  def __init__(self, unit='', mult=1.0, name='', names=[]):
+    table = QtWidgets.QTableWidget()
+    table.setRowCount(1)
+    table.setColumnCount(2)
+    if unit == None:
+      unit = ''
+    self.unit = unit
+    self.multiplier = mult
+    self.name = name
+    self.table = table
+    self.names = names
+    self.SetData(time=[0], data=[[0]])
+
+
+  def GetTime(self):
+    nt = self.table.rowCount()
+    time = numpy.zeros(nt)
+    for i in range(nt):
+      time[i] = float(self.table.item(i,0).text())
+    return time
+  
+
+  def GetData(self, iw:int=0):
+    nt = self.table.rowCount()
+    data = numpy.zeros(nt)
+    for it in range(nt):
+      data[it] = float(self.table.item(it,iw+1).text())/self.multiplier
+    return data
+  
+
+  def SetData(self, time=[], data=[], names=[]):
     nt = len(time)
     nw = len(data)
     for iw in range(nw):
       ntw = len(data[iw])
       if ntw != nt:
         print('Waveform initiation error, nt=%d, nw=%d, iw=%d, ntw=%d'%(nt, nw, iw, ntw))
-    self.timeWidgets = []
-    self.waveWidgets = []
+        self.table.setRowCount(1)
+        self.table.setColumnCount(2)
+        return
+    self.table.setRowCount(nt)
+    self.table.setColumnCount(nw+1)
     for it in range(nt):
-      self.timeWidgets.append(QtWidgets.QTableWidgetItem(str(time[it])))
+      self.table.setItem(it, 0, QtWidgets.QTableWidgetItem(str(time[it])))
+      for iw in range(nw):
+        self.table.setItem(it, iw+1, QtWidgets.QTableWidgetItem(str(data[iw][it]*self.multiplier)))
     
-    for iw in range(nw):
-      wave = []
-      for it in range(nt):
-        wave.append(QtWidgets.QTableWidgetItem(str(data[iw][it])))
-      self.waveWidgets.append(wave)
-      
-    self.unit = unit
-    self.name = name
+    if len(names) == nw:
+      self.names = names
+    else:
+      self.names = [str(j+1) for j in range(nw)]
+    
+    if self.unit != "" and self.unit != None:
+      self.names = [name+" ["+self.unit+"]" for name in names]
+    else:
+      self.names = names
 
-  def GetTime(self):
-    nt = len(self.timeWidgets)
-    time = numpy.zeros(nt)
-    for i in range(nt):
-      time[i] = float(self.timeWidgets[i].text())
-    return time
-  
-  def GetData(self, iw:int=0):
-    nt = len(self.timeWidgets)
-    data = numpy.zeros(nt)
-    for it in range(nt):
-      data[it] = float(self.waveWidgets[iw][it].text())
-    return data
-  
+    self.table.setHorizontalHeaderLabels(["Time [s]"] + self.names)
+
+
   def NumData(self):
-    return len(self.waveWidgets)
+    return self.table.columnCount()-1
 
 
 
 class WaveformImpurity(Waveform):
-  def __init__(self, time=[], data=[], z:int=1):
-    super().__init__(time=time, data=data)
+  def __init__(self, z:int=1):
+    super().__init__()
     self.z = z
 
 
@@ -162,18 +182,32 @@ class Graph():
     self.canvas = FigureCanvas(self.figure)
     self.layout = QtWidgets.QVBoxLayout()
     if toolbar == 1:
+      self.layoutToolbar = QtWidgets.QHBoxLayout()
+
       # this is the Navigation widget
       # it takes the Canvas widget and a parent
-      self.toolbar = NavigationToolbar(self.canvas, parent) 
-      self.layout.addWidget(self.toolbar)
+      self.toolbar = NavigationToolbar(self.canvas, parent)
+      self.layoutToolbar.addWidget(self.toolbar)
+
+      self.labelTimeMax = QLabel(parent)
+      self.labelTimeMax.setText("Time max =")
+      self.layoutToolbar.addWidget(self.labelTimeMax)
+      self.lineEditTimeMax = QLineEdit(parent)
+      self.layoutToolbar.addWidget(self.lineEditTimeMax)
+
+      self.lineEditTimeMax.setText(str(600.0))
+
+      self.layout.addLayout(self.layoutToolbar)
     self.layout.addWidget(self.canvas) 
     
+
   def Plot(self, x, y, name = ''):
     self.figure.clear()
     ax = self.figure.add_subplot(111)
     ax.plot(x, y, '-')
     ax.set_xlabel('time, s')
     ax.set_ylabel(name)
+    ax.set_xlim([0, float(self.lineEditTimeMax.text())])
     self.canvas.draw()
 
 
@@ -223,7 +257,8 @@ class DINA_GUI(uiclass, baseclass):
         
         #self.actionRun.triggered.connect(self.RunWorkflow)
         
-
+        self.actionInsert_row.triggered.connect(self.InsertRow)
+        self.actionDelete_row.triggered.connect(self.DeleteRow)
 
 
         # Workflow tab
@@ -276,7 +311,7 @@ class DINA_GUI(uiclass, baseclass):
         self.controlData = {}
         self.generalData = {}
         self.DINAData = {}
-        self.PulseSchedule = {}
+        
         self.externalData = []
         
         
@@ -395,11 +430,11 @@ class DINA_GUI(uiclass, baseclass):
         self.DINAData["key_t11"] = CodeParameter(mytype=int, value=1, name='key_t11', comment = 'JET Ohmic scaling')
         self.DINAData["tt_dina"] = CodeParameter(mytype=float, value=10000., name='time_transp', comment = 'Time after which input 1D transport profiles are used instead of internal transport model', unit='s')
         
-        self.DINAData["p"] = CodeParameter(mytype=float, value=0., name='Pressure', comment = 'Initial neutral D particles pressure', unit='Pa')
-        self.DINAData["T_e"] = CodeParameter(mytype=float, value=0., name='Te', comment = 'Initial electron temperature', unit='eV')
-        self.DINAData["T_i"] = CodeParameter(mytype=float, value=0., name='Ti', comment = 'Initial ion temperature', unit='eV')
-        self.DINAData["gam"] = CodeParameter(mytype=float, value=0., name='D+/D0', comment = 'Initial ionization state of D')
-        self.DINAData["gain_puff"] = CodeParameter(mytype=float, value=0., name='D puff', comment = 'Neutrals puffing gain to keep the prescribed waveform of D in 0D model')
+        self.DINAData["p"] = CodeParameter(mytype=float, value=1.e-3, name='Pressure', comment = 'Initial neutral D particles pressure', unit='Pa')
+        self.DINAData["T_e"] = CodeParameter(mytype=float, value=0.002, name='Te', comment = 'Initial electron temperature', unit='eV')
+        self.DINAData["T_i"] = CodeParameter(mytype=float, value=0.002, name='Ti', comment = 'Initial ion temperature', unit='eV')
+        self.DINAData["gam"] = CodeParameter(mytype=float, value=0.05, name='D+/D0', comment = 'Initial ionization state of D')
+        self.DINAData["gain_puff"] = CodeParameter(mytype=float, value=50., name='D puff', comment = 'Neutrals puffing gain to keep the prescribed waveform of D in 0D model')
         
         self.DINAData["bohm_gbohm"] = CodeParameter(mytype=int, value=1, name='G-Bohm', comment = 'Key to switch on (=1) or off (=0) Bohm-gyro-Bohm scaling')
         
@@ -408,9 +443,9 @@ class DINA_GUI(uiclass, baseclass):
         
         self.DINAData["pcchp_end"] = CodeParameter(mytype=float, value=5.e19, name='N_i EOF+4s', comment = 'The level to which plasma density decreases during 4 s after start of plasma current ramp-down phase. After that Greenwald ratio is kept constant', unit='m^-3')
         
-        self.DINAData["ener_ext"] = CodeParameter(mytype=int, value=0, name='ener_ext', comment = 'When time>tt_dina, switch off internal energy transport calculations')
-        self.DINAData["dens_ext"] = CodeParameter(mytype=int, value=0, name='dens_ext', comment = 'When time>tt_dina, switch off internal density transport calculations')
-        self.DINAData["ajb_ext"] = CodeParameter(mytype=int, value=0, name='ajb_ext', comment = 'When time>tt_dina, switch off internal conductivity and bootstrap current calculations')
+        self.DINAData["ener_ext"] = CodeParameter(mytype=int, value=1, name='ener_ext', comment = 'When time>tt_dina, switch off internal energy transport calculations')
+        self.DINAData["dens_ext"] = CodeParameter(mytype=int, value=1, name='dens_ext', comment = 'When time>tt_dina, switch off internal density transport calculations')
+        self.DINAData["ajb_ext"] = CodeParameter(mytype=int, value=1, name='ajb_ext', comment = 'When time>tt_dina, switch off internal conductivity and bootstrap current calculations')
         
         self.DINAData["grid_n"] = CodeParameter(mytype=int, value=50, name='Grid n', comment = 'Amount of 1D grid points')
         self.DINAData["grid_rho"] = CodeParameter(mytype=float, value=0.5, name='Grid rho', comment = 'Rho value after which the 1D grid gradually increases density')
@@ -438,30 +473,50 @@ class DINA_GUI(uiclass, baseclass):
         self.controlData["c2_y0"] = CodeParameter(mytype=float, value=0., comment = 'Tunable coefficient for divertor controller gain at the plasma current termination phase', name='c2_y0')
 
         self.controlData["t_tran2D"] = CodeParameter(mytype=float, value=3.5, comment = 'Time when the limiter controller starts to control extended set of the plasma shape parameters to maintain elongated plasma', name='t_elong', unit='s')
-        self.controlData["Tu"] = CodeParameter(mytype=float, value=0., comment = 'Minimum time of voltage variation from –Vmax to +Vmax for CS&PF power supplies', name='Tu', unit='s')
-        self.controlData["c_cur_max"] = CodeParameter(mytype=float, value=0., comment = 'Fraction of coil current limit when the current limitation alghorithm starts protection', name='c_cur_max')
+        self.controlData["Tu"] = CodeParameter(mytype=float, value=0.04, comment = 'Minimum time of voltage variation from –Vmax to +Vmax for CS&PF power supplies', name='Tu', unit='s')
+        self.controlData["c_cur_max"] = CodeParameter(mytype=float, value=0.98, comment = 'Fraction of coil current limit when the current limitation alghorithm starts protection', name='c_cur_max')
         
-        self.controlData["tt_rampup"] = CodeParameter(mytype=float, value=0., comment = 'Duration of the plasma current ramp-up', name='T_ramp-up', unit='s')
-        self.controlData["dtpl_term_l"] = CodeParameter(mytype=float, value=0., comment = 'Duration of the plasma current ramp-down', name='T_ramp-down', unit='s')
-        self.controlData["dt_end_sim"] = CodeParameter(mytype=float, value=0., comment = 'Duration of the CS&PF current termination phase, starting after end of plasma', name='T_PF-term', unit='s')
-        self.controlData["rms_noise"] = CodeParameter(mytype=float, value=0., comment = 'RMS of noise in the diagnostic signal of dZ/dt for VS stabilization', name='VS RMS noise', unit='m/s')
+        self.controlData["tt_rampup"] = CodeParameter(mytype=float, value=65., comment = 'Duration of the plasma current ramp-up', name='T_ramp-up', unit='s')
+        self.controlData["dtpl_term_l"] = CodeParameter(mytype=float, value=70., comment = 'Duration of the plasma current ramp-down', name='T_ramp-down', unit='s')
+        self.controlData["dt_end_sim"] = CodeParameter(mytype=float, value=50., comment = 'Duration of the CS&PF current termination phase, starting after end of plasma', name='T_PF-term', unit='s')
+        self.controlData["rms_noise"] = CodeParameter(mytype=float, value=0.6, comment = 'RMS of noise in the diagnostic signal of dZ/dt for VS stabilization', name='VS RMS noise', unit='m/s')
         
-        self.generalData["cIp_end"] = CodeParameter(mytype=float, value=0., comment = 'Final plasma current at the ramp-down phase', name='Ip_end', unit='A')
-        self.generalData["Ics1_eob"] = CodeParameter(mytype=float, value=0., comment = 'Value of the current in CS1 circuit at which the current ramp-down starts', name='I_CS1 EOF', unit='A')
+        
+        self.generalData["cIp_end"] = CodeParameter(mytype=float, value=-1.5e6, comment = 'Final plasma current at the ramp-down phase', name='Ip_end', unit='A')
+        self.generalData["Ics1_eob"] = CodeParameter(mytype=float, value=44.e3, comment = 'Value of the current in CS1 circuit at which the current ramp-down starts', name='I_CS1 EOF', unit='A')
         self.generalData["tpl_dir"] = CodeParameter(mytype=float, value=-1., name='Ip_dir', comment = 'Sign of the plasma current')
 
-        #self.RefreshUI()
+    
 
-        Rg = [4.2230, 5.5650, 7.5095, 5.3315]
-        Zg = [-3.7920, -4.4040, 2.9971, 4.5804]
+        self.Rg = [4.2230, 5.5650, 7.5095, 5.3315]
+        self.Zg = [-3.7920, -4.4040, 2.9971, 4.5804]
         self.gapsData = []
         ng = 4
         for i in range(ng):
-          self.gapsData.append(ControlPoint(r=Rg[i], z=Zg[i]))
+          self.gapsData.append(ControlPoint(r=self.Rg[i], z=self.Zg[i]))
 
+
+        self.PulseSchedule = {}
+        self.PulseSchedule['ip'] = Waveform(unit='MA', mult=1.e-6, name='Plasma current')
+        self.PulseSchedule['pf_res'] = Waveform(unit='Ohm', name='PF resistances')
+        self.PulseSchedule['pf_curr'] = Waveform(unit='kA', mult=1.e-3, name='PF currents')
+        self.PulseSchedule['pf_volt'] = Waveform(unit='V', name='PF voltages')
+        self.PulseSchedule['density'] = Waveform(unit='10^19 m^-3', mult=1.e-19, name='Ion density')
+        self.PulseSchedule['power_ec'] = Waveform(unit='MW', mult=1.e-6, name='ECH power')
+        self.PulseSchedule['power_ic'] = Waveform(unit='MW', mult=1.e-6, name='ICH power')
+        self.PulseSchedule['elong'] = Waveform(unit=None, name='Elongation')
+        self.PulseSchedule['gaps'] = Waveform(unit='m', name='Gaps')
+        self.PulseSchedule['gaps_term'] = Waveform(unit='m', name='Gaps_Termination')
+        self.PulseSchedule['r_ax'] = Waveform(unit='m', name='R axis')
+        self.PulseSchedule['a_pl'] = Waveform(unit='m', name='Minor radius')
+
+
+        self.currentTable = None
+
+        #self.RefreshUI()
         self.RefreshWorkflowData()
         #self.RefreshTokamakData()
-        #self.RefreshPulseSchedule()
+        self.RefreshPulseSchedule()
         self.RefreshDINAData()
         self.RefreshControlData()
         
@@ -491,7 +546,47 @@ class DINA_GUI(uiclass, baseclass):
         
       return graph.layout
       
-                      
+
+    def InsertRow(self):
+      if self.currentTable == None:
+        return
+      table = self.currentTable
+      selItems = table.selectedItems()
+      row = -1
+      for currItem in selItems:
+        row = max(row, currItem.row())
+      if row == -1:
+        row = table.rowCount()
+      else:
+        row = row + 1
+      table.insertRow(row)
+
+      for col in range(table.columnCount()):
+        table.setItem(row, col, QtWidgets.QTableWidgetItem(table.item(row-1, col).text()))
+      
+      if row+1 < table.rowCount():
+        t = (float(table.item(row, 0).text()) + float(table.item(row+1, 0).text()))/2.
+      else:
+        t = float(table.item(row, 0).text()) + 1.e-3
+      table.item(row, 0).setText(str(t))
+
+
+    def DeleteRow(self):
+      if self.currentTable == None:
+        return
+      table = self.currentTable
+      selItems = table.selectedItems()
+      row = -1
+      if len(selItems) > 0:
+        row = selItems[0].row()
+      for currItem in selItems:
+        if currItem.row() != row:
+          row = -1
+      if row != -1:
+        table.removeRow(row)
+
+
+
     def TableClicked(self):
       print('\n')
       #table.resizeColumnsToContents()
@@ -524,6 +619,7 @@ class DINA_GUI(uiclass, baseclass):
         
     def tableSelectionChanged(self, table):
       table.resizeColumnsToContents()
+      self.currentTable = table
       self.tableColumnPlot(table, self.timeTraceGraph)
     
     
@@ -813,9 +909,9 @@ class DINA_GUI(uiclass, baseclass):
     
     
     
-    def CreateInputTabTimed(self, parentObject, datarow, title=None):
+    def CreateInputTabTimed(self, parentObject, data, title=None):
       if title == None:
-        title = datarow.name
+        title = data.name
       
       tab = QtWidgets.QWidget()
       tab.setObjectName("tab" + title)
@@ -824,25 +920,11 @@ class DINA_GUI(uiclass, baseclass):
       
       parentObject.addTab(tab, title)
       
-      table = QtWidgets.QTableWidget(tab)
+      table = data.table
       table.setDragEnabled(False)
       table.setDragDropMode(QtWidgets.QAbstractItemView.NoDragDrop)
       grid.addWidget(table, 0, 0)
-      
-      nt = len(datarow.timeWidgets)
-      nw = len(datarow.waveWidgets)
-      #if len(datarow["names2"]) == nw:
-      #  header = datarow["names2"]
-      #else:
-      header = ["Time"] + [str(j) for j in range(1,nw+1)]
-      
-      table.setRowCount(nt)
-      table.setColumnCount(nw+1)
-      table.setHorizontalHeaderLabels(header)
-      for it in range(nt):
-        table.setItem(it, 0, datarow.timeWidgets[it])
-        for iw in range(nw):
-          table.setItem(it, iw+1, datarow.waveWidgets[iw][it])
+
       table.itemSelectionChanged.connect(lambda x=table:self.tableSelectionChanged(x))
           
           
@@ -908,7 +990,8 @@ class DINA_GUI(uiclass, baseclass):
         table.setItem(j, 1, setOfGaps[j].widget_z)
         
       table.setHorizontalHeaderLabels(['R, m', 'Z, m'])
-      #table.setVerticalHeaderLabels(labels)
+      if (len(self.GapName) == ng):
+        table.setVerticalHeaderLabels(self.GapName)
       table.resizeColumnsToContents()
       
       
@@ -918,8 +1001,6 @@ class DINA_GUI(uiclass, baseclass):
       if dirTmp: 
         self.directoryLoad = dirTmp
         #self.labelDirLoad.setText(self.directoryLoad)
-        
-        self.PulseSchedule = {}
         
         imas_obj1 = imas.DBEntry('imas:mdsplus?user=public;pulse=111001;run=203;database=ITER_MD;version=3', 'r')
         imas_obj1.open()
@@ -1062,8 +1143,6 @@ class DINA_GUI(uiclass, baseclass):
         tree = ET.parse(filepath)
         XML_root_KMC = tree.getroot()
 
-        
-        self.PulseSchedule = {}
 
         self.LoadWorkflowData(XML_root_Workflow)
         #self.LoadTokamakData()
@@ -1329,17 +1408,17 @@ class DINA_GUI(uiclass, baseclass):
     
     def LoadPulseSchedule(self, ps, ps_dw):
       
-      self.CoilName = [coil.name for coil in ps.pf_active.coil]
-      self.SupplyName = [supply.name for supply in ps.pf_active.supply]
-      self.GapName = [gap.name for gap in ps.position_control.gap]
+      self.CoilName = [coil.identifier for coil in ps.pf_active.coil]
+      self.SupplyName = [supply.identifier for supply in ps.pf_active.supply]
+      self.GapName = [gap.identifier for gap in ps.position_control.gap]
       
       data = [ps.flux_control.i_plasma.reference.data]
       time = ps.flux_control.i_plasma.reference.time
-      self.PulseSchedule['ip'] = Waveform(time, data)
+      self.PulseSchedule['ip'].SetData(time, data, ['Ip'])
 
       data = [coil.resistance_additional.reference.data for coil in ps.pf_active.coil]
       time = ps.pf_active.coil[0].resistance_additional.reference.time
-      self.PulseSchedule['pf_res'] = Waveform(time, data)
+      self.PulseSchedule['pf_res'].SetData(time, data, names=self.CoilName)
 
       data = [coil.current.reference.data for coil in ps.pf_active.coil]
       time = ps.pf_active.coil[0].current.reference.time
@@ -1347,7 +1426,7 @@ class DINA_GUI(uiclass, baseclass):
       for i in range(len(data)):
         if len(data[i]) != nt:
           data[i] = numpy.zeros(nt)
-      self.PulseSchedule['pf_curr'] = Waveform(time, data)
+      self.PulseSchedule['pf_curr'].SetData(time, data, names=self.CoilName)
 
       data = [supply.voltage.reference.data for supply in ps.pf_active.supply]
       time = ps.pf_active.supply[0].voltage.reference.time
@@ -1355,39 +1434,40 @@ class DINA_GUI(uiclass, baseclass):
       for i in range(len(data)):
         if len(data[i]) != nt:
           data[i] = numpy.zeros(nt)
-      self.PulseSchedule['pf_volt'] = Waveform(time, data)
+      self.PulseSchedule['pf_volt'].SetData(time, data, names=self.SupplyName)
 
       data = [ps.ec.power.reference.data]
       time = ps.ec.power.reference.time
-      self.PulseSchedule['power_ec'] = Waveform(time, data)
+      self.PulseSchedule['power_ec'].SetData(time, data, names=['P_EC'])
 
       data = [ps.ic.power.reference.data]
       time = ps.ic.power.reference.time
-      self.PulseSchedule['power_ic'] = Waveform(time, data)
+      self.PulseSchedule['power_ic'].SetData(time, data, names=['P_IC'])
 
       data = [ion.n_i_volume_average.reference.data for ion in ps.density_control.ion]
+      names = [ion.label for ion in ps.density_control.ion]
       time = ps.density_control.ion[0].n_i_volume_average.reference.time
-      self.PulseSchedule['density'] = Waveform(time, data)
+      self.PulseSchedule['density'].SetData(time, data, names=names)
 
       data = [ps.position_control.elongation.reference.data]
       time = ps.position_control.elongation.reference.time
-      self.PulseSchedule['elong'] = Waveform(time, data)
+      self.PulseSchedule['elong'].SetData(time, data, names=['elong'])
 
       data = [gap.value.reference.data for gap in ps.position_control.gap]
       time = ps.position_control.gap[0].value.reference.time
-      self.PulseSchedule['gaps'] = Waveform(time, data)    
+      self.PulseSchedule['gaps'].SetData(time, data, names=self.GapName)    
 
       data = [gap.value.reference.data for gap in ps_dw.position_control.gap]
       time = ps_dw.position_control.gap[0].value.reference.time
-      self.PulseSchedule['gaps_term'] = Waveform(time, data)  
+      self.PulseSchedule['gaps_term'].SetData(time, data, names=self.GapName)  
 
       data = [ps.position_control.geometric_axis.r.reference.data]
       time = ps.position_control.geometric_axis.r.reference.time
-      self.PulseSchedule['r_ax'] = Waveform(time, data)   
+      self.PulseSchedule['r_ax'].SetData(time, data, names=['R_ax'])   
       
       data = [ps.position_control.minor_radius.reference.data]
       time = ps.position_control.minor_radius.reference.time
-      self.PulseSchedule['a_pl'] = Waveform(time, data) 
+      self.PulseSchedule['a_pl'].SetData(time, data, names=['a']) 
 
 
     def SavePulseSchedule(self):
@@ -1407,7 +1487,6 @@ class DINA_GUI(uiclass, baseclass):
       ps.flux_control.i_plasma.reference.data = wf.GetData(0)
 
       
-      CoilName = ["CS3U", "CS2U", "CS1U", "CS1L", "CS2L", "CS3L", "PF1", "PF2", "PF3", "PF4", "PF5", "PF6", "VS3U", "VS3L"]
       wf = self.PulseSchedule['pf_res']
       ps.pf_active.coil.resize(wf.NumData())
       for i in range(wf.NumData()):
@@ -1457,14 +1536,11 @@ class DINA_GUI(uiclass, baseclass):
       ps.position_control.elongation.reference.time = wf.GetTime()
       ps.position_control.elongation.reference.data = wf.GetData(0)
 
-      Rg = [4.2230, 5.5650, 7.5095, 5.3315]
-      Zg = [-3.7920, -4.4040, 2.9971, 4.5804]
-      #Ag = [-65.0, -150.0, -135.0, -90.0]
       wf = self.PulseSchedule['gaps']
       ps.position_control.gap.resize(wf.NumData())
       for i in range(wf.NumData()):
-        ps.position_control.gap[i].r = Rg[i]
-        ps.position_control.gap[i].z = Zg[i]
+        ps.position_control.gap[i].r = self.Rg[i]
+        ps.position_control.gap[i].z = self.Zg[i]
         ps.position_control.gap[i].name = self.GapName[i]
         ps.position_control.gap[i].identifier = self.GapName[i]
         ps.position_control.gap[i].value.reference_name = RefName_RUFT
@@ -1474,8 +1550,8 @@ class DINA_GUI(uiclass, baseclass):
       wf = self.PulseSchedule['gaps_term']
       ps_dw.position_control.gap.resize(wf.NumData())
       for i in range(wf.NumData()):
-        ps_dw.position_control.gap[i].r = Rg[i]*1.e-2
-        ps_dw.position_control.gap[i].z = Zg[i]*1.e-2
+        ps_dw.position_control.gap[i].r = self.Rg[i]*1.e-2
+        ps_dw.position_control.gap[i].z = self.Zg[i]*1.e-2
         ps_dw.position_control.gap[i].name = self.GapName[i] + '_term'
         ps_dw.position_control.gap[i].identifier = self.GapName[i] + '_term'
         ps_dw.position_control.gap[i].value.reference_name = RefName_RD
@@ -1551,6 +1627,8 @@ class DINA_GUI(uiclass, baseclass):
       gaps_r = gaps.find('gaps_r').text.split()
       gaps_z = gaps.find('gaps_z').text.split()
       self.gapsData = []
+      print(gaps_r)
+      print(gaps_z)
       for i in range(ng):
         self.gapsData.append(ControlPoint(r=float(gaps_r[i]), z=float(gaps_z[i])))
       

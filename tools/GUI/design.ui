@@ -101,7 +101,7 @@
      <x>0</x>
      <y>0</y>
      <width>1105</width>
-     <height>19</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -122,7 +122,15 @@
     <addaction name="actionPause"/>
     <addaction name="actionStop"/>
    </widget>
+   <widget class="QMenu" name="menuWaveform">
+    <property name="title">
+     <string>Waveform</string>
+    </property>
+    <addaction name="actionInsert_row"/>
+    <addaction name="actionDelete_row"/>
+   </widget>
    <addaction name="menuFile"/>
+   <addaction name="menuWaveform"/>
    <addaction name="menuRun"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
@@ -159,6 +167,16 @@
   <action name="actionStop">
    <property name="text">
     <string>Stop</string>
+   </property>
+  </action>
+  <action name="actionInsert_row">
+   <property name="text">
+    <string>Insert row</string>
+   </property>
+  </action>
+  <action name="actionDelete_row">
+   <property name="text">
+    <string>Delete row</string>
    </property>
   </action>
  </widget>

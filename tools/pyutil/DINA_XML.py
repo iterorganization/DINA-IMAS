@@ -177,17 +177,18 @@ def DINADataToXML(directoryLoad):
     gr = [float(g)*1.e-2 for g in s_gr.split()]
     gz = [float(g)*1.e-2 for g in s_gz.split()]
 
-    if False:
-        if ng == 6:
-            del gr[2,5]
-            del gz[2,5]
+    # Remove g3 and g6
+    if ng == 6:
+        gr = [gr[i] for i in [0, 1, 3, 4]]
+        gz = [gz[i] for i in [0, 1, 3, 4]]
+        ng = 4
 
     s_gr = "  ".join([str(g) for g in gr])
     s_gz = "  ".join([str(g) for g in gz])
 
     element_g = ET.SubElement(root, "gaps")
     element_ng = ET.SubElement(element_g, "ngaps")
-    element_ng.text = s_ng
+    element_ng.text = str(ng)
     element_gr = ET.SubElement(element_g, "gaps_r")
     element_gr.text = s_gr
     element_gz = ET.SubElement(element_g, "gaps_z")
