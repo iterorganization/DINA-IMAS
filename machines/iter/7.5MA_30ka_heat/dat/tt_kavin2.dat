@@ -1,0 +1,6 @@
+tt_rampup  
+30000   
+  dc2/dt        dtpl_term_l       cIp_end  
+0.0   28   1.4   
+  Ics1_eob(kA)   rms_noise(m/s)  
+-29.0   0.6   
