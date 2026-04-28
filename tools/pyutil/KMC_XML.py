@@ -100,8 +100,8 @@ def main():
     # ------------------------------
     parser = argparse.ArgumentParser(description=\
             'Converts KMC input *.dat files to XML code parameters file')
-    parser.add_argument('-w','--workdir', help='The directory with input files', required=True)
-    parser.add_argument('-n','--newdir', help='The directory with output files', required=False)
+    parser.add_argument('-w','--workdir', help='The directory with input *.dat files', required=True)
+    parser.add_argument('-n','--newdir', help='The directory for output codeparam_kmc.xml', required=False)
 
     args = vars(parser.parse_args())
 

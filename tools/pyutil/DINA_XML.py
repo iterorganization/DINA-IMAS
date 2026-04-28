@@ -122,22 +122,23 @@ def DINADataToXML(directoryLoad):
 
     #tt_kavin2.dat
     f = open(os.path.join(directoryLoad, "tt_kavin2.dat"))
-    names = ['tt_rampup']
     data = DINAFiles.ReadParameters(f, 3)
+    
+    names = ['tt_rampup']
     data[0][0].value *= 1.e-3
-    for i in range(len(names)):
+    for i in []:
         element = ET.SubElement(root, names[i])
         element.text = str(data[0][i].value)
 
     names = ['dt_end_sim', 'dtpl_term_l', 'cIp_end']
     data[1][2].value *= -1.e6
-    for i in range(len(names)):
+    for i in [2]:
         element = ET.SubElement(root, names[i])
         element.text = str(data[1][i].value)
 
     names = ['Ics1_eob', 'rms_noise']
     data[2][0].value *= -1.e3
-    for i in range(len(names)):
+    for i in [0]:
         element = ET.SubElement(root, names[i])
         element.text = str(data[2][i].value)
 
@@ -215,8 +216,8 @@ def main():
     # ------------------------------
     parser = argparse.ArgumentParser(description=\
             'Converts DINA input *.dat files to XML code parameters file')
-    parser.add_argument('-w','--workdir', help='The directory with input files', required=True)
-    parser.add_argument('-n','--newdir', help='The directory with output files', required=False)
+    parser.add_argument('-w','--workdir', help='The directory with input *.dat files', required=True)
+    parser.add_argument('-n','--newdir', help='The directory for output codeparam_dina.xml', required=False)
 
     args = vars(parser.parse_args())
 
