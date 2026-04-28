@@ -22,6 +22,10 @@ def DINADataToXML(directoryLoad):
     f.close()
 
 
+    element = ET.SubElement(root, "tpl_dir")
+    element.text = str(-1.0)
+
+
     # tt_kavin.dat
     f = open(os.path.join(directoryLoad, "tt_kavin.dat"))
     names = ('tt_kavin',)
@@ -161,8 +165,6 @@ def DINADataToXML(directoryLoad):
     element = ET.SubElement(root, "q_swth")
     element.text = str(0.97)
 
-    element = ET.SubElement(root, "tpl_dir")
-    element.text = str(-1.0)
 
     # Gaps
     fr = open(os.path.join(directoryLoad, 'gaps_data_ramp'), 'r')
