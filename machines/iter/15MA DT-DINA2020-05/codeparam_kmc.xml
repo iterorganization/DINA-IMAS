@@ -1,0 +1,30 @@
+<?xml version="1.0" ?>
+<parameters>
+   <kpr>1</kpr>
+   <tpl_dir>-1.0</tpl_dir>
+   <tcont2>2.0</tcont2>
+   <dtcont2>0.3</dtcont2>
+   <Ip_div>-5000000.0</Ip_div>
+   <ref_ramp>3.0</ref_ramp>
+   <Ip_rd>-4400000.0</Ip_rd>
+   <trd_ref>70.0</trd_ref>
+   <max_VS_lim>0.25</max_VS_lim>
+   <c_a_tpl2_lim>1</c_a_tpl2_lim>
+   <time_stop>75</time_stop>
+   <c_a_tpl1>5.0</c_a_tpl1>
+   <c_a_tpl1_eob>1.5</c_a_tpl1_eob>
+   <c_a_tpl2>5.0</c_a_tpl2>
+   <c_a_tpl_min>0.75</c_a_tpl_min>
+   <y0>1.0</y0>
+   <c1_y0>1.8</c1_y0>
+   <c2_y0>4.0</c2_y0>
+   <t_tran2D>3.5</t_tran2D>
+   <tt_rampup>65.0</tt_rampup>
+   <dt_end_sim>50</dt_end_sim>
+   <dtpl_term_l>70</dtpl_term_l>
+   <cIp_end>-1500000.0</cIp_end>
+   <Ics1_eob>44000.0</Ics1_eob>
+   <rms_noise>0.6</rms_noise>
+   <Tu>0.04</Tu>
+   <c_cur_max>0.98</c_cur_max>
+</parameters>
