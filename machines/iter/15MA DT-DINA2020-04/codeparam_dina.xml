@@ -1,0 +1,38 @@
+<?xml version="1.0" ?>
+<parameters>
+   <kpr>1</kpr>
+   <tt_kavin>3.5</tt_kavin>
+   <tt_dina>11520.0</tt_dina>
+   <tau_sim>0.01</tau_sim>
+   <tau_dw>0.005</tau_dw>
+   <tau>0.002</tau>
+   <key_t11>1</key_t11>
+   <bohm_gbohm>1</bohm_gbohm>
+   <p>0.001</p>
+   <T_e>0.002</T_e>
+   <T_i>0.002</T_i>
+   <gam>0.05</gam>
+   <gain_puff>50.0</gain_puff>
+   <pcchp_end>4e+19</pcchp_end>
+   <ener_ext>1</ener_ext>
+   <dens_ext>1</dens_ext>
+   <ajb_ext>1</ajb_ext>
+   <cIp_end>-1500000.0</cIp_end>
+   <Ics1_eob>44000.0</Ics1_eob>
+   <grid_n>50</grid_n>
+   <grid_rho>0.5</grid_rho>
+   <grid_alpha>0.95</grid_alpha>
+   <coef_p_lh>1.0</coef_p_lh>
+   <q_swth>0.97</q_swth>
+   <tpl_dir>-1.0</tpl_dir>
+   <gaps>
+      <ngaps>4</ngaps>
+      <gaps_r>4.223  5.565  7.509500000000001  5.3315</gaps_r>
+      <gaps_z>-3.792  -4.404  2.9970999999999997  4.5804</gaps_z>
+   </gaps>
+   <circuit>
+      <ncirc>14</ncirc>
+      <connection>1 2 3 3 4 5 6 7 8 9 10 11 12 12</connection>
+      <direction>1 1 1 1 1 1 1 1 1 1 1 1 1 -1</direction>
+   </circuit>
+</parameters>
