@@ -1,8 +1,0 @@
-	parameter(iy=150,ny=10 )
-	parameter (nv=400, npo2=2*npo)
-
-
-
-
-
-

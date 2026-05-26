@@ -1,4 +1,0 @@
-	parameter ( n_inp=10 , n_out=19, n_int=10 , n_est= 95 )
-
-
-

@@ -1,1 +1,0 @@
-	parameter ( nze=2*nz-1, nre=2*nr-1, nwnhe=nze*nre )

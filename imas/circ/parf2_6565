@@ -1,2 +1,0 @@
-	PARAMETER (NN=65, MM=65, mu1=800, ngrid=196 )
-	PARAMETER (NZ=65,NR=65,nwnh=nr*nz, nwh=nz*nwnh )
