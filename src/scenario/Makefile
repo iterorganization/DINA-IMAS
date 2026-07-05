@@ -19,7 +19,7 @@ else
 endif
 
 
-DEBUG = -g -O0
+DEBUG = -g -O0 -ffixed-form -fno-inline
 ifeq ($(TARGET), DEBUG)
   FCFLAGS += $(DEBUG)
 endif

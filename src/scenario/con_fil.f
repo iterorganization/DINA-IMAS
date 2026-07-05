@@ -75,25 +75,25 @@ c kavin_1         parameter(num_inputs_div=18,num_states_div=28)
 
 	dimension error(kf_c)
 	dimension a_gz(num_coils)
-	dimension u_1(*),u_kd(*),pf_lim(*),coef_pf_lim(30)
+	dimension u_1(*),u_kd(*),pf_lim(*),coef_pf_lim(kf)
 
 	dimension gaps(*),gaps_ref_p(*),gaps_refXPF(num_gaps)
-	dimension pf(*),curr_ref_p(*),curr_refXPF(30)
+	dimension pf(*),curr_ref_p(*),curr_refXPF(kf)
 
-        dimension gaps_ref(30),curr_ref(30)
+        dimension gaps_ref(kf),curr_ref(kf)
 
 	dimension vchopper(*),u_help(kf)
 
 	dimension state(*),state_old(*),pf_turns(*)
 	dimension state_vert(*),state_old_vert(*)
 
-        dimension zresist(30),zvboost(30),zvresist(30),
-     *zsatpf(30),ztotsat(30),zvconverter(30)
+        dimension zresist(kf),zvboost(kf),zvresist(kf),
+     *zsatpf(kf),ztotsat(kf),zvconverter(kf)
 
-        dimension curr_max(30),curr_gain(30)
+        dimension curr_max(kf),curr_gain(kf)
 
 	LOGICAL diverted,using_lim,using_div,on_transition
-	real XPFtime,V_sat_imb(30)
+	real XPFtime,V_sat_imb(kf)
 	real ak(kf_c,kf_c),bk(kf_c,kf_c),ck(kf_c,kf_c),dk(kf_c,kf_c)
 	integer num_states,num_inputs
 

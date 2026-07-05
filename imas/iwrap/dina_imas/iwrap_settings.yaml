@@ -89,7 +89,7 @@ code_description:
             set_state:
     settings:
         compiler_cmd: $FC
-        compiler_flags:
+        compiler_flags: -Wl,--no-relax
         extra_libraries:
             path_defined:
             - ./dina_imas.a

@@ -1,12 +1,21 @@
 # Makefile for compilation of DINA components
 
-AR = ar
-ARFLAGS = -ru
-FC = gfortran
+AR ?= ar
+ARFLAGS ?= -ru
 
-f2c= cc -fpic -w -g -O0
+CC ?= cc
+CFLAGS ?= -fPIC -w
 
-FFLAGS = -w -ffixed-line-length-none -fd-lines-as-comments -fno-automatic -fPIC
+# Disable warning from of icx
+ifeq ($(CC), icc)
+  CFLAGS += -diag-disable=10441
+endif
+
+DEBUG = -g -O0
+ifeq ($(TARGET), DEBUG)
+  CFLAGS += $(DEBUG)
+endif
+
 
 CONTROLSRC = t15_2.c t15_2_data.c \
 contr_curr.c contr_curr_wrapper.c contr_div.c contr_div_wrapper.c \
@@ -25,7 +34,6 @@ CONTROLOBJ = $(CONTROLSRC:.c=.o)
 mkfile_path := $(abspath $(lastword $(MAKEFILE_LIST)))
 current_dir := $(notdir $(patsubst %/,%,$(dir $(mkfile_path))))
 DINA_KAV := kmc.a
-#DINA_KAV := $(current_dir).a
 
 all: $(DINA_KAV)
 
@@ -34,11 +42,8 @@ $(DINA_KAV): $(CONTROLOBJ)
 	$(RM) -r $@
 	$(AR) $(ARFLAGS) $@ $^
 
-%.o: %.f
-	$(FC) $(FFLAGS) -c $<
-
 %.o: %.c
-	$(f2c)  -c $<
+	$(CC) $(CFLAGS) -c $<
 
 clean:
 	-rm -f *.o 

@@ -32,27 +32,22 @@ else
   $(error Unsupported Fortran compiler)
 endif
 
-DEBUG = -g -O0
-ifeq ($(TARGET), DEBUG)
-  F90FLAGS += $(DEBUG)
-endif
-
 F90FLAGS+=$(F90DEF)
-
 F90=$(FCOMPILER)
 
 # FLAGS OF PACKAGES
-F90LIB+=`pkg-config $(PACKAGES) --libs`
+F90LIB+=`pkg-config $(PACKAGES) --libs` -mcmodel=large -Wl,--no-relax
 F90INC+=`pkg-config $(PACKAGES) --cflags`
 
+F90FLAGS+=$(F90INC)
+FFLAGS = $(F90FLAGS)
 
 DEBUG = -g -O0
 ifeq ($(TARGET), DEBUG)
   F90FLAGS += $(DEBUG)
+  FFLAGS += $(DEBUG) -ffixed-form -fno-inline
 endif
 
-F90=$(FCOMPILER)
-F90FLAGS+=$(F90INC)
 
 DINATRANSP = dina_transp1.o tran1.o dina_transp2.o tran2.o dina_transp3.o tran3.o dina_transp4.o tran4.o dina_transp5.o tran5.o
 
@@ -118,7 +113,7 @@ dina_green.a: $(GREENDIR)/green.a dina_green.o tokamak_green.o
 
 %.o: %.f
 	@echo "   * $^ -> $@"
-	$(F90) $(F90FLAGS) -c $<
+	$(F90) $(FFLAGS) -c $<
 
 dina_imas.a: $(DINADIR)/dina_99.a $(LIB_SOURCEDINA)
 	@echo "   * $^ -> $@"

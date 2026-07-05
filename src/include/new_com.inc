@@ -346,7 +346,7 @@ c** it is used in cur, dop_port.inc, victor.f
      *	/vic_mario_filt/state(kf_c),state_old(kf_c)
      *	/vic_mario_filt1/state_vert(kf_c),state_old_vert(kf_c)
      *	/vic_int_2005/int_2005
-     *  /vic_satur/zvconverter(30),zvresist(30)
+     *  /vic_satur/zvconverter(kf),zvresist(kf)
      *	/vic_mario_ksepa/ksepa_0
      *  /vic_elong/elong_sep
      *  /vic_rref/rref_0

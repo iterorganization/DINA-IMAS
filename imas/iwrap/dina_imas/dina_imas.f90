@@ -655,7 +655,11 @@ if (associated(core_profiles0%profiles_1d(CurTimeStep)%grid%rho_tor_norm)) then
 
   print*, 'Applying restart...'
 
-	tt = equilibrium0%time_slice(CurTimeStep)%time
+	if(equilibrium0%ids_properties%homogeneous_time.eq.1) then 
+    tt = equilibrium0%time(CurTimeStep)
+  else 
+    tt = equilibrium0%time_slice(CurTimeStep)%time
+  endif 
 	tpl = equilibrium0%time_slice(CurTimeStep)%global_quantities%ip
         
 	rmag=equilibrium0%time_slice(CurTimeStep)%global_quantities%magnetic_axis%r ![m]

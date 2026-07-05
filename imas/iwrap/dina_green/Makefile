@@ -30,7 +30,7 @@ else
 endif
 
 
-DEBUG = -g -O0
+DEBUG = -g -O0 -fno-inline
 ifeq ($(TARGET), DEBUG)
   F90FLAGS += $(DEBUG)
 endif
