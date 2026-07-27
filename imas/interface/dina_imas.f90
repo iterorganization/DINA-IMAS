@@ -839,8 +839,16 @@ call get_contr_signals(vchopper)
 
 
 write(*,*) '!!!dina_0 enter'
-	call dina_0()
 
+write(*,*) 'call bound_psgrid()'
+
+    call bound_psgrid()
+        print *,' call bound_psgrid'
+
+
+    stop
+
+	call dina_0()
 
 
 write(*,*) '!!!dina_outp enter'
