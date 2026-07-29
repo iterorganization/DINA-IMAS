@@ -1,6 +1,6 @@
 !> dina_imas is the main subroutine to connect DINA input-output data with IMAS
 !> As a result of call dina_v96_in the Green Functions are being transmitted to DINA from IDSs
-!> After call dina_input the initial kinetic profiles are being transmitted to DINA from IDSs   
+!> After call dina_input the initial kinetic profiles are being transmitted to DINA from IDSs
 !> As a result of call dina_0 and then call dina2 the DINA modeling in one time step is being produced
 !> After call dina_outp the output data are being recorded to IDS and dat files
 
@@ -15,7 +15,7 @@
 
 #define AllocArr(array, value, size)  if (.NOT.associated(array)) allocate(array(size)) ; \
                                     array(1:size) = value(1:size)
-                                    
+
 
 
 
@@ -25,7 +25,7 @@ subroutine dina_imas(&
   & ,pulse_schedule &
   & ,equilibrium, magnetics, pf_active, pf_passive, core_profiles, core_sources, core_transport &
   & ,summary)
-  
+
 
 
 use ids_schemas
@@ -80,7 +80,7 @@ integer,save :: npfa2=-1, npfa3=-1, npfp2=-1
 integer,save :: npass2=-1, ngrid2=-1
 integer,save :: kloop=-1,kprobe=-1, ke=-1
 
-          
+
 integer ::  kpr, i_grid
       common /ge5/kpr
 
@@ -97,7 +97,7 @@ real(ids_real) ::time_eq_c
       common /c_time_eq/time_eq_c
 
 
-    
+
 real(ids_real) :: tpl = 1000.d0, tt = 0.d0
 real(ids_real) :: psi_ax,psi_bnd,psi_sep,psi_sep2,psi_ext
 real(ids_real) :: rs0 = 1.d0, bt0 = 1.d0
@@ -146,9 +146,9 @@ real(ids_real), dimension(:), allocatable,save::  pf_turns
 real(ids_real),save :: cpu_old = 0.d0, cpu_new
 
 real(ids_real) :: yfluxd_xx,yfluxt_xx,yfluxe_xx,yfluxi_xx,ysbound_xx
- 
+
 character *20 apr
-	
+
 real(ids_real) :: cocos_psi = -1.d0
 
 common /pf1/npf,pf_xx(kf),pf0_xx(kf)
@@ -449,7 +449,7 @@ do i=2,nu
 
     x2 = wall0%description_2d(1)%limiter%unit(limunits(j))%outline%r(nlim)
     y2 = wall0%description_2d(1)%limiter%unit(limunits(j))%outline%z(nlim)
-    dst2 = (x2 - xu(k))**2 + (y2 - yu(k))**2 
+    dst2 = (x2 - xu(k))**2 + (y2 - yu(k))**2
 
     if (dst1.lt.dst) then
       dst = dst1
@@ -464,10 +464,10 @@ do i=2,nu
     endif
   enddo
 
-  
+
   nlim = size(wall0%description_2d(1)%limiter%unit(limunits(ju))%outline%r)
   if (wall0%description_2d(1)%limiter%unit(limunits(ju))%closed.eq.1) nlim = nlim-1
-  
+
   if (jdir.gt.0) then
     do j=1,nlim
       k = k + 1
@@ -520,7 +520,7 @@ flush(6)
 
 write(*,*) "End of static data extraction"
 
-  
+
 call write_cputime(0.d0, 0.d0, 1)
 
 
@@ -536,29 +536,29 @@ call write_cputime(0.d0, 0.d0, 1)
 &   pfgreen,vesgreen,pfprobe,&
 &   vesprobe,nwnh)
 
-  
-  
+
+
   write(*,*) "DINA green initialized"
   flush(6)
-  
-  
-  
+
+
+
 !    kpr=1
-! 		 open (unit=41,file='k_jetto.dat',form='formatted') 
-! 		 open (unit=49,file='dina_data.dat',form='formatted') 
-!          read (49,*) 
+! 		 open (unit=41,file='k_jetto.dat',form='formatted')
+! 		 open (unit=49,file='dina_data.dat',form='formatted')
+!          read (49,*)
 !          read (49,*)ih_imas
           ih_imas=ih_imas_c
  !        close (49)
-         
+
         print *,'from k_jetto.dat  ih_imas =',ih_imas
 
-! 		 open (unit=40,file='time_eq.dat',form='formatted') 
-!          read (49,*) 
+! 		 open (unit=40,file='time_eq.dat',form='formatted')
+!          read (49,*)
 !          read (49,*)time_eq
           time_eq=time_eq_c
 !         close (41)
-         
+
         print *,'from time_eq.dat  time_eq =',time_eq
 
 !    ih_imas=1
@@ -567,9 +567,9 @@ call write_cputime(0.d0, 0.d0, 1)
 !	call equil_data()
 !   end if
 !stop
-  
-  
-  
+
+
+
      CurTimeStep = 1
 
   if (associated(equilibrium0%vacuum_toroidal_field%b0)) then
@@ -584,11 +584,11 @@ call write_cputime(0.d0, 0.d0, 1)
       print*, 'Toroidal field is not found'
    stop
   endif
-  
+
   pf(1:nact) = 0.d0
-  
-  if (associated(pf_active0%coil(1)%current%data)) then 
-  
+
+  if (associated(pf_active0%coil(1)%current%data)) then
+
     print*, 'PF currents are assigned from pf_active'
   do i=1,npfa
     if (associated(pf_active0%coil(i)%current%data)) then
@@ -598,7 +598,7 @@ call write_cputime(0.d0, 0.d0, 1)
   enddo
 
   else
-  
+
   print*, 'PF currents are assigned from pulse_schedule'
   do i=1,npfa
     if (associated(pulse_schedule%pf_active%coil(i)%current%reference%data)) then
@@ -608,32 +608,32 @@ call write_cputime(0.d0, 0.d0, 1)
   enddo
 
   endif
-  
+
   print *,'Active currents are assigned to:'
   do i=1,nact
     print *,' i pf==',i,pf(i)
   enddo
 
   tokc=0.d0
-  if (associated(pf_passive0%loop(1)%current)) then  
+  if (associated(pf_passive0%loop(1)%current)) then
     do i=1,npfp
       tcam(i) = pf_passive0%loop(i)%current(CurTimeStep)
       tokc=tokc+tcam(i)
     enddo
     print *,'Passive currents are assigned, tokc=', tokc
-  else 
+  else
     do i=1,npfp
       tcam(i) = 0.d0
     enddo
     print *,'Passive currents are set to zero'
   endif
-  
-  
+
+
   tt = 0.d0
   call dina_input0(tt,pf,tcam,rs0,bt0)
   call ONE2()
-  
-  
+
+
 if (associated(equilibrium0%time_slice)) then
 if (associated(equilibrium0%time_slice(CurTimeStep)%profiles_1d%dpressure_dpsi)) then
 if (associated(core_profiles0%profiles_1d)) then
@@ -643,12 +643,12 @@ if (associated(core_profiles0%profiles_1d(CurTimeStep)%grid%rho_tor_norm)) then
 
 	tt = equilibrium0%time_slice(CurTimeStep)%time
 	tpl = equilibrium0%time_slice(CurTimeStep)%global_quantities%ip
-        
+
 	rmag=equilibrium0%time_slice(CurTimeStep)%global_quantities%magnetic_axis%r ![m]
         zmag=equilibrium0%time_slice(CurTimeStep)%global_quantities%magnetic_axis%z ![m]
-        
+
         print *,' ++tt tpl==',tt,tpl
-        
+
 	n_tr = size(core_profiles0%profiles_1d(CurTimeStep)%grid%rho_tor_norm)
         n = n_tr
   if (n_tr.gt.npo) then
@@ -667,26 +667,26 @@ if (associated(core_profiles0%profiles_1d(CurTimeStep)%grid%rho_tor_norm)) then
   endif
 
 	!a(1:n) = equilibrium0%time_slice(CurTimeStep)%profiles_1d%rho_tor_norm(1:n)
-  
+
         write(*,*) 'DINA_IMAS - equilibrium poloidal flux'
         psi_eq(1:n) = cocos_psi * equilibrium0%time_slice(CurTimeStep)%profiles_1d%psi(1:n)
-  
+
 	pptab(1:n) = cocos_psi * equilibrium0%time_slice(CurTimeStep)%profiles_1d%dpressure_dpsi(1:n)
 	fptab(1:n) = cocos_psi * equilibrium0%time_slice(CurTimeStep)%profiles_1d%f_df_dpsi(1:n)
-  
-   
+
+
     i_restart=1
-    
-    
+
+
     call dina_input2(tt,tpl,rmag,zmag,  &
   &  n_eq,pptab,fptab,psi_eq, &
   &  n_tr,a_tr,psi_tr)
-    
+
 endif
 endif
 endif
 endif ! end of restart assignment
-    
+
 end if ! end of first_call
 
 
@@ -713,22 +713,22 @@ print *,'n1 i_restart ==',n1,i_restart
  te0(1:n1) = core_profiles0%profiles_1d(1)%electrons%temperature(1:n1)
  tq0(1:n1) = core_profiles0%profiles_1d(1)%t_i_average(1:n1)
 
-      apr='--te0-' 
-      print 71,apr,(te0(i),i=1,n1) 
-      apr='--tq0-' 
-      print 71,apr,(tq0(i),i=1,n1) 
+      apr='--te0-'
+      print 71,apr,(te0(i),i=1,n1)
+      apr='--tq0-'
+      print 71,apr,(tq0(i),i=1,n1)
 
 ! if (associated(bndcond_in%profiles_1d)) then
 !     write(*,*) 'dina_imas : boundary conditions are found'
 !  te0(n1) = bndcond_in%profiles_1d(1)%electrons%energy%boundary_condition%value(1)
 !  tq0(n1) = bndcond_in%profiles_1d(1)%energy_ion_total%boundary_condition%value(1)
-!  
+!
 !      write(*,*) 'te0(n1) tq0(n1)= ', &
 !     & te0(n1),tq0(n1)
-! 
+!
 !       call solpsza_example_in(te0(n1),tq0(n1))
-! 
-! 
+!
+!
 ! end if
 
 i_bnd=0
@@ -737,7 +737,7 @@ if (i_bnd.eq.1) then
     write(*,*) 'dina_imas : boundary conditions are found'
  te0(n1) = bndcond_in%solver_1d(1)%equation(1)%boundary_condition(1)%value(1)
  tq0(n1) = bndcond_in%solver_1d(1)%equation(3)%boundary_condition(1)%value(1)
- 
+
      write(*,*) 'te0(n1) tq0(n1)= ', &
     & te0(n1),tq0(n1)
 
@@ -759,12 +759,12 @@ end if
  else
   pt0(1:n1) = 1.d0
  endif
-      apr='--&pne-' 
-      print 71,apr,(pne(i),i=1,n1) 
-      apr='--&pd0-' 
-      print 71,apr,(pd0(i),i=1,n1) 
-      apr='--&pt0-' 
-      print 71,apr,(pt0(i),i=1,n1) 
+      apr='--&pne-'
+      print 71,apr,(pne(i),i=1,n1)
+      apr='--&pd0-'
+      print 71,apr,(pd0(i),i=1,n1)
+      apr='--&pt0-'
+      print 71,apr,(pt0(i),i=1,n1)
 
 !Transp3
 if (associated(core_profiles0%profiles_1d(1)%j_bootstrap)) then
@@ -773,8 +773,8 @@ else
   jbut(1:n1) = 0.d0
 endif
 
-apr='--&jbut-' 
-print 71,apr,(jbut(i),i=1,n1) 
+apr='--&jbut-'
+print 71,apr,(jbut(i),i=1,n1)
 
 if (associated(core_profiles0%profiles_1d(1)%conductivity_parallel)) then
   sigma(1:n1) = core_profiles0%profiles_1d(1)%conductivity_parallel(1:n1)
@@ -782,8 +782,8 @@ else
   sigma(1:n1) = 1480.d0*te0(1:n1)**1.5d0
 endif
 
-apr='--&sigma-' 
-print 71,apr,(sigma(i),i=1,n1) 
+apr='--&sigma-'
+print 71,apr,(sigma(i),i=1,n1)
 
  !Transp4
  if (associated(core_profiles0%profiles_1d(1)%j_non_inductive).AND.associated(core_profiles0%profiles_1d(1)%j_bootstrap)) then
@@ -801,17 +801,17 @@ print 71,apr,(sigma(i),i=1,n1)
    qq0(1:n1) = 0.d0
  endif
 
-      apr='--qe0-' 
-      print 71,apr,(qe0(i),i=1,n1) 
-      apr='--qq0-' 
-      print 71,apr,(qq0(i),i=1,n1) 
+      apr='--qe0-'
+      print 71,apr,(qe0(i),i=1,n1)
+      apr='--qq0-'
+      print 71,apr,(qq0(i),i=1,n1)
 
 !  If we will use external IDS we will need dina_input(
 !write(*,*) 'dina_input enter...'
 
 
     print *,'++ i_restart ==',i_restart
-    
+
 
 	call dina_input(n1,a_xx,te0,tq0,pne, &
      & pd0,pt0,sigma,jbut,aj0,qe0,qq0)
@@ -841,11 +841,13 @@ call get_contr_signals(vchopper)
 write(*,*) '!!!dina_0 enter'
 
 write(*,*) 'call bound_psgrid()'
-
+!      green functions calculation
     call bound_psgrid()
         print *,' call bound_psgrid'
 
-
+!      This stop just during testing new routines,
+!      Just so I can skip the parts that haven’t changed
+!      and not waste time during the testrun
     stop
 
 	call dina_0()
@@ -868,7 +870,7 @@ write(*,*) '!!!dina_outp enter'
      & n_sep2,x_sep2,y_sep2,&
      & n_gaps,gaps,&
      & betap,betat)
-     
+
 
   call dina_wr_output(wr_imas)
 
@@ -881,24 +883,24 @@ write(*,*) '!!!dina_outp enter'
   !call ids_copy(core_profiles0, core_profiles)
   !call ids_copy(core_sources0, core_sources)
 
-        
+
 
 write(*,*) '!!!solpsza enter'
       call solpsza_example(yfluxd_xx,yfluxt_xx,yfluxe_xx,yfluxi_xx,ysbound_xx)
 
     write(*,*) 'yfluxd_xx,yfluxt_xx,yfluxe_xx,yfluxi_xx,ysbound_xx= ', &
     & yfluxd_xx,yfluxt_xx,yfluxe_xx,yfluxi_xx,ysbound_xx
- 
+
     pec = wr_imas(21)
 
     write(*,*) 'dina_outp_eq call n n1 tpl tt= ', n,n1,tpl,tt
-    
+
 
 
     flush(6)
-    
-    
-    
+
+
+
     psi_ax = psi_ax*cocos_psi
     psi_bnd = psi_bnd*cocos_psi
     psi_sep = psi_sep*cocos_psi
@@ -909,10 +911,10 @@ write(*,*) '!!!solpsza enter'
     psloop = psloop*cocos_psi
     pptab = pptab*cocos_psi
     fptab = fptab*cocos_psi
-    
+
     if (wr_imas(13) .gt. 0.d0) then
       rmag = wr_imas(13)
-    else 
+    else
       rmag = rs0
     endif
 
@@ -926,7 +928,7 @@ write(*,*) '!!!solpsza enter'
     else
       b_field_ax = bt0*rs0/rmag
     endif
-      
+
 
 
     betan = 100.d0*betat*dabs(wr_imas(4)*bt0/(tpl*1.d-6))
@@ -940,8 +942,8 @@ write(*,*) '!!!solpsza enter'
 	call write_cputime(cpu_new-cpu_old, cpu_new, 0)
 
 	cpu_old = cpu_new
-	
-	
+
+
 
 
 ! Magnetics
@@ -963,7 +965,7 @@ do i=1,kprobe
   magnetics%b_field_pol_probe(i)%field%data(1) = bprobe(i)
 end do
 
-  
+
 
 ! PF Active
 
@@ -986,39 +988,39 @@ enddo
 ! Suppliers could be here
 ! pf_active%supply(1)%current%data(1) = wr_imas(35) ! CS3U
 ! pf_active%supply(1)%voltage%data(1) = wr_imas(46) ! CS3U
-! 
+!
 ! pf_active%supply(2)%current%data(1) = wr_imas(36) ! CS2U
 ! pf_active%supply(2)%voltage%data(1) = wr_imas(47) ! CS2U
-! 
+!
 ! pf_active%supply(3)%current%data(1) = wr_imas(37) ! CS1
 ! pf_active%supply(3)%voltage%data(1) = wr_imas(48) ! CS1
-! 
+!
 ! pf_active%supply(4)%current%data(1) = wr_imas(38) ! CS2L
 ! pf_active%supply(4)%voltage%data(1) = wr_imas(49) ! CS2L
-! 
+!
 ! pf_active%supply(5)%current%data(1) = wr_imas(39) ! CS3L
 ! pf_active%supply(5)%voltage%data(1) = wr_imas(50) ! CS3L
-! 
+!
 ! pf_active%supply(6)%current%data(1) = wr_imas(40) ! PF1
 ! pf_active%supply(6)%voltage%data(1) = wr_imas(51) ! PF1
-! 
+!
 ! pf_active%supply(7)%current%data(1) = wr_imas(41) ! PF2
 ! pf_active%supply(7)%voltage%data(1) = wr_imas(52) ! PF2
-! 
+!
 ! pf_active%supply(8)%current%data(1) = wr_imas(42) ! PF3
 ! pf_active%supply(8)%voltage%data(1) = wr_imas(53) ! PF3
-! 
+!
 ! pf_active%supply(9)%current%data(1) = wr_imas(43) ! PF4
 ! pf_active%supply(9)%voltage%data(1) = wr_imas(54) ! PF4
-! 
+!
 ! pf_active%supply(10)%current%data(1) = wr_imas(44) ! PF5
 ! pf_active%supply(10)%voltage%data(1) = wr_imas(55) ! PF5
-! 
+!
 ! pf_active%supply(11)%current%data(1) = wr_imas(45) ! PF6
 ! pf_active%supply(11)%voltage%data(1) = wr_imas(56) ! PF6
-! 
-! 
-! 
+!
+!
+!
 ! pf_active%supply(12)%current%data(1) = wr_imas(59) ! VS3
 ! pf_active%supply(12)%voltage%data(1) = wr_imas(62) ! VS3
 
@@ -1044,7 +1046,7 @@ end do
 
 
 flush(6)
-   
+
 
   TimeSteps = 1 ! One time step filled for put_slice function
   CurTimeStep = 1
@@ -1057,7 +1059,7 @@ allocate(equilibrium%time_slice(TimeSteps))
 equilibrium%time_slice(CurTimeStep)%time = tt
 allocate(equilibrium%time(TimeSteps))
 equilibrium%time(CurTimeStep) = tt
-  
+
 ! 0D Quantities
         equilibrium%time_slice(CurTimeStep)%global_quantities%ip = tpl ![A]
         equilibrium%time_slice(CurTimeStep)%global_quantities%li_3 = wr_imas(19)
@@ -1076,7 +1078,7 @@ equilibrium%time(CurTimeStep) = tt
         equilibrium%time_slice(CurTimeStep)%global_quantities%magnetic_axis%b_field_tor = b_field_ax
 
         equilibrium%time_slice(CurTimeStep)%global_quantities%current_centre%r = wr_imas(10) ![m]
-        equilibrium%time_slice(CurTimeStep)%global_quantities%current_centre%z = wr_imas(11) ![m]       
+        equilibrium%time_slice(CurTimeStep)%global_quantities%current_centre%z = wr_imas(11) ![m]
         equilibrium%time_slice(CurTimeStep)%global_quantities%current_centre%velocity_z = wr_imas(12) ![m]
 
         equilibrium%time_slice(CurTimeStep)%global_quantities%q_axis = wr_imas(18)
@@ -1090,9 +1092,9 @@ equilibrium%time(CurTimeStep) = tt
         equilibrium%vacuum_toroidal_field%r0 = rs0 ![m]
         allocate(equilibrium%vacuum_toroidal_field%b0(TimeSteps))
           equilibrium%vacuum_toroidal_field%b0(CurTimeStep) = bt0 ![T]
-  
-  
-        
+
+
+
         ! Plasma boundary
         equilibrium%time_slice(CurTimeStep)%boundary%type = ksepa ! 0 is limiter, 1 is diverted
         equilibrium%time_slice(CurTimeStep)%boundary%psi = psi_bnd ![Wb]
@@ -1108,9 +1110,9 @@ equilibrium%time(CurTimeStep) = tt
         allocate(equilibrium%time_slice(CurTimeStep)%boundary%outline%r(n_bnd))
         allocate(equilibrium%time_slice(CurTimeStep)%boundary%outline%z(n_bnd))
           equilibrium%time_slice(CurTimeStep)%boundary%outline%r(1:n_bnd) = xbound(1:n_bnd)
-          equilibrium%time_slice(CurTimeStep)%boundary%outline%z(1:n_bnd) = ybound(1:n_bnd)       
-        
-        
+          equilibrium%time_slice(CurTimeStep)%boundary%outline%z(1:n_bnd) = ybound(1:n_bnd)
+
+
         ! Main separatrix
         equilibrium%time_slice(CurTimeStep)%boundary_separatrix%psi = psi_sep ! [Wb]
         equilibrium%time_slice(CurTimeStep)%boundary_separatrix%type = ksepa ! 0 is limiter, 1 is diverted
@@ -1118,8 +1120,8 @@ equilibrium%time(CurTimeStep) = tt
         allocate(equilibrium%time_slice(CurTimeStep)%boundary_separatrix%outline%z(n_sep))
           equilibrium%time_slice(CurTimeStep)%boundary_separatrix%outline%r(1:n_sep) = x_sep(1:n_sep)
           equilibrium%time_slice(CurTimeStep)%boundary_separatrix%outline%z(1:n_sep) = y_sep(1:n_sep)
-       
-       
+
+
         if (ksepa.eq.0) then
           ! Limiter plasma
           equilibrium%time_slice(CurTimeStep)%boundary_separatrix%active_limiter_point%r = wr_imas(15)
@@ -1127,7 +1129,7 @@ equilibrium%time(CurTimeStep) = tt
 
           equilibrium%time_slice(CurTimeStep)%boundary%active_limiter_point%r = wr_imas(15)
           equilibrium%time_slice(CurTimeStep)%boundary%active_limiter_point%z = wr_imas(16)
-                   
+
         else
           ! Diverted plasma
           equilibrium%time_slice(CurTimeStep)%boundary_separatrix%active_limiter_point%r = wr_imas(102) ! Closest wall point
@@ -1135,19 +1137,19 @@ equilibrium%time(CurTimeStep) = tt
 
           equilibrium%time_slice(CurTimeStep)%boundary%active_limiter_point%r = wr_imas(102)
           equilibrium%time_slice(CurTimeStep)%boundary%active_limiter_point%z = wr_imas(103)
-          
+
           allocate(equilibrium%time_slice(CurTimeStep)%boundary_separatrix%x_point(1))
             equilibrium%time_slice(CurTimeStep)%boundary_separatrix%x_point(1)%r = wr_imas(15)
             equilibrium%time_slice(CurTimeStep)%boundary_separatrix%x_point(1)%z = wr_imas(16)
 
         endif
-        
-      
+
+
         equilibrium%time_slice(CurTimeStep)%boundary_separatrix%closest_wall_point%distance = wr_imas(101)
         equilibrium%time_slice(CurTimeStep)%boundary_separatrix%closest_wall_point%r = wr_imas(102)
         equilibrium%time_slice(CurTimeStep)%boundary_separatrix%closest_wall_point%z = wr_imas(103)
-       
-       
+
+
         ! Gaps
         ! 24 - fiducial ITER gaps
         ! n_gaps=6 - Gaps for Kavin's controller
@@ -1159,7 +1161,7 @@ equilibrium%time(CurTimeStep) = tt
         do i=1,n_gaps
           equilibrium%time_slice(CurTimeStep)%boundary_separatrix%gap(24+i)%value = gaps(i)
         enddo
-       
+
         ! Outer separatrix
         equilibrium%time_slice(CurTimeStep)%boundary_secondary_separatrix%psi = psi_sep2
         equilibrium%time_slice(CurTimeStep)%boundary_secondary_separatrix%distance_inner_outer = wr_imas(96)
@@ -1168,15 +1170,15 @@ equilibrium%time(CurTimeStep) = tt
         allocate(equilibrium%time_slice(CurTimeStep)%boundary_secondary_separatrix%outline%z(n_sep2))
           equilibrium%time_slice(CurTimeStep)%boundary_secondary_separatrix%outline%r(1:n_sep2) = x_sep2(1:n_sep2)
           equilibrium%time_slice(CurTimeStep)%boundary_secondary_separatrix%outline%z(1:n_sep2) = y_sep2(1:n_sep2)
-       
+
         allocate(equilibrium%time_slice(CurTimeStep)%boundary_secondary_separatrix%x_point(1))
           equilibrium%time_slice(CurTimeStep)%boundary_secondary_separatrix%x_point(1)%r = wr_imas(94)
           equilibrium%time_slice(CurTimeStep)%boundary_secondary_separatrix%x_point(1)%z = wr_imas(95)
-        
+
         allocate(equilibrium%time_slice(CurTimeStep)%boundary_secondary_separatrix%strike_point(1))
           equilibrium%time_slice(CurTimeStep)%boundary_secondary_separatrix%strike_point(1)%r = wr_imas(97)
           equilibrium%time_slice(CurTimeStep)%boundary_secondary_separatrix%strike_point(1)%z = wr_imas(98)
-        
+
 
 ! 1D Profiles
 
@@ -1188,7 +1190,7 @@ equilibrium%time(CurTimeStep) = tt
     allocate(equilibrium%time_slice(CurTimeStep)%profiles_1d%f_df_dpsi(n))
     allocate(equilibrium%time_slice(CurTimeStep)%profiles_1d%f(n))
       equilibrium%time_slice(CurTimeStep)%profiles_1d%f(1:n) = fpol(1:n)
-    
+
 !    equilibrium%time_slice(CurTimeStep)%profiles_1d%rho_tor_norm(1:n) = ai(1:n)
     equilibrium%time_slice(CurTimeStep)%profiles_1d%rho_tor_norm(1:n) = a(1:n)
 
@@ -1197,10 +1199,10 @@ equilibrium%time(CurTimeStep) = tt
 
     equilibrium%time_slice(CurTimeStep)%profiles_1d%pressure(1:n) = press(1:n) ![Pa]
 
-    
-    
-    
-!       pptab_dina =-1./(rs0*1.d-2)*pptab*10./pmu0 
+
+
+
+!       pptab_dina =-1./(rs0*1.d-2)*pptab*10./pmu0
 !       fptab_dina=-fptab*0.5d0*(rs0*1.d-2)*10./pmu0
 
 !       pptab_iter =-pptab_dina/(2*pi)
@@ -1209,16 +1211,16 @@ equilibrium%time(CurTimeStep) = tt
 !       pptab_iter =pptab/(2*pi)/(rs0*1.d-2)*10./pmu0
 !       fptab_iter=fptab/(2*pi)*0.5d0*(rs0*1.d-2)*10./pmu0
 
-    
+
     !pmu0=4.d0*pi*1.d-7
     !coef_ppx=1./(2*pi)/(rs0)*10./pmu0
-    !coef_pffx=1./(2*pi)*0.5d0*(rs0)*10.   
-    !print *,' coef_ppx coef_pffx rs0 pmu0=',coef_ppx,coef_pffx,rs0,pmu0    
+    !coef_pffx=1./(2*pi)*0.5d0*(rs0)*10.
+    !print *,' coef_ppx coef_pffx rs0 pmu0=',coef_ppx,coef_pffx,rs0,pmu0
     !equilibrium%time_slice(CurTimeStep)%profiles_1d%dpressure_dpsi(1:n) = coef_ppx*pptab(1:n)
-    !equilibrium%time_slice(CurTimeStep)%profiles_1d%f_df_dpsi(1:n) = coef_pffx*fptab(1:n)        
-           
+    !equilibrium%time_slice(CurTimeStep)%profiles_1d%f_df_dpsi(1:n) = coef_pffx*fptab(1:n)
+
     equilibrium%time_slice(CurTimeStep)%profiles_1d%dpressure_dpsi(1:n) = pptab(1:n)
-    equilibrium%time_slice(CurTimeStep)%profiles_1d%f_df_dpsi(1:n) = fptab(1:n)  
+    equilibrium%time_slice(CurTimeStep)%profiles_1d%f_df_dpsi(1:n) = fptab(1:n)
 
     AllocArr(equilibrium%time_slice(CurTimeStep)%profiles_1d%phi,phi_1D,n)
     AllocArr(equilibrium%time_slice(CurTimeStep)%profiles_1d%q, q, n)
@@ -1227,8 +1229,8 @@ equilibrium%time(CurTimeStep) = tt
     AllocArr(equilibrium%time_slice(CurTimeStep)%profiles_1d%volume, volume_1d, n)
     AllocArr(equilibrium%time_slice(CurTimeStep)%profiles_1d%area, area_1d, n)
     AllocArr(equilibrium%time_slice(CurTimeStep)%profiles_1d%surface, surface_1d, n)
-   
-    
+
+
     ! 2D Profiles
     allocate(equilibrium%time_slice(CurTimeStep)%profiles_2d(1))
     equilibrium%time_slice(CurTimeStep)%profiles_2d(1)%type%index = 0
@@ -1238,33 +1240,33 @@ equilibrium%time(CurTimeStep) = tt
     allocate(equilibrium%time_slice(CurTimeStep)%profiles_2d(1)%grid%dim2(nz))
       equilibrium%time_slice(CurTimeStep)%profiles_2d(1)%grid%dim1(1:nr)=x(1:nr)
       equilibrium%time_slice(CurTimeStep)%profiles_2d(1)%grid%dim2(1:nz)=y(1:nz)
-    
-    !allocate(equilibrium%time_slice(CurTimeStep)%profiles_2d(1)%grid%volume_element(nr-1,nz-1))   
+
+    !allocate(equilibrium%time_slice(CurTimeStep)%profiles_2d(1)%grid%volume_element(nr-1,nz-1))
     !do i=1,nr-1
     !do j=1,nz-1
     !  equilibrium%time_slice(CurTimeStep)%profiles_2d(1)%grid%volume_element(i,j)=dabs((x(i+1)-x(i))*(y(j+1)-y(j)))
     !enddo
     !enddo
-    
+
     ! Profiles
     allocate(equilibrium%time_slice(CurTimeStep)%profiles_2d(1)%psi(nr,nz))
-    allocate(equilibrium%time_slice(CurTimeStep)%profiles_2d(1)%j_tor(nr,nz))     
-    
-    
+    allocate(equilibrium%time_slice(CurTimeStep)%profiles_2d(1)%j_tor(nr,nz))
+
+
     allocate(equilibrium%time_slice(CurTimeStep)%profiles_2d(1)%r(nr,nz))
-    allocate(equilibrium%time_slice(CurTimeStep)%profiles_2d(1)%z(nr,nz))        
+    allocate(equilibrium%time_slice(CurTimeStep)%profiles_2d(1)%z(nr,nz))
     do i=1,nz
       equilibrium%time_slice(CurTimeStep)%profiles_2d(1)%r(1:nr,i)=x(1:nr)
     enddo
     do i=1,nr
       equilibrium%time_slice(CurTimeStep)%profiles_2d(1)%z(i,1:nz)=y(1:nz)
     enddo
-    
+
 
   !  call write_graf_imas0(nr,nz,ke, &
   !   &	0.01d0,0.01d0,tt,&
   !   &  psi,x,y,xu,yu,&
-  !   &  psi_ax,psi_bnd,psi_bnd,0.d0,0.d0) 
+  !   &  psi_ax,psi_bnd,psi_bnd,0.d0,0.d0)
 
 
 
@@ -1274,8 +1276,8 @@ equilibrium%time(CurTimeStep) = tt
 !       equilibrium%time_slice(CurTimeStep)%profiles_2d(1)%j_tor(i,j)=curr_d(j,i)
 !     enddo
 !     enddo
-!     
-! 
+!
+!
 !     do i=1,nz
 !     do j=1,nr
 !       psi1(j,i) = equilibrium%time_slice(CurTimeStep)%profiles_2d(1)%psi(i,j)
@@ -1284,9 +1286,9 @@ equilibrium%time(CurTimeStep) = tt
 
     equilibrium%time_slice(CurTimeStep)%profiles_2d(1)%psi = psi
     equilibrium%time_slice(CurTimeStep)%profiles_2d(1)%j_tor = curr_d
-    
-    
-           
+
+
+
     i_wr=0
     if(i_wr.eq.1)then
     psi1 = equilibrium%time_slice(CurTimeStep)%profiles_2d(1)%psi
@@ -1294,10 +1296,10 @@ equilibrium%time(CurTimeStep) = tt
     call write_graf_imas(nr,nz,ke, &
      &	0.01d0,0.01d0,tt,&
      &  psi1,x,y,xu,yu,&
-     &  psi_ax,psi_bnd,psi_bnd,0.d0,0.d0) 
+     &  psi_ax,psi_bnd,psi_bnd,0.d0,0.d0)
 
     end if
-    
+
 
 
 
@@ -1323,7 +1325,7 @@ write(*,*) '!!!dina_outp_tr enter'
     psi_ax = psi_ax*cocos_psi
     psi_bnd = psi_bnd*cocos_psi
     psi_tr = psi_tr*cocos_psi
-    
+
 
 
 ! Filling summary
@@ -1455,17 +1457,17 @@ AllocIfNull1(summary%heating_current_drive%power_additional%value, wr_imas(66))
 
 
 
-    
-! Starting core_profiles    
+
+! Starting core_profiles
     core_profiles%ids_properties%homogeneous_time = 1
     allocate(core_profiles%profiles_1d(TimeSteps))
     core_profiles%profiles_1d(CurTimeStep)%time = tt
     allocate(core_profiles%time(TimeSteps))
     core_profiles%time(CurTimeStep) = tt ![s]
-    
+
 write(*,*) 'Allocate core_profiles... '
 
-    
+
 ! Filling 0D
 
     AllocIfNull1(core_profiles%global_quantities%resistive_psi_losses, wr_imas(30))
@@ -1481,7 +1483,7 @@ write(*,*) 'Allocate core_profiles... '
     core_profiles%vacuum_toroidal_field%r0 = rs0
     AllocIfNull1(core_profiles%vacuum_toroidal_field%b0, bt0)
 
-    
+
 ! Filling 1D
 
     AllocArr(core_profiles%profiles_1d(CurTimeStep)%grid%rho_tor_norm, a, n)
@@ -1495,9 +1497,9 @@ write(*,*) 'Allocate core_profiles... '
 
     AllocArr(core_profiles%profiles_1d(CurTimeStep)%j_tor, tok1, n) ![A/m2]
     AllocArr(core_profiles%profiles_1d(CurTimeStep)%q, q, n)
-    
+
     AllocArr(core_profiles%profiles_1d(CurTimeStep)%zeff, zeff, n)
-    AllocArr(core_profiles%profiles_1d(CurTimeStep)%pressure_thermal, press, n) 
+    AllocArr(core_profiles%profiles_1d(CurTimeStep)%pressure_thermal, press, n)
 
 
 
@@ -1539,7 +1541,7 @@ allocate(core_profiles%profiles_1d(1)%ion(ion)%element(1))
  core_profiles%profiles_1d(1)%ion(ion)%element(1)%z_n = 1
  core_profiles%profiles_1d(1)%ion(ion)%element(1)%atoms_n = 1
  AllocArr(core_profiles%profiles_1d(1)%ion(ion)%density, pd0, n)
-      apr='++00pd0-' 
+      apr='++00pd0-'
       print 71,apr,(pd0(i),i=1,n)
  AllocIfNull1(core_profiles%global_quantities%ion(ion)%t_i_volume_average, wr_imas(26))
 ! AllocIfNull1(core_profiles%global_quantities%ion(ion)%n_i_volume_average, ???))
@@ -1553,7 +1555,7 @@ allocate(core_profiles%profiles_1d(1)%ion(ion)%element(1))
  core_profiles%profiles_1d(1)%ion(ion)%element(1)%z_n = 1
  core_profiles%profiles_1d(1)%ion(ion)%element(1)%atoms_n = 1
  AllocArr(core_profiles%profiles_1d(1)%ion(ion)%density, pt0, n)
-      apr='++00pt0-' 
+      apr='++00pt0-'
       print 71,apr,(pt0(i),i=1,n)
  AllocIfNull1(core_profiles%global_quantities%ion(ion)%t_i_volume_average, wr_imas(26))
 ! AllocIfNull1(core_profiles%global_quantities%ion(ion)%n_i_volume_average, ???))
@@ -1634,24 +1636,24 @@ allocate(core_profiles%profiles_1d(1)%ion(ion)%element(1))
 write(*,*) 'Allocate and write core_sources...'
 
     core_sources%ids_properties%homogeneous_time = 1
-    
-       
+
+
     allocate(core_sources%time(TimeSteps))
     core_sources%time(CurTimeStep) = tt ![s]
 
     core_sources%vacuum_toroidal_field%r0 = rs0
     AllocIfNull1(core_sources%vacuum_toroidal_field%b0, bt0)
-    
+
     allocate(core_sources%source(15))
 isrc = 0
-   
 
-isrc = isrc+1 
+
+isrc = isrc+1
   core_sources%source(isrc)%identifier%index = 1 ! Total
 allocate(core_sources%source(isrc)%profiles_1d(TimeSteps))
 
   !core_sources%source(isrc)%profiles_1d(CurTimeStep)%time = tt
-  
+
 allocate(core_sources%source(isrc)%profiles_1d(CurTimeStep)%grid%rho_tor_norm(n))
 
   core_sources%source(isrc)%profiles_1d(CurTimeStep)%grid%rho_tor_norm(1:n) = ai_xx(1:n)
@@ -1665,12 +1667,12 @@ allocate(core_sources%source(isrc)%profiles_1d(CurTimeStep)%j_parallel(n))
  core_sources%source(isrc)%profiles_1d(CurTimeStep)%j_parallel(1:n) = aj0(1:n)+ajae(1:n)+jbut(1:n)
 
 
-isrc = isrc+1 
+isrc = isrc+1
   core_sources%source(isrc)%identifier%index = 13 ! Bootstrap current
 allocate(core_sources%source(isrc)%profiles_1d(TimeSteps))
 
   !core_sources%source(isrc)%profiles_1d(CurTimeStep)%time = tt
-  
+
 allocate(core_sources%source(isrc)%profiles_1d(CurTimeStep)%grid%rho_tor_norm(n))
   core_sources%source(isrc)%profiles_1d(CurTimeStep)%grid%rho_tor_norm(1:n) = ai_xx(1:n)
 
@@ -1683,26 +1685,26 @@ isrc = isrc+1
 allocate(core_sources%source(isrc)%profiles_1d(TimeSteps))
 
   !core_sources%source(isrc)%profiles_1d(CurTimeStep)%time = tt
-  
+
 allocate(core_sources%source(isrc)%profiles_1d(CurTimeStep)%grid%rho_tor_norm(n))
   core_sources%source(isrc)%profiles_1d(CurTimeStep)%grid%rho_tor_norm(1:n) = ai_xx(1:n)
 
 allocate(core_sources%source(isrc)%profiles_1d(CurTimeStep)%j_parallel(n))
- core_sources%source(isrc)%profiles_1d(CurTimeStep)%j_parallel(1:n) = aj0(1:n) 
- 
+ core_sources%source(isrc)%profiles_1d(CurTimeStep)%j_parallel(1:n) = aj0(1:n)
 
-isrc = isrc+1 
+
+isrc = isrc+1
   core_sources%source(isrc)%identifier%index = 3 ! ECRH
 allocate(core_sources%source(isrc)%profiles_1d(TimeSteps))
 
   !core_sources%source(isrc)%profiles_1d(CurTimeStep)%time = tt
-  
+
 allocate(core_sources%source(isrc)%profiles_1d(CurTimeStep)%grid%rho_tor_norm(n))
   core_sources%source(isrc)%profiles_1d(CurTimeStep)%grid%rho_tor_norm(1:n) = ai_xx(1:n)
-  
+
 allocate(core_sources%source(isrc)%profiles_1d(CurTimeStep)%j_parallel(n))
  core_sources%source(isrc)%profiles_1d(CurTimeStep)%j_parallel(1:n) = ajae(1:n)
- 
+
 
 ! Power
  isrc = isrc+1
@@ -1727,35 +1729,35 @@ allocate(core_sources%source(isrc)%profiles_1d(CurTimeStep)%j_parallel(n))
  core_sources%source(isrc)%identifier%index = 6 ! Alfa particles heating
 allocate(core_sources%source(isrc)%global_quantities(TimeSteps))
   !core_sources%source(isrc)%global_quantities(CurTimeStep)%time = tt
-  core_sources%source(isrc)%global_quantities(CurTimeStep)%power = wr_imas(67) !w_alfa  
-  
+  core_sources%source(isrc)%global_quantities(CurTimeStep)%power = wr_imas(67) !w_alfa
+
 
  isrc = isrc+1
  core_sources%source(isrc)%identifier%index = 200 ! Total radiation
 allocate(core_sources%source(isrc)%global_quantities(TimeSteps))
   !core_sources%source(isrc)%global_quantities(CurTimeStep)%time = tt
-  core_sources%source(isrc)%global_quantities(CurTimeStep)%power = -wr_imas(91) !w_rad 
- 
+  core_sources%source(isrc)%global_quantities(CurTimeStep)%power = -wr_imas(91) !w_rad
+
 
  isrc = isrc+1
  core_sources%source(isrc)%identifier%index = 203 ! Impurity radiation
 allocate(core_sources%source(isrc)%global_quantities(TimeSteps))
   !core_sources%source(isrc)%global_quantities(CurTimeStep)%time = tt
-  core_sources%source(isrc)%global_quantities(CurTimeStep)%power = -wr_imas(90) !w_imp 
- 
+  core_sources%source(isrc)%global_quantities(CurTimeStep)%power = -wr_imas(90) !w_imp
+
 
  isrc = isrc+1
  core_sources%source(isrc)%identifier%index = 201 ! Cyclotron radiation
 allocate(core_sources%source(isrc)%global_quantities(TimeSteps))
   !core_sources%source(isrc)%global_quantities(CurTimeStep)%time = tt
   core_sources%source(isrc)%global_quantities(CurTimeStep)%power = -wr_imas(85)
- 
+
 
  isrc = isrc+1
  core_sources%source(isrc)%identifier%index = 8 ! Bremsstrahlung radiation
 allocate(core_sources%source(isrc)%global_quantities(TimeSteps))
   !core_sources%source(isrc)%global_quantities(CurTimeStep)%time = tt
-  core_sources%source(isrc)%global_quantities(CurTimeStep)%power = -wr_imas(84) !wtor   
+  core_sources%source(isrc)%global_quantities(CurTimeStep)%power = -wr_imas(84) !wtor
 
 
 ! Radiation by species
@@ -1763,7 +1765,7 @@ allocate(core_sources%source(isrc)%global_quantities(TimeSteps))
  core_sources%source(isrc)%identifier%index = 203 ! Impurity radiation
 allocate(core_sources%source(isrc)%global_quantities(TimeSteps))
   !core_sources%source(isrc)%global_quantities(CurTimeStep)%time = tt
-  core_sources%source(isrc)%global_quantities(CurTimeStep)%power = -wr_imas(86) !w_Be  
+  core_sources%source(isrc)%global_quantities(CurTimeStep)%power = -wr_imas(86) !w_Be
   core_sources%source(isrc)%species%type%index = 2 ! Ion
   core_sources%source(isrc)%species%ion%z_ion = 4
   !core_sources%source(isrc)%species%ion%label = 'Be'
@@ -1778,7 +1780,7 @@ allocate(core_sources%source(isrc)%global_quantities(TimeSteps))
  core_sources%source(isrc)%identifier%index = 203 ! Impurity radiation
 allocate(core_sources%source(isrc)%global_quantities(TimeSteps))
   !core_sources%source(isrc)%global_quantities(CurTimeStep)%time = tt
-  core_sources%source(isrc)%global_quantities(CurTimeStep)%power = -wr_imas(87) !w_W  
+  core_sources%source(isrc)%global_quantities(CurTimeStep)%power = -wr_imas(87) !w_W
   core_sources%source(isrc)%species%type%index = 2 ! Ion
   core_sources%source(isrc)%species%ion%z_ion = 74
   !core_sources%source(isrc)%species%ion%label = 'W'
@@ -1786,13 +1788,13 @@ allocate(core_sources%source(isrc)%global_quantities(TimeSteps))
   core_sources%source(isrc)%species%ion%element(1)%z_n = 74
   core_sources%source(isrc)%species%ion%element(1)%a = 183.84d0
   core_sources%source(isrc)%species%ion%element(1)%atoms_n = 1
- 
+
 
  isrc = isrc+1
  core_sources%source(isrc)%identifier%index = 203 ! Impurity radiation
 allocate(core_sources%source(isrc)%global_quantities(TimeSteps))
   !core_sources%source(isrc)%global_quantities(CurTimeStep)%time = tt
-  core_sources%source(isrc)%global_quantities(CurTimeStep)%power = -wr_imas(88) !w_Ar 
+  core_sources%source(isrc)%global_quantities(CurTimeStep)%power = -wr_imas(88) !w_Ar
   core_sources%source(isrc)%species%type%index = 2 ! Ion
   core_sources%source(isrc)%species%ion%z_ion = 18
   !core_sources%source(isrc)%species%ion%label = 'Ar'
@@ -1800,13 +1802,13 @@ allocate(core_sources%source(isrc)%global_quantities(TimeSteps))
   core_sources%source(isrc)%species%ion%element(1)%z_n = 18
   core_sources%source(isrc)%species%ion%element(1)%a = 40
   core_sources%source(isrc)%species%ion%element(1)%atoms_n = 1
- 
+
 
  isrc = isrc+1
  core_sources%source(isrc)%identifier%index = 203 ! Impurity radiation
 allocate(core_sources%source(isrc)%global_quantities(TimeSteps))
   !core_sources%source(isrc)%global_quantities(CurTimeStep)%time = tt
-  core_sources%source(isrc)%global_quantities(CurTimeStep)%power = -wr_imas(89) !w_Ne 
+  core_sources%source(isrc)%global_quantities(CurTimeStep)%power = -wr_imas(89) !w_Ne
   core_sources%source(isrc)%species%type%index = 2 ! Ion
   core_sources%source(isrc)%species%ion%z_ion = 10
   !core_sources%source(isrc)%species%ion%label = 'Ne'
@@ -1820,8 +1822,8 @@ allocate(core_sources%source(isrc)%global_quantities(TimeSteps))
  !core_sources%source(isrc)%identifier%index = 108 ! Gas puffing
  !core_sources%source(isrc)%identifier%index = 14 ! Pellet
 
- 
- 
+
+
 !SOLPS
 write(*,*) 'Allocate core_transport... '
 allocate(core_transport%model(1))
@@ -1829,16 +1831,16 @@ allocate(core_transport%model(1))
     allocate(core_transport%time(TimeSteps))
 
     allocate(core_transport%model(1)%profiles_1d(CurTimeStep)%grid_d%rho_tor_norm(n))
-    
+
 allocate(core_transport%model(1)%profiles_1d(CurTimeStep)%ion(2))
 
 
     core_transport%ids_properties%homogeneous_time = 1
-    
-    
+
+
     core_transport%model(1)%profiles_1d(CurTimeStep)%grid_d%rho_tor_norm(1:n) = ai(1:n)
 
-    
+
     core_transport%model(1)%profiles_1d(CurTimeStep)%time = tt
     core_transport%time(CurTimeStep) = tt ![s]
 
@@ -1849,9 +1851,9 @@ write(*,*) 'Write core_transport... '
 allocate(core_transport%model(1)%profiles_1d(CurTimeStep)%electrons%energy%flux(n))
 allocate(core_transport%model(1)%profiles_1d(CurTimeStep)%total_ion_energy%flux(n))
  core_transport%model(1)%profiles_1d(CurTimeStep)%electrons%energy%flux(1:n-1) = 0.d0
- core_transport%model(1)%profiles_1d(CurTimeStep)%electrons%energy%flux(n) = & 
+ core_transport%model(1)%profiles_1d(CurTimeStep)%electrons%energy%flux(n) = &
  & yfluxe_xx/ysbound_xx*1.d6
- 
+
  core_transport%model(1)%profiles_1d(CurTimeStep)%total_ion_energy%flux(1:n-1) = 0.d0
  core_transport%model(1)%profiles_1d(CurTimeStep)%total_ion_energy%flux(n) = &
  & yfluxi_xx/ysbound_xx*1.d6
@@ -1885,33 +1887,33 @@ allocate(core_transport%model(1)%profiles_1d(CurTimeStep)%ion(2)%particles%flux(
  core_transport%model(1)%profiles_1d(CurTimeStep)%ion(2)%particles%flux(1:n-1) = 0.d0
  core_transport%model(1)%profiles_1d(CurTimeStep)%ion(2)%particles%flux(n) = &
  & yfluxt_xx/ysbound_xx*1.d19
-    
-    
+
+
   !  write(*,*) "psi = ", (equilibrium%profiles_2d(1)%psi(i,1:n2,CurTimeStep),i=1,n)
 
 flush(6)
 
-      apr='++te0-' 
-      print 71,apr,(te0(i),i=1,n) 
-      apr='++tq0-' 
-      print 71,apr,(tq0(i),i=1,n) 
-      apr='++pne-' 
-      print 71,apr,(pne(i),i=1,n) 
-      apr='++pd0-' 
-      print 71,apr,(pd0(i),i=1,n) 
-      apr='++pt0-' 
-      print 71,apr,(pt0(i),i=1,n) 
-       apr='++zeff-' 
-!      print 71,apr,(zeff(i),i=1,n) 
-       apr='++sigma-' 
-!      print 71,apr,(sigma(i),i=1,n) 
+      apr='++te0-'
+      print 71,apr,(te0(i),i=1,n)
+      apr='++tq0-'
+      print 71,apr,(tq0(i),i=1,n)
+      apr='++pne-'
+      print 71,apr,(pne(i),i=1,n)
+      apr='++pd0-'
+      print 71,apr,(pd0(i),i=1,n)
+      apr='++pt0-'
+      print 71,apr,(pt0(i),i=1,n)
+       apr='++zeff-'
+!      print 71,apr,(zeff(i),i=1,n)
+       apr='++sigma-'
+!      print 71,apr,(sigma(i),i=1,n)
    flush(6)
     print *,' end dina_imas'
 flush(6)
-      
+
 71	FORMAT(20X,A8/,(6(1X,1PE10.3)))
 
-    
+
 
 return
 end subroutine
@@ -1921,17 +1923,17 @@ end subroutine
 	subroutine write_graf_imas(nr,nz,ke,&
      &	dx,dy,ttt,&
      &  psi,x,y,xu,yu,&
-     &  pmag,pbound,p_s,um,vm) 
+     &  pmag,pbound,p_s,um,vm)
 
         integer :: nr,nz,ke
 	real*8,dimension(:,:) :: psi(nr,nz)
 	real*8,dimension(:) :: x(nr),y(nz),xu(ke),yu(ke)
 
 	real(8) :: dx,dy,ttt,pmag,pbound,p_s,um,vm
-	
+
 
 5000	format(4(1x,1pe14.7))
-	
+
 	write(*,*) 'Write Graph Enter...'
 
 	open (unit=61,file='psi_data_imas',access='append',form='formatted')
@@ -1944,9 +1946,9 @@ end subroutine
            write (61,5000)0.d0
            write (61,5000)(xu(i),i=1,ke)
            write (61,5000)(yu(i),i=1,ke)
-   
+
            write (61,5000)dx,dy,pmag,pbound,p_s,um,vm,ttt
-           
+
            write (61,5000)((psi(i,j),i=1,nr),j=1,nz)
            write (61,5000)(x(i),i=1,nr)
            write (61,5000)(y(i),i=1,nz)
@@ -1960,25 +1962,25 @@ end subroutine
 
            close (61)
 
-        
-        
+
+
 	return
 	end
 
 	subroutine write_graf_imas0(nr,nz,ke,&
      &	dx,dy,ttt,&
      &  psi,x,y,xu,yu,&
-     &  pmag,pbound,p_s,um,vm) 
+     &  pmag,pbound,p_s,um,vm)
 
         integer :: nr,nz,ke
 	real*8,dimension(:,:) :: psi(nr,nz)
 	real*8,dimension(:) :: x(nr),y(nz),xu(ke),yu(ke)
 
 	real(8) :: dx,dy,ttt,pmag,pbound,p_s,um,vm
-	
+
 
 5000	format(4(1x,1pe14.7))
-	
+
 	write(*,*) 'Write Graph Enter0...'
 
 	open (unit=61,file='psi_data_imas0',access='append',form='formatted')
@@ -1991,9 +1993,9 @@ end subroutine
            write (61,5000)0.d0
            write (61,5000)(xu(i),i=1,ke)
            write (61,5000)(yu(i),i=1,ke)
-   
+
            write (61,5000)dx,dy,pmag,pbound,p_s,um,vm,ttt
-           
+
            write (61,5000)((psi(i,j),i=1,nr),j=1,nz)
            write (61,5000)(x(i),i=1,nr)
            write (61,5000)(y(i),i=1,nz)
@@ -2007,8 +2009,8 @@ end subroutine
 
            close (61)
 
-        
-        
+
+
 	return
 	end
 
@@ -2019,7 +2021,7 @@ end subroutine
 	integer :: flag_start
 
 6000	format(4(1x,1pe14.7))
-	
+
 	write(*,*) 'Write CPU time...'
 
 	if (flag_start.eq.1) call system("rm cputime_dinaimas")
@@ -2034,13 +2036,7 @@ end subroutine
 
         close (62)
 
-        
-        
+
+
 	return
 	end
-
-
-
-
-
-
