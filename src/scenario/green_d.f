@@ -280,6 +280,10 @@ c----
      *  /eq10/vesarr(nwnh,mu)
      *  /ves2/ncam,rc(mu),zc(mu)
      *  /c_green_pl/green_pl(nwnh,ntet)
+!      Turns of PF coils consistent with koor file!!!
+     *	/v_turn/pf_turns(kf)
+
+	common /c_ind_bound/ind_bound
 	dimension ind_bound(ntet)
 c
 	PSF(Xx,hr,hz)=4.*PI/10.*Xx*(dlog(16.*Xx/SQRT(HZ**2+HR**2))
@@ -317,7 +321,7 @@ c
 	read (61,*)
 	do i=1,jbound_c
 	read (61,*)i_i,ind_bound(i),c_xbound(i),c_ybound(i)
-	!         print *,' i c_xbound(i),c_ybound(i)=',i,c_xbound(i),c_ybound(i)
+	print *,' i c_xbound(i),c_ybound(i)=',i,c_xbound(i),c_ybound(i)
 	end do
 	close (61)
 
@@ -346,6 +350,8 @@ c
 	api=1./(2.*pi)
 
 	print *,' npf jbound_c=jbound=',npf,jbound_c,jbound
+	call vic_turn()
+
 
 	do jj=1,npf
 c
@@ -363,7 +369,7 @@ c
 
 	call boxda(work,urr,vrr,pdd,ier)
 	fint=pdd(1)
-	green_pf(j,jj)=fint
+	green_pf(j,jj)=fint*pf_turns(jj)
 
 	!     print *,' j jj green_pf=',j,jj,green_pf(j,jj)
 
@@ -410,16 +416,533 @@ c
 	if(igreen.eq.1)fgreen=fp(x(i),urr,y(j),vrr)
 	green_pl(kk,k)=api*fgreen
 
+	if(kk.le.100)then
 	!     print *,' kk k green_pl=',kk,k,green_pl(kk,k)
+	end if
 
 	end do  !k
-
 	end do
 	end do
-
-	!      stop
-
-	print *,' Greens are calculated'
+	!     stop
 	return
 	end
 c
+	subroutine plas_circ()
+	include 'double.inc'
+c	implicit real *8 (a-h,o-z)
+c
+	include 'parf0'
+	include 'parf1'
+	include 'parf2'
+	include 'parf2e'
+c
+	common
+     *  /eq1/psi(nr,nz),pspl(nwnh),x(nn),y(MM),dx,dy
+     *  /eq1g/psi_g(nr,nz)
+     *  /eq1e/psext(nwnh),re(nre),ze(nze),dr,dz
+     *  /eq3/FLUXARR(nwnh,kf)
+     *  /eq10/vesarr(nwnh,mu)
+     *  /eq12/omega,pspl0(nwnh)
+c
+	common
+     *  /ves1/psp(mu),psp0(mu),tcam(mu),tcam0(mu)
+     *  /ves2/ncam,rc(mu),zc(mu)
+	common
+     *  /pf1/npf,pf(kf),pf0(kf)
+	common
+     *  /ge1/pi
+     *	/ge1e/rs0,tpl
+     *  /ge5/kpr
+     *  /ge7/eu,rout,zout,elong
+c
+	common
+     *	/point1/r0,z0
+c
+	common
+     *	/bunemn/nww,nhh,drdz2,rgrid1,delr,delz
+	common
+     *	/fluxc3/u(nwnh),work(nwnh),sib(nwnh)
+     *	/fluxc7/coef,coef1,api
+	common /c_imas_curr_d/curr_d(nr,nz)
+	dimension f(nwnh),f_h(nwnh)
+
+	nww=nr-1
+	nhh=nz-1
+	rgrid1=x(1)
+	delr=dx
+	delz=dy
+	drdz2=(delr/delz)**2
+
+	n=nn
+	m=mm
+	n1=n-1
+	m1=m-1
+c
+	curd=tpl/(pi*eu**2)
+c_________________________________________________
+	COEF=10./(4.*PI)
+	api=1./(2.*pi)
+	coef1=dx*dy*coef
+	r0=650.
+	z0=0.
+	eu=50.
+	if(kpr.eq.1)print *,'r0= ',r0,'  z0',z0, ' eu',eu
+c  	call print3(' r0 z0 eu==',r0,z0,eu)
+	tok=0.
+c
+	dist_min=1.e5
+	DO I=1,N
+	DO J=1,M
+	kk=(i-1)*nz+j
+	work(kk)=0.
+	dist=sqrt( (x(i)-r0)**2+(y(j)-z0)**2)
+	if(dist.le.dist_min )dist_min=dist
+	if(dist.gt.eu )go to 9
+	work(kk)=curd
+	TOK=TOK+work(kk)
+9	CONTINUE
+	END DO
+	END DO
+74	format (20i2)
+C
+	TOK=TOK*COEF*dx*dy
+C
+	if(kpr.eq.1)print *,'TOK tpl dist_min= ',TOK,tpl,dist_min
+c
+	al1=tpl/tok
+	tok=0.
+	do i=1,n
+	do j=1,m
+	kk=(i-1)*nz+j
+	work(kk)=work(kk)*al1
+	f(kk)=work(kk)
+	tok=tok+f(kk)
+	end do
+	end do
+	TOK=TOK*COEF*dx*dy
+
+	DO i=1,nr
+	DO j=1,nz
+	kk=(i-1)*nz+j
+	curr_d(i,j)=f(kk)*coef
+	end do
+	end do
+
+	tok_2=0.
+	do i=1,nr
+	do j=1,nz
+	tok_2=tok_2+curr_d(i,j)*dx*dy
+	end do
+	end do
+	print *,' +tpl  tok_2==',tpl,tok_2
+	!      stop
+C   CALCULATE BOUNDARY PSIPL
+C
+C
+C END PLASMA BOUNDARY
+c
+	return
+	end
+	subroutine bound_pf_calc()
+	include 'double.inc'
+	include 'parf0'
+	include 'parf1'
+	include 'parf2'
+	include 'parf2e'
+	include 'parf5'
+	common
+     *  /ge1/pi
+     *  /ge5/kpr
+	common
+     *  /eq1/psi(nwnh),pspl(nwnh),x(NR),y(NZ),dx,dy
+     *  /eq3/FLUXARR(nwnh,kf)
+     *  /c_eq8/c_xbound(ntet),c_ybound(ntet),jbound_c
+     *  /eq8/jbound,xbound(ntet),ybound(ntet),alfa0
+     *  /c_eq1e/c_psext(nr,nz)
+     *  /fluxc8/work(nwnhe)
+	common
+     *  /cont13/zmag,zvel,delrmag,delzmag
+     *  /cont13e/zmag0,rmag,rmag0,rvel
+     *  /c_green_pf/green_pf(ntet,kf)
+     *  /c_green_ves/green_ves(ntet,mu)
+	common
+     *  /pf1/npf,pf(kf),pf0(kf)
+     *  /eq10/vesarr(nwnh,mu)
+	common
+     *  /ves1/psp(mu),psp0(mu),tcam(mu),tcam0(mu)
+     *  /ves2/ncam,rc(mu),zc(mu)
+     *  /c_green_pl/green_pl(nwnh,ntet)
+c*** Turns of PF coils consistent with koor file!!!
+     *	/v_turn/pf_turns(kf)
+	common /c_imas_curr_d/curr_d(nr,nz)
+	common /c_ind_bound/ind_bound
+	dimension ind_bound(ntet),yy(ntet),pl_green(ntet)
+	common /c_ind_pf/d_wght(nx)
+	dimension amat(mu,kf),tok_fil(kf),cur_ref(kf)
+c
+	PSF(Xx,hr,hz)=4.*PI/10.*Xx*(dlog(16.*Xx/SQRT(HZ**2+HR**2))
+     *-0.5-0.5*(HR/HZ*DATAN(HZ/HR)+HZ/HR*DATAN(HR/HZ)))
+c
+	character *20 apr
+5000	format(4(1x,1pe14.7))
+c
+	i_en=i_en+1
+	if(i_en.eq.1)then
+	open (unit=61,file='pf_waits.dat',
+     *  form='formatted')
+	read (61,*)
+	do i=1,npf
+	read (61,*)d_wght(i)
+	print *,' i d_wght(i)=',i,d_wght(i)
+	end do
+	close (61)
+	end if
+	do i=1,npf
+	cur_ref(i)=pf(i)
+	print *,' i pf=',i,pf(i)
+	end do
+	tokc=0.
+	do jj=1,ncam
+	tokc=tokc+tcam(jj)
+	end do
+	tok_2=0.
+	do i=1,nr
+	do j=1,nz
+	tok_2=tok_2+curr_d(i,j)*dx*dy
+	end do
+	end do
+	print *,' + tok_2 tokc==',tok_2,tokc
+	print *,' jbound_c=',jbound_c
+	k=0
+	do j=1,jbound_c
+	if(ind_bound(j).eq.1)then
+	k=k+1
+	yy(k)=0.
+	!     print *,'  k yy=',k,yy(k)
+	do ii=1,nr
+	do jj=1,nz
+	kk=(ii-1)*nz+jj
+	yy(k)=yy(k)+green_pl(kk,j)*curr_d(ii,jj)*dx*dy
+	end do
+	end do
+	!      print *,' plas k yy=',k,yy(k)
+	do jj=1,ncam
+	yy(k)=yy(k)+green_ves(j,jj)*tcam(jj)
+	end do
+	!     print *,' Ves k yy=',k,yy(k)
+	do jj=1,npf
+	amat(k,jj)=green_pf(j,jj)*1.e-5
+	end do
+
+	end if ! ind_bound(j)=1
+
+	end do
+
+
+	lfit=k
+	!    lfit=21
+
+	do k=1,lfit
+	pl_green(k)=yy(k)*1.e-5
+	print *,' plas k yy pl_green=',k,yy(k),pl_green(k)
+	end do
+
+	print *,' lfit npf=',lfit,npf
+
+	kpr=1
+
+	call cursol22_c(amat,mu,
+     * lfit,npf,pl_green,tok_fil,cur_ref,pi,kpr)
+
+	return
+	end
+	subroutine cursol22_c(aaa,mu,
+     * nps,npf,pl_green,tok_fil,cur_ref,pi,kpr)
+
+	include 'double.inc'
+
+	dimension  aaa(mu,*),tok_fil(*),pl_green(*),cur_ref(*)
+
+	include 'parf5'
+
+	dimension amat(nx,nx),y(nx),x(nx),ip(nx),rrr(nx),
+     *  gindk(nx,mx),gindp(nx,mx),w_wght(nx)
+
+	dimension y1(nx),x1(nx),x2(nx)
+
+	common /c_ind_pf/d_wght(nx)
+
+	character *8 apr
+c
+c
+71	format(20x,a6/,(6(1pe10.3)))
+
+
+	psi_axis=-0.
+
+
+	!          a(j,k)*I(k)+a(j,NEQUI+l)*Lam(l)+a(j,NEQUI+Lpre+1)*Psi_b=y(j)
+
+
+	!        equation (.)*d(I_j)=0
+
+	!          a(j,k)*I(k) ,j-number of equation
+
+
+	print *,' nx==',nx
+
+	nequi=npf
+	ma1=NEQUI
+
+	ma=ma1+1
+
+	Lfit=nps
+
+	print *,' NEQUI Lfit ==',NEQUI,Lfit
+	print *,' nps tok_ref ==',nps,tok_ref
+
+	s_wght=1.d-1
+	!	s_wght=1.d-10
+
+	do l=1,Lfit
+	!           w_wght(l)=5.0d5
+	w_wght(l)=1.0d0
+	enddo
+
+	pfmax=0.1d0
+	do j=1,NEQUI
+	!          d_wght(j)=1.d-1
+	if(dabs(cur_ref(j)).gt.pfmax)pfmax=dabs(cur_ref(j))
+	enddo
+
+
+	do j=1,NEQUI
+	!          d_wght(j)=1.d-6
+	enddo
+
+	!          d_wght(6)=1.d2
+	!          d_wght(7)=1.d2
+
+
+	do jj=1,NEQUI
+	do ii=1,Lfit
+	fint=aaa(ii,jj)
+	Gindk(jj,ii)=fint
+	enddo
+	enddo
+
+
+	do l=1,nps
+	flux=0.d0
+	do iq=1,ma1
+	flux=flux+Gindk(iq,l)*cur_ref(iq)
+	enddo
+	flux=flux+pl_green(l)
+	!        print *,' l flux cur_ref(ma)=',l,flux,cur_ref(ma)
+	write(6,'(" 0 -l flux psi_axis pl_green(l) = ",i4,6(1pe14.5))')
+     *  l,flux,psi_axis,pl_green(l)
+	enddo
+
+
+	do iq=1,ma1
+	x2(iq)=cur_ref(iq)
+	!         cur_ref(iq)=1.
+	enddo
+	!         cur_ref(6)=0.
+	!         cur_ref(7)=0.
+
+	do iq=1,ma1
+	tok_fil(iq)=cur_ref(iq)
+	enddo
+
+
+
+c--
+	do k=1,NEQUI
+	do j=1,NEQUI
+	asum=0.d0
+	do l=1,Lfit
+	asum=asum+Gindk(k,l)*Gindk(j,l)*w_wght(l)
+	enddo
+	amat(j,k)=asum
+	enddo
+	enddo
+
+c---------------------
+
+	do j=1,NEQUI
+	amat(j,j)=amat(j,j)+d_wght(j)*s_wght
+	enddo
+
+	do j=1,NEQUI
+	asum=0.d0
+	asum1=0.d0
+	do l=1,Lfit
+	asum=asum+w_wght(l)*Gindk(j,l)*pl_green(l)
+	asum1=asum1+w_wght(l)*Gindk(j,l)*psi_axis
+	enddo
+	y(j)=-asum+d_wght(j)*s_wght*tok_fil(j)
+	y(j)=y(j)+asum1
+	asum2=+d_wght(j)*s_wght*tok_fil(j)
+
+	!          y(j)=asum+d_wght(j)*s_wght*cur_ref(j)
+	!          y(j)=y(j)-asum1
+
+	write(6,'(" j asum asum1 asum2 y tok_fil(j) d_wght(j)= ",i4,6(1pe14.5))')
+     *   j,asum,asum1,asum2,y(j),tok_fil(j),d_wght(j)
+
+
+	enddo
+
+
+
+	!-- psi_bound
+
+	!          a(j,NEQUI+Lpre+1)*Psi_b  ,j-number of equation
+
+	do j=1,NEQUI
+	asum=0.d0
+	do l=1,Lfit
+	asum=asum+w_wght(l)*Gindk(j,l)
+	enddo
+	amat(j,NEQUI+1)=-asum
+	enddo
+
+
+	do k=1,NEQUI
+	asum=0.d0
+	do l=1,Lfit
+	asum=asum+w_wght(l)*Gindk(k,l)
+	enddo
+	amat(NEQUI+1,k)=asum
+	enddo
+
+	asum=0.d0
+	do l=1,Lfit
+	asum=asum+w_wght(l)
+	enddo
+	amat(NEQUI+1,NEQUI+1)=-asum
+	!!!
+	asum=0.d0
+	do l=1,Lfit
+	asum=asum+w_wght(l)*pl_green(l)
+	asum=asum-w_wght(l)*psi_axis
+	enddo
+	y(NEQUI+1)=-asum
+
+	!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+	!        call GE(NEQUI+Lpre+1,nx,Amat,Y,X,IP)
+	!!!        call GE(NEQUI+Lpre,nx,Amat,Y,X,IP)
+
+	!!!        call GE(NEQUI+1,nx,Amat,Y,X,IP)
+
+	do k=1,NEQUI+1
+	y1(k)=y(k)
+	do j=1,NEQUI+1
+	aaa(k,j)=amat(k,j)
+	end do
+	end do
+
+	!        call GE(NEQUI,nx,amat,Y1,X1,IP)
+	call GE(NEQUI+1,nx,amat,Y1,X1,IP)
+
+	do k=1,NEQUI+1
+	do j=1,NEQUI+1
+	amat(k,j)=aaa(k,j)
+	end do
+	end do
+
+	do l=1,NEQUI+1
+	flux=0.d0
+	do iq=1,NEQUI+1
+	x(iq)=x1(iq)
+	flux=flux+amat(l,iq)*x1(iq)
+	enddo
+	write(6,'(" & l flux y x= ",i4,6(1pe14.5))')
+     *  l,flux,y(l),x(l)
+	enddo
+
+	cur_ref(ma)=x1(ma)
+
+
+
+
+	nles=0
+	!        call EVSLV1( nles,
+	!     * NEQUI,amat,nx,y,x)
+
+
+	do l=1,nps
+	flux=0.d0
+	do iq=1,ma1
+	flux=flux+Gindk(iq,l)*x(iq)
+	enddo
+	flux=flux+pl_green(l)
+	!        print *,' l flux cur_ref(ma)=',l,flux,cur_ref(ma)
+	write(6,'(" l flux cur_ref(ma) pl_green(l)= ",i4,6(1pe14.5))')
+     *  l,flux,cur_ref(ma),pl_green(l)
+	enddo
+
+	do l=nps+1,Lfit
+	flux=0.d0
+	do iq=1,ma1
+	flux=flux+Gindk(iq,l)*cur_ref(iq)
+	enddo
+	flux=flux-pl_green(l)
+	!      print *,' l flux yw =',l,flux,pl_green(l)
+	enddo
+
+
+
+	!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+	tok=0.d0
+	tok1=0.d0
+	do iq=1,ma
+c	write(6,'(" iq tok_fil x ", i4,6(1pe12.5))'),
+c     *  iq,tok_fil(iq),x(iq)
+
+	tok1=tok1+cur_ref(iq)
+
+	write(6,'(" iq cur_ref x2 x1  ", i4,6(1pe14.5))'),
+     *  iq,cur_ref(iq),x2(iq),x1(iq)
+
+	tok_fil(iq)=x(iq)
+	tok=tok+tok_fil(iq)
+
+	cur1=cur_ref(iq)
+
+	enddo
+
+	print *,' ma ma1 cur_ref(ma)==',ma,ma1,cur_ref(ma)
+
+	print *,' tok1 tok cur1==',tok1,tok,cur1
+
+	do l=1,nps
+	flux=0.d0
+	do iq=1,ma1
+	flux=flux+Gindk(iq,l)*tok_fil(iq)
+	enddo
+	flux=flux+pl_green(l)
+	!        print *,' l flux tok_fil(ma)=',l,flux,tok_fil(ma)
+	write(6,'(" +l flux cur_ref(ma)= ",i4,6(1pe14.5))')
+     *  l,flux,cur_ref(ma)
+	enddo
+
+	print *,' ma ma1 cur_ref(ma)==',ma,ma1,cur_ref(ma)
+
+
+	do l=nps+1,Lfit
+	flux=0.d0
+	do iq=1,ma1
+	flux=flux+Gindk(iq,l)*tok_fil(iq)
+	enddo
+	flux=flux-pl_green(l)
+	!        print *,' l flux yw =',l,flux,pl_green(l)
+	enddo
+
+
+	!	stop
+
+	return
+	end

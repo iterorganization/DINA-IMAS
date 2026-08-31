@@ -848,7 +848,7 @@ write(*,*) 'call bound_psgrid()'
 !      This stop just during testing new routines,
 !      Just so I can skip the parts that haven’t changed
 !      and not waste time during the testrun
-    stop
+!    stop
 
 	call dina_0()
 
