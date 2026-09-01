@@ -296,15 +296,30 @@ c---
 c*** Input of PF turns - must be consistent with 'koor' file!
         call vic_turn()
 
-	call ptoke0() 
-	
+        call bound_psgrid()
 
-		call ptoke1()                                                          
+ !     stop
+
+      call plas_circ()
+
+      call bound_pf_calc()
+!      stop for testing separate parts of inverse solving
+      stop
+
+
+	call ptoke0()
+
+
+		call ptoke1()
 
          eps2=1.d-6
          call stab(ich,i_graph)
          call write_surf()
 
+           apr='-dmn-'
+           if(kpr.eq.1)print 71,apr,(dmn(i),i=n-5,n)
+
+	  call v_sec()
 !      call dm0_calc()
 
  !        stop
@@ -323,9 +338,9 @@ c*** Input of PF turns - must be consistent with 'koor' file!
       psi(1)=psi(2)
 
            apr='-psi-'
-           if(kpr.eq.1)print 71,apr,(psi(i),i=1,n) 
+           if(kpr.eq.1)print 71,apr,(psi(i),i=n-5,n)
            apr='-dm0-'
-           if(kpr.eq.1)print 71,apr,(dm0(i),i=1,n) 
+           if(kpr.eq.1)print 71,apr,(dm0(i),i=n-5,n)
 
 	call transf_b_tor()
       CALL BTA(n,mp,RS0)
