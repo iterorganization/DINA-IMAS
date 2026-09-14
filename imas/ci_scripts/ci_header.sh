@@ -65,7 +65,7 @@ fi
 #module load FC2K/4.14.2-Java-11
 #FC2K/4.14.2-Java-21
 
-module load iWrap
+module load iWrap/1.0.0-GCCcore-13.2.0
 export PYTHONPATH=${HOME}/IWRAP_ACTORS:${PYTHONPATH}
 
 
