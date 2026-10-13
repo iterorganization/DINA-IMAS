@@ -282,6 +282,11 @@ c----
      *  /c_green_pl/green_pl(nwnh,ntet)
 !      Turns of PF coils consistent with koor file!!!
      *	/v_turn/pf_turns(kf)
+     *  /c_pf_coils/pf_coils(2)
+     *  /c_psi_coils/psi_coils(nwnh,2)
+     *  /c_green_coils/green_coils(nwnh,2)
+     *  /c_rz_coils/r_coils(2),z_coils(2),n_coil
+
 
 	common /c_ind_bound/ind_bound
 	dimension ind_bound(ntet)
@@ -324,6 +329,23 @@ c
 	print *,' i c_xbound(i),c_ybound(i)=',i,c_xbound(i),c_ybound(i)
 	end do
 	close (61)
+	do i=1,jbound_c
+!          c_xbound(i)=c_xbound(i)+20.
+!          c_ybound(i)=c_ybound(i)+20.
+	end do
+	open (unit=61,file='virt_coils.dat',form='formatted')
+	read (61,*)n_coils
+	read (61,*)
+	read (61,*)r_coils(1),z_coils(1)
+	read (61,*)r_coils(2),z_coils(2)
+	i=1
+!          print *,' i r_coils(1),z_coils(1)=',i,r_coils(i),z_coils(i)
+	i=2
+!          print *,' i r_coils(2),z_coils(2)=',i,r_coils(i),z_coils(i)
+close (61)
+
+!     stop
+
 
 	end if
 
@@ -369,7 +391,8 @@ c
 
 	call boxda(work,urr,vrr,pdd,ier)
 	fint=pdd(1)
-	green_pf(j,jj)=fint*pf_turns(jj)
+!	green_pf(j,jj)=fint*pf_turns(jj)
+        green_pf(j,jj)=fint
 
 	!     print *,' j jj green_pf=',j,jj,green_pf(j,jj)
 
@@ -424,6 +447,38 @@ c
 	end do
 	end do
 	!     stop
+        do i=1,nr
+	do j=1,nz
+        kk=(i-1)*nz+j
+	igreen=1
+
+        do k=1,n_coils
+        urr=r_coils(k)
+        vrr=z_coils(k)
+
+	dist=sqrt( (x(i)-urr)**2+(y(j)-vrr)**2 )
+	if(dist.le.1.)igreen=0
+	if(igreen.eq.0)fgreen=psf(urr,avert,avert)
+	if(igreen.eq.1)fgreen=fp(x(i),urr,y(j),vrr)
+	green_coils(kk,k)=api*fgreen
+
+        if(kk.le.10)then
+        print *,' kk k green_coils=',kk,k,green_coils(kk,k)
+        end if
+
+        end do  !k
+
+	end do
+	end do
+
+        pf_coils(1)=-1000.
+        pf_coils(2)=1000.
+
+        pf_coils(1)=pf_coils(1)*0.
+        pf_coils(2)=pf_coils(2)*0.
+
+
+!        stop
 	return
 	end
 c
@@ -588,7 +643,7 @@ c
 c
 	i_en=i_en+1
 	if(i_en.eq.1)then
-	open (unit=61,file='pf_waits.dat',
+	open (unit=61,file='pf_weight.dat',
      *  form='formatted')
 	read (61,*)
 	do i=1,npf
@@ -596,11 +651,12 @@ c
 	print *,' i d_wght(i)=',i,d_wght(i)
 	end do
 	close (61)
-	end if
+
 	do i=1,npf
 	cur_ref(i)=pf(i)
 	print *,' i pf=',i,pf(i)
 	end do
+        end if
 	tokc=0.
 	do jj=1,ncam
 	tokc=tokc+tcam(jj)
@@ -641,19 +697,82 @@ c
 
 	lfit=k
 	!    lfit=21
+        pll2=0.
 
 	do k=1,lfit
 	pl_green(k)=yy(k)*1.e-5
+        pll2=pll2+pl_green(k)
 	print *,' plas k yy pl_green=',k,yy(k),pl_green(k)
 	end do
+        pll2=pll2/float(lfit)*2.*pi
 
 	print *,' lfit npf=',lfit,npf
 
 	kpr=1
+        do i=1,npf
+        cur_ref(i)=pf0(i)
+        end do
+        fdd0=0.
+        fdd2=0.
+        do k=1,lfit
+
+        ext0=0.
+        ext2=0.
+        do jj=1,npf
+        ext0=ext0+amat(k,jj)*pf0(jj)
+        ext2=ext2+amat(k,jj)*pf(jj)
+        end do
+
+        fdd0=fdd0+ext0
+        fdd2=fdd2+ext2
+
+        end do
+
+        fdd0=fdd0/float(lfit)*2.*pi
+        fdd2=fdd2/float(lfit)*2.*pi
+
+        if(kpr.eq.1)print *,' fdd0 fdd2 pll2 ==',fdd0,fdd2,pll2
+
 
 	call cursol22_c(amat,mu,
      * lfit,npf,pl_green,tok_fil,cur_ref,pi,kpr)
+        do jj=1,npf
+        pf(jj)=tok_fil(jj)
+        end do
 
+        fdd0=0.
+        fdd2=0.
+        do k=1,lfit
+
+        ext0=0.
+        ext2=0.
+        do jj=1,npf
+        ext0=ext0+amat(k,jj)*pf0(jj)
+        ext2=ext2+amat(k,jj)*pf(jj)
+        end do
+
+        fdd0=fdd0+ext0
+        fdd2=fdd2+ext2
+
+        end do
+
+        fdd0=fdd0/float(lfit)*2.*pi
+        fdd2=fdd2/float(lfit)*2.*pi
+
+        if(kpr.eq.1)print *,' fdd0 fdd2 pll2 ==',fdd0,fdd2,pll2
+
+	open (unit=61,file='pf_diff.dat',form='formatted')
+        write (61,*)npf
+        print *,' i pf_ref pf diff='
+        do i=1,npf
+        diff=pf(i)-pf0(i)
+!           write (61,*)i,pf0(i),pf(i),diff
+        write(61,'(i4,6(1pe12.4))'),i,pf0(i),pf(i),diff
+        end do
+        close (61)
+
+
+!       stop
 	return
 	end
 	subroutine cursol22_c(aaa,mu,
@@ -667,6 +786,7 @@ c
 
 	dimension amat(nx,nx),y(nx),x(nx),ip(nx),rrr(nx),
      *  gindk(nx,mx),gindp(nx,mx),w_wght(nx)
+        dimension aaa1(nx,nx)
 
 	dimension y1(nx),x1(nx),x2(nx)
 
@@ -738,6 +858,7 @@ c
 	flux=flux+Gindk(iq,l)*cur_ref(iq)
 	enddo
 	flux=flux+pl_green(l)
+        flux=flux*2.*pi
 	!        print *,' l flux cur_ref(ma)=',l,flux,cur_ref(ma)
 	write(6,'(" 0 -l flux psi_axis pl_green(l) = ",i4,6(1pe14.5))')
      *  l,flux,psi_axis,pl_green(l)
@@ -839,7 +960,7 @@ c---------------------
 	do k=1,NEQUI+1
 	y1(k)=y(k)
 	do j=1,NEQUI+1
-	aaa(k,j)=amat(k,j)
+	aaa1(k,j)=amat(k,j)
 	end do
 	end do
 
@@ -848,7 +969,7 @@ c---------------------
 
 	do k=1,NEQUI+1
 	do j=1,NEQUI+1
-	amat(k,j)=aaa(k,j)
+	amat(k,j)=aaa1(k,j)
 	end do
 	end do
 
@@ -924,9 +1045,10 @@ c     *  iq,tok_fil(iq),x(iq)
 	flux=flux+Gindk(iq,l)*tok_fil(iq)
 	enddo
 	flux=flux+pl_green(l)
+        flux=flux*2.*pi
 	!        print *,' l flux tok_fil(ma)=',l,flux,tok_fil(ma)
-	write(6,'(" +l flux cur_ref(ma)= ",i4,6(1pe14.5))')
-     *  l,flux,cur_ref(ma)
+	write(6,'(" +l flux psi_b= ",i4,6(1pe14.5))')
+     *  l,flux,cur_ref(ma)*2.*pi
 	enddo
 
 	print *,' ma ma1 cur_ref(ma)==',ma,ma1,cur_ref(ma)
@@ -946,3 +1068,96 @@ c     *  iq,tok_fil(iq),x(iq)
 
 	return
 	end
+        subroutine write_bound()
+	include 'double.inc'
+	include 'parf0'
+	include 'parf1'
+	include 'parf2'
+	include 'parf2e'
+	common
+     *  /ge1/pi
+     *  /ge5/kpr
+	common
+     *  /eq1/psi(nwnh),pspl(nwnh),x(NR),y(NZ),dx,dy
+     *  /eq3/FLUXARR(nwnh,kf)
+     *  /c_eq8/c_xbound(ntet),c_ybound(ntet),jbound_c
+
+     *  /eq8/jbound,xbound(ntet),ybound(ntet),alfa0
+     *  /c_eq1e/c_psext(nr,nz)
+     *  /fluxc8/work(nwnhe)
+        common
+     *  /cont13/zmag,zvel,delrmag,delzmag
+     *  /cont13e/zmag0,rmag,rmag0,rvel
+
+     *  /c_green_pf/green_pf(ntet,kf)
+     *  /c_green_ves/green_ves(ntet,mu)
+	common
+     *  /pf1/npf,pf(kf),pf0(kf)
+     *  /eq10/vesarr(nwnh,mu)
+     *  /ves2/ncam,rc(mu),zc(mu)
+
+     *  /c_green_pl/green_pl(nwnh,ntet)
+
+     *	/v_turn/pf_turns(kf)
+
+       common /c_ind_bound/ind_bound
+       dimension ind_bound(ntet)
+c
+      PSF(Xx,hr,hz)=4.*PI/10.*Xx*(dlog(16.*Xx/SQRT(HZ**2+HR**2))
+     *-0.5-0.5*(HR/HZ*DATAN(HZ/HR)+HZ/HR*DATAN(HR/HZ)))
+c
+
+	dimension pdd(6)
+	character *20 apr
+
+      i_en=i_en+1
+
+      if(i_en.eq.1)then
+
+5000	format(4(1x,1pe14.7))
+
+      i_wr=1
+      if(i_wr.eq.1)then
+      open (unit=61,file='xy_bound',
+     *  form='formatted')
+
+
+
+
+
+      write (61,*)jbound
+      write (61,*)'i,ind_bound(i),xbound(i),ybound(i)'
+      do i=1,jbound
+      ind_bound(i)=1
+      write (61,*)i,ind_bound(i),xbound(i),ybound(i)
+      end do
+      close (61)
+
+      jbound_c=jbound
+
+      do j=1,jbound_c
+      c_xbound(j)=xbound(j)
+      c_ybound(j)=ybound(j)
+      end do
+
+
+
+      else
+      open (unit=61,file='xy_bound.dat',
+     *  form='formatted')
+      read (61,*)jbound_c
+      read (61,*)
+      do i=1,jbound_c
+      read (61,*)i_i,ind_bound(i),c_xbound(i),c_ybound(i)
+      print *,' i c_xbound(i),c_ybound(i)=',i,c_xbound(i),c_ybound(i)
+      end do
+      close (61)
+
+      end if
+
+
+      end if
+
+
+      return
+      end

@@ -300,26 +300,51 @@ c*** Input of PF turns - must be consistent with 'koor' file!
 
  !     stop
 
-      call plas_circ()
+       i_rev=11
+       if(i_rev.eq.11)then
+       call plas_circ()
 
-      call bound_pf_calc()
+       call bound_pf_calc()
 !      stop for testing separate parts of inverse solving
-      stop
+!      stop
+       call ptoke0()
+       kzref=0
+       krref=0
+       call ptoke1()
+
+       do kk=1,1
+
+       do iii=1,50
+       call bound_pf_calc()
+       call ptoke1()
+
+       print *,' iii==',iii
+       if(it1.eq.0)goto 98
+       end do
+98    continue
+
+       print *,' kk==',kk
+
+       eps2=1.d-6
+       call stabilize(ich,i_graph)
+
+       end do
+
+       call v_sec()
+
+       call write_surf()
+
+       stop
+
+       end if
 
 
-	call ptoke0()
 
+       apr='-dmn-'
+       if(kpr.eq.1)print 71,apr,(dmn(i),i=n-5,n)
 
-		call ptoke1()
-
-         eps2=1.d-6
-         call stab(ich,i_graph)
-         call write_surf()
-
-           apr='-dmn-'
-           if(kpr.eq.1)print 71,apr,(dmn(i),i=n-5,n)
-
-	  call v_sec()
+       сall v_sec()
+!       call bound_psgrid()
 !      call dm0_calc()
 
  !        stop
@@ -372,6 +397,8 @@ c-----------------
       
       call gen()
 	
+      apr='-dm0-'
+      if(kpr.eq.1)print 71,apr,(dm0(i),i=n-5,n)
 	call time_step()
 	call time_gen()
 
@@ -959,5 +986,71 @@ c	if(tt.lt.t_vde)go to 3323
 
 
 71	FORMAT(5X,A10/,(2x,6(1PE11.3)))
+        return
+	end
+
+c
+	subroutine stabilize(ich_xx,i_graph_xx)
+      	include 'double.inc'
+	include 'new_com.inc'
+	call stabilize_c(ich_xx,i_graph_xx,
+     *  rref,zref,bvert,brad,it1,dx,dy,
+     *  rmag,zmag,pmag,psep,zsep,kpr,
+     *  krref,kzref)
 	return
 	end
+	subroutine stabilize_c(ich,i_graph,
+     *  rl,zl,clr,clz,it1,dx,dy,
+     *  rmag,zmag,pmag,psep,zsep,kpr,
+     *  krref,kzref)
+      	include 'double.inc'
+         common
+     *  /c_pf_coils/pf_coils(2)
+	character *30 apr
+	dimension a_print(200)
+	pbound=psep
+	iter=0
+c	ceps=0.1
+c	ceps=0.02
+	ceps=0.02
+      pf_coils(1)=-1000.*1
+      pf_coils(2)=2000.*1
+ 1000	continue
+	it1=1
+	   int_it=0
+ !     rl=rmag-21
+ !     zl=zmag-20
+      rl=rmag
+      zl=zmag
+ 1	   continue
+	   int_it=int_it+1
+      if(int_it.eq.1)then
+      kzref=0
+      krref=0
+      clr=0.
+      clz=0.
+      pf_coils(1)=-1000.*0
+      pf_coils(2)=2000.*0
+           call ptoke1()
+	if(kpr.eq.1)print *,' ITER rmag zmag==',iter,rmag,zmag
+!      rl=0.5*(rmag+rl)
+      zl=-zmag+2.*zl
+      rl=(rmag+2.*rl)/3.
+      kzref=1
+      krref=5
+	if(kpr.eq.1)print *,' ITER rl zl==',iter,rl,zl
+      end if
+	      call ptoke1()
+	      if(int_it.gt.5)it1=0
+	      if(it1.eq.1)go to 1
+      err=dabs( pf_coils(1))+dabs( pf_coils(2))
+      int_it=0
+	iter=iter+1
+	if(kpr.eq.1)print *,' ITER err iter==',err,iter
+      if(err.gt.1.and.iter.le.500)go to 1
+!	if(kpr.eq.1)print *,' ITER err iter==',err,iter
+	if(kpr.eq.1)print *,' ITER clr clz crz==',iter,clr,clz,crz
+!      stop
+	return
+	end
+
