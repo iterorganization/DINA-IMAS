@@ -5,7 +5,7 @@
 # NEEDED MODULES
 import imas,os
 import argparse
-from imas import imasdef
+from imas import ids_defs
 import numpy
 import xml.etree.ElementTree as ET
 from kav_mag_contr.actor import kav_mag_contr
@@ -21,10 +21,7 @@ def get_dbentry(root, opt):
     
     uri = uri_node.text
     IMAS_DBEntry = imas.DBEntry(uri, opt)
-    status,_ = IMAS_DBEntry.open()
-    if status == 0:
-        IMAS_DBEntry.close()
-    return IMAS_DBEntry, status
+    return IMAS_DBEntry
 
 
 
@@ -42,11 +39,10 @@ user_default = os.getenv('USER')
 
 Time_Start = float(root.find('time_start').text)
 Time_Sim = float(root.find('time_sim').text)
-InterpStart = imasdef.CLOSEST_INTERP
+InterpStart = ids_defs.CLOSEST_INTERP
 
 # INPUT/OUTPUT CONFIGURATION
-IMAS_SCEN, status = get_dbentry(root.find('input_scenario'), 'r')
-IMAS_SCEN.open()
+IMAS_SCEN = get_dbentry(root.find('input_scenario'), 'r')
 
 pulse_schedule = IMAS_SCEN.get('pulse_schedule')
 pulse_schedule_term = IMAS_SCEN.get('pulse_schedule', occurrence=1)
@@ -57,8 +53,7 @@ pulse_schedule_term = IMAS_SCEN.get('pulse_schedule', occurrence=1)
 
 # CREATE OUTPUT DATAFILE
 print('=> Create output datafile')
-IMAS_OUT, status = get_dbentry(root.find('output'), 'w')
-IMAS_OUT.create()
+IMAS_OUT = get_dbentry(root.find('output'), 'w')
 
 IMAS_OUT.put(pulse_schedule)
 IMAS_OUT.put(pulse_schedule_term, occurrence=1)
@@ -66,10 +61,12 @@ IMAS_OUT.put(pulse_schedule_term, occurrence=1)
 
 # CREATE AND INITIALIZE ACTOR
 kmc = kav_mag_contr()
+code_parameters = kmc.get_code_parameters()
+code_parameters.parameters_path = 'code_parameters.xml'
 runtime_settings = kmc.get_runtime_settings()
 runtime_settings.sandbox.mode = SandboxMode.MANUAL
 runtime_settings.sandbox.path = os.getcwd()
-kmc.initialize(runtime_settings=runtime_settings)
+kmc.initialize(runtime_settings=runtime_settings, code_parameters=code_parameters)
   
 # EXECUTE ACTOR
 print('=> Execute physics code')
@@ -98,10 +95,6 @@ for i in range(1,100):
   IMAS_OUT.put_slice(equilibrium0)
   IMAS_OUT.put_slice(pf_active)
   
-
-
-IMAS_SCEN.close()
-IMAS_OUT.close()
 
 print('Done exporting.')
 

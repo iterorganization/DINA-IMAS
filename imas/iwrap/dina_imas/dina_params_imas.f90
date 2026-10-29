@@ -249,8 +249,8 @@ tt_dina_c = tt_dina_c*1.d3
 
           !npf_c1 = size(ps%pf_active%coil)
           !print*,'ncoil =', size(psch%pf_active%coil)
-          n_t_c1 = size(psch%pf_active%coil(1)%resistance_additional%reference%time)
-          t_t_c1(1:n_t_c1) = psch%pf_active%coil(1)%resistance_additional%reference%time(1:n_t_c1)
+          n_t_c1 = size(psch%pf_active%time)
+          t_t_c1(1:n_t_c1) = psch%pf_active%time(1:n_t_c1)
 
           do i=1,kf
                 print*, 'pfres_0(i)', i, pfres(i)
@@ -262,7 +262,7 @@ tt_dina_c = tt_dina_c*1.d3
           enddo
    
           do i=1,size(psch%pf_active%coil)
-                pf_t_c1(ncirc(i),1:n_t_c1) = pf_t_c1(ncirc(i),1:n_t_c1) + psch%pf_active%coil(i)%resistance_additional%reference%data(1:n_t_c1) + pfa%coil(i)%resistance
+                pf_t_c1(ncirc(i),1:n_t_c1) = pf_t_c1(ncirc(i),1:n_t_c1) + psch%pf_active%coil(i)%resistance_additional%reference(1:n_t_c1) + pfa%coil(i)%resistance
           enddo
         
         
@@ -290,9 +290,9 @@ tt_dina_c = tt_dina_c*1.d3
            !   read (49,*)t_t_c2(i),udd_sol_t_c2(i)
            !end do 
 
-           n_t_c2 = size(psch%ec%power%reference%time)
-           t_t_c2(1:n_t_c2) = psch%ec%power%reference%time(1:n_t_c2)
-           udd_sol_t_c2(1:n_t_c2) = psch%ec%power%reference%data(1:n_t_c2)*1.d-6
+           n_t_c2 = size(psch%ec%time)
+           t_t_c2(1:n_t_c2) = psch%ec%time(1:n_t_c2)
+           udd_sol_t_c2(1:n_t_c2) = psch%ec%power_launched%reference(1:n_t_c2)*1.d-6
         
         
         
@@ -307,9 +307,9 @@ tt_dina_c = tt_dina_c*1.d3
            !end do 
         
            ion = 1
-           n_t_c3 = size(psch%density_control%ion(ion)%n_i_volume_average%reference%time)
-           t_t_c3(1:n_t_c3) = psch%density_control%ion(ion)%n_i_volume_average%reference%time(1:n_t_c3)
-           pn_d_t_c3(1:n_t_c3) = psch%density_control%ion(ion)%n_i_volume_average%reference%data(1:n_t_c3)*1.d-19
+           n_t_c3 = size(psch%density_control%time)
+           t_t_c3(1:n_t_c3) = psch%density_control%time(1:n_t_c3)
+           pn_d_t_c3(1:n_t_c3) = psch%density_control%ion(ion)%n_i_volume_average%reference(1:n_t_c3)*1.d-19
 
 
 
@@ -323,9 +323,9 @@ tt_dina_c = tt_dina_c*1.d3
            !end do
 
            ion = 2
-           n_t_c8 = size(psch%density_control%ion(ion)%n_i_volume_average%reference%time)
-           t_t_c8(1:n_t_c8) = psch%density_control%ion(ion)%n_i_volume_average%reference%time(1:n_t_c8)
-           den_t_c8(1:n_t_c8) = psch%density_control%ion(ion)%n_i_volume_average%reference%data(1:n_t_c8)*1.d-19
+           n_t_c8 = size(psch%density_control%time)
+           t_t_c8(1:n_t_c8) = psch%density_control%time(1:n_t_c8)
+           den_t_c8(1:n_t_c8) = psch%density_control%ion(ion)%n_i_volume_average%reference(1:n_t_c8)*1.d-19
 
 
            if (n_t_c8.ne.n_t_c3) then
@@ -349,13 +349,13 @@ tt_dina_c = tt_dina_c*1.d3
 
            ion = 3
            nz_imp_c4 = psch%density_control%ion(ion)%element(1)%z_n
-           n_t_c4 = size(psch%density_control%ion(ion)%n_i_volume_average%reference%time)
+           n_t_c4 = size(psch%density_control%time)
            if (n_t_c4.ne.n_t_c3) then
                 print*, 'References of impurity and main ion have different length:', ion, n_t_c4, n_t_c3
                 stop
            endif
-           t_t_c4(1:n_t_c4) = psch%density_control%ion(ion)%n_i_volume_average%reference%time(1:n_t_c4)*1.d3
-           pn_d_t_c4(1:n_t_c4) = psch%density_control%ion(ion)%n_i_volume_average%reference%data(1:n_t_c4)/dens_main(1:n_t_c4)
+           t_t_c4(1:n_t_c4) = psch%density_control%time(1:n_t_c4)*1.d3
+           pn_d_t_c4(1:n_t_c4) = psch%density_control%ion(ion)%n_i_volume_average%reference(1:n_t_c4)/dens_main(1:n_t_c4)
         
         
            ! 0D and 1D model
@@ -370,13 +370,13 @@ tt_dina_c = tt_dina_c*1.d3
            
            ion = 5
            nz_imp2_c5 = psch%density_control%ion(ion)%element(1)%z_n
-           n_t_c5 = size(psch%density_control%ion(ion)%n_i_volume_average%reference%time)
+           n_t_c5 = size(psch%density_control%time)
            if (n_t_c5.ne.n_t_c3) then
                 print*, 'References of impurity and main ion have different length:', ion, n_t_c5, n_t_c3
                 stop
            endif
-           t_t_c5(1:n_t_c5) = psch%density_control%ion(ion)%n_i_volume_average%reference%time(1:n_t_c5)*1.d3
-           pn_d_t_c5(1:n_t_c5) = psch%density_control%ion(ion)%n_i_volume_average%reference%data(1:n_t_c5)/dens_main(1:n_t_c5)
+           t_t_c5(1:n_t_c5) = psch%density_control%time(1:n_t_c5)*1.d3
+           pn_d_t_c5(1:n_t_c5) = psch%density_control%ion(ion)%n_i_volume_average%reference(1:n_t_c5)/dens_main(1:n_t_c5)
         
         
 !	open (unit=41,file='init.dat',form='formatted')
@@ -401,10 +401,10 @@ call xml2eg_get(doc, 'gain_puff', g_gain_c6)
            !   read (49,*)t_t_c7(i),emoe_t_c7(i),emoq_t_c7(i)
            !end do 
 
-           n_t_c7 = size(psch%ec%power%reference%time)
-           t_t_c7(1:n_t_c7) = psch%ec%power%reference%time(1:n_t_c7)
-           emoe_t_c7(1:n_t_c7) = psch%ec%power%reference%data(1:n_t_c7)*1.d-6
-           emoq_t_c7(1:n_t_c7) = psch%ic%power%reference%data(1:n_t_c7)*1.d-6
+           n_t_c7 = size(psch%ec%time)
+           t_t_c7(1:n_t_c7) = psch%ec%time(1:n_t_c7)
+           emoe_t_c7(1:n_t_c7) = psch%ec%power_launched%reference(1:n_t_c7)*1.d-6
+           emoq_t_c7(1:n_t_c7) = psch%ic%power%reference(1:n_t_c7)*1.d-6
         
         
 
@@ -421,13 +421,13 @@ call xml2eg_get(doc, 'gain_puff', g_gain_c6)
            
            ion = 4
            nz_imp1_c9 = psch%density_control%ion(ion)%element(1)%z_n
-           n_t_c9 = size(psch%density_control%ion(ion)%n_i_volume_average%reference%time)
+           n_t_c9 = size(psch%density_control%time)
            if (n_t_c9.ne.n_t_c3) then
                 print*, 'References of impurity and main ion have different length:', ion, n_t_c9, n_t_c3
                 stop
            endif
-           t_t_c9(1:n_t_c9) = psch%density_control%ion(ion)%n_i_volume_average%reference%time(1:n_t_c9)*1.d3
-           pn_d_t_c9(1:n_t_c9) = psch%density_control%ion(ion)%n_i_volume_average%reference%data(1:n_t_c9)/dens_main(1:n_t_c9)
+           t_t_c9(1:n_t_c9) = psch%density_control%time(1:n_t_c9)*1.d3
+           pn_d_t_c9(1:n_t_c9) = psch%density_control%ion(ion)%n_i_volume_average%reference(1:n_t_c9)/dens_main(1:n_t_c9)
         
 
            ! 1D model only
@@ -442,13 +442,13 @@ call xml2eg_get(doc, 'gain_puff', g_gain_c6)
         
            ion = 6
            nz_imp3_c10 = psch%density_control%ion(ion)%element(1)%z_n
-           n_t_c10 = size(psch%density_control%ion(ion)%n_i_volume_average%reference%time)
+           n_t_c10 = size(psch%density_control%time)
            if (n_t_c10.ne.n_t_c3) then
                 print*, 'References of impurity and main ion have different length:', ion, n_t_c10, n_t_c3
                 stop
            endif
-           t_t_c10(1:n_t_c10) = psch%density_control%ion(ion)%n_i_volume_average%reference%time(1:n_t_c10)*1.d3
-           pn_d_t_c10(1:n_t_c10) = psch%density_control%ion(ion)%n_i_volume_average%reference%data(1:n_t_c10)/dens_main(1:n_t_c10)
+           t_t_c10(1:n_t_c10) = psch%density_control%time(1:n_t_c10)*1.d3
+           pn_d_t_c10(1:n_t_c10) = psch%density_control%ion(ion)%n_i_volume_average%reference(1:n_t_c10)/dens_main(1:n_t_c10)
         
         
            ! 1D model only
@@ -472,13 +472,13 @@ call xml2eg_get(doc, 'gain_puff', g_gain_c6)
            endif
 
            nz_imp4_c11 = psch%density_control%ion(ion)%element(1)%z_n
-           n_t_c11 = size(psch%density_control%ion(ion)%n_i_volume_average%reference%time)
+           n_t_c11 = size(psch%density_control%time)
            if (n_t_c11.ne.n_t_c3) then
                 print*, 'References of impurity and main ion have different length:', ion, n_t_c11, n_t_c3
                 stop
            endif
-           t_t_c11(1:n_t_c11) = psch%density_control%ion(ion)%n_i_volume_average%reference%time(1:n_t_c11)*1.d3
-           pn_d_t_c11(1:n_t_c11) = psch%density_control%ion(ion)%n_i_volume_average%reference%data(1:n_t_c11)/dens_main(1:n_t_c11)
+           t_t_c11(1:n_t_c11) = psch%density_control%time(1:n_t_c11)*1.d3
+           pn_d_t_c11(1:n_t_c11) = psch%density_control%ion(ion)%n_i_volume_average%reference(1:n_t_c11)/dens_main(1:n_t_c11)
         
 
 

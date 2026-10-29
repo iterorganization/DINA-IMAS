@@ -30,6 +30,14 @@ logical :: errorflag
       dimension pf_turn(17)
       DATA (pf_turn(I), I=1,17)/554., 554., 554. ,554., 554. ,248.6, 115.2, 185.9, 169.9, 216.8, 459.4, 1., 1., 1., 1., 1., 1./
       
+      real (ids_real) cur_lim
+      dimension cur_lim(11)
+      DATA (cur_lim(I), I=1,11)/45.0, 45.0, 45.0, 45.0, 45.0, 48.0, 55.0, 55.0, 55.0, 52.0, 52.0/
+      
+      real (ids_real) volt_lim
+      dimension volt_lim(13)
+      DATA (volt_lim(I), I=1,13)/6000.0, 575.0, 2100.0, 2100.0, 4200.0, 2100.0, 2100.0, 2100.0, 3150.0, 3150.0, 3150.0, 3150.0, 2100.0/
+      
       
       
       open(unit=49,file='control_init_1.dat', form='formatted')
@@ -80,119 +88,119 @@ logical :: errorflag
       write (49,*) 't_tran2D'
       write (49,*) t_tran2D
       
-      ktime = size(psch%position_control%elongation%reference%time)
+      ktime = size(psch%position_control%time)
       write (49,*) 'ktime   !elong_ref.dat'
       write (49,*) ktime
       write (49,*) 'time[S]   elong_ref '
       do i=1,ktime
-        write (49,*) psch%position_control%elongation%reference%time(i), psch%position_control%elongation%reference%data(i)
+        write (49,*) psch%position_control%time(i), psch%position_control%elongation%reference(i)
       enddo
       
       ig = 1
-      ktime = size(psch%position_control%gap(ig)%value%reference%time)
+      ktime = size(psch%position_control%time)
       write (49,*) 'ktime   !g1.dat'
       write (49,*) ktime
       write (49,*) 'time   '
       do i=1,ktime
-        write (49,*) psch%position_control%gap(ig)%value%reference%time(i), psch%position_control%gap(ig)%value%reference%data(i)*1.d2
+        write (49,*) psch%position_control%time(i), psch%position_control%gap(ig)%value%reference(i)*1.d2
       enddo
       
-      ktime = size(psch_dw%position_control%gap(ig)%value%reference%time)
+      ktime = size(psch_dw%position_control%time)
       write (49,*) 'ktime   !g1_term.dat'
       write (49,*) ktime
       write (49,*) 'time   '
       do i=1,ktime
-        write (49,*) psch_dw%position_control%gap(ig)%value%reference%time(i), psch_dw%position_control%gap(ig)%value%reference%data(i)*1.d2
+        write (49,*) psch_dw%position_control%time(i), psch_dw%position_control%gap(ig)%value%reference(i)*1.d2
       enddo
       
       
       ig = 2
-      ktime = size(psch%position_control%gap(ig)%value%reference%time)
+      ktime = size(psch%position_control%time)
       write (49,*) 'ktime   !g2.dat'
       write (49,*) ktime
       write (49,*) 'time   '
       do i=1,ktime
-        write (49,*) psch%position_control%gap(ig)%value%reference%time(i), psch%position_control%gap(ig)%value%reference%data(i)*1.d2
+        write (49,*) psch%position_control%time(i), psch%position_control%gap(ig)%value%reference(i)*1.d2
       enddo
       
-      ktime = size(psch_dw%position_control%gap(ig)%value%reference%time)
+      ktime = size(psch_dw%position_control%time)
       write (49,*) 'ktime   !g2_term.dat'
       write (49,*) ktime
       write (49,*) 'time   '
       do i=1,ktime
-        write (49,*) psch_dw%position_control%gap(ig)%value%reference%time(i), psch_dw%position_control%gap(ig)%value%reference%data(i)*1.d2
+        write (49,*) psch_dw%position_control%time(i), psch_dw%position_control%gap(ig)%value%reference(i)*1.d2
       enddo
       
       
       !ig = 3
-      ktime = size(psch%position_control%geometric_axis%r%reference%time)
+      ktime = size(psch%position_control%time)
       write (49,*) 'ktime   !g3.dat'
       write (49,*) ktime
       write (49,*) 'time   '
       do i=1,ktime
-        write (49,*) psch%position_control%geometric_axis%r%reference%time(i), (psch%position_control%geometric_axis%r%reference%data(i) + psch%position_control%minor_radius%reference%data(i))*1.d2
+        write (49,*) psch%position_control%time(i), (psch%position_control%geometric_axis%r%reference(i) + psch%position_control%minor_radius%reference(i))*1.d2
       enddo
       
-      ktime = size(psch_dw%position_control%geometric_axis%r%reference%time)
+      ktime = size(psch_dw%position_control%time)
       write (49,*) 'ktime   !g3_term.dat'
       write (49,*) ktime
       write (49,*) 'time   '
       do i=1,ktime
-        write (49,*) psch_dw%position_control%geometric_axis%r%reference%time(i), (psch_dw%position_control%geometric_axis%r%reference%data(i) + psch_dw%position_control%minor_radius%reference%data(i))*1.d2
+        write (49,*) psch_dw%position_control%time(i), (psch_dw%position_control%geometric_axis%r%reference(i) + psch_dw%position_control%minor_radius%reference(i))*1.d2
       enddo
       
       
       ig = 3
-      ktime = size(psch%position_control%gap(ig)%value%reference%time)
+      ktime = size(psch%position_control%time)
       write (49,*) 'ktime   !g4.dat'
       write (49,*) ktime
       write (49,*) 'time   '
       do i=1,ktime
-        write (49,*) psch%position_control%gap(ig)%value%reference%time(i), psch%position_control%gap(ig)%value%reference%data(i)*1.d2
+        write (49,*) psch%position_control%time(i), psch%position_control%gap(ig)%value%reference(i)*1.d2
       enddo
       
-      ktime = size(psch_dw%position_control%gap(ig)%value%reference%time)
+      ktime = size(psch_dw%position_control%time)
       write (49,*) 'ktime   !g4_term.dat'
       write (49,*) ktime
       write (49,*) 'time   '
       do i=1,ktime
-        write (49,*) psch_dw%position_control%gap(ig)%value%reference%time(i), psch_dw%position_control%gap(ig)%value%reference%data(i)*1.d2
+        write (49,*) psch_dw%position_control%time(i), psch_dw%position_control%gap(ig)%value%reference(i)*1.d2
       enddo
       
       
       ig = 4
-      ktime = size(psch%position_control%gap(ig)%value%reference%time)
+      ktime = size(psch%position_control%time)
       write (49,*) 'ktime   !g5.dat'
       write (49,*) ktime
       write (49,*) 'time   '
       do i=1,ktime
-        write (49,*) psch%position_control%gap(ig)%value%reference%time(i), psch%position_control%gap(ig)%value%reference%data(i)*1.d2
+        write (49,*) psch%position_control%time(i), psch%position_control%gap(ig)%value%reference(i)*1.d2
       enddo
       
-      ktime = size(psch_dw%position_control%gap(ig)%value%reference%time)
+      ktime = size(psch_dw%position_control%time)
       write (49,*) 'ktime   !g5_term.dat'
       write (49,*) ktime
       write (49,*) 'time   '
       do i=1,ktime
-        write (49,*) psch_dw%position_control%gap(ig)%value%reference%time(i), psch_dw%position_control%gap(ig)%value%reference%data(i)*1.d2
+        write (49,*) psch_dw%position_control%time(i), psch_dw%position_control%gap(ig)%value%reference(i)*1.d2
       enddo
       
       
       !ig = 6
-      ktime = size(psch%position_control%geometric_axis%r%reference%time)
+      ktime = size(psch%position_control%time)
       write (49,*) 'ktime   !g6.dat'
       write (49,*) ktime
       write (49,*) 'time   '
       do i=1,ktime
-        write (49,*) psch%position_control%geometric_axis%r%reference%time(i), (psch%position_control%geometric_axis%r%reference%data(i) - psch%position_control%minor_radius%reference%data(i))*1.d2
+        write (49,*) psch%position_control%time(i), (psch%position_control%geometric_axis%r%reference(i) - psch%position_control%minor_radius%reference(i))*1.d2
       enddo
       
-      ktime = size(psch_dw%position_control%geometric_axis%r%reference%time)
+      ktime = size(psch_dw%position_control%time)
       write (49,*) 'ktime   !g6_term.dat'
       write (49,*) ktime
       write (49,*) 'time   '
       do i=1,ktime
-        write (49,*) psch_dw%position_control%geometric_axis%r%reference%time(i), (psch_dw%position_control%geometric_axis%r%reference%data(i) - psch_dw%position_control%minor_radius%reference%data(i))*1.d2
+        write (49,*) psch_dw%position_control%time(i), (psch_dw%position_control%geometric_axis%r%reference(i) - psch_dw%position_control%minor_radius%reference(i))*1.d2
       enddo
         
         
@@ -216,10 +224,17 @@ logical :: errorflag
       write (49,*) CS1_eob, rms_noise
       
       
+      call xml2eg_get(doc, 'Tu', Tu)
+      call xml2eg_get(doc, 'c_cur_max', c_cur_max)
+      Tu = 0.04
+      c_cur_max = 0.98
+      
+      
+      
       write (49,*) 'VS1_max(V)   VS3_max(V)   CS3U_max(V)   CS2U_max(V)   CS1_max(V)   CS2L_max(V)   CS3L_max(V)   PF1_max(V)   PF2_max(V)   PF3_max(V)   PF4_max(V)   PF5_max(V)   PF6_max(V)   Tu(s)   !control_data.dat'
-      write (49,*) '6000.0   575.0   2100.0   2100.0   4200.0   2100.0   2100.0   2100.0   3150.0   3150.0   3150.0   3150.0   2100.0   0.04'
+      write (49,*) (volt_lim(i), i=1, 13),   Tu
       write (49,*) 'c_cur_max   CS3U_max(kA)   CS2U_max(kA)   CS1_max(kA)   CS2L_max(kA)   CS3L_max(kA)   PF1_max(kA)   PF2_max(kA)   PF3_max(kA)   PF4_max(kA)   PF5_max(kA)   PF6_max(kA) '
-      write (49,*) '0.98   45.0   45.0   45.0   45.0   45.0   48.0   55.0   55.0   55.0   52.0   52.0 '
+      write (49,*) c_cur_max,  (cur_lim(i), i=1, 11)
       write (49,*) 'CS3U   CS2U   CS1   CS2L   CS3L   PF1   PF2   PF3   PF4   PF5   PF6   VS3   Virt1   Virt2   Virt3   Virt4   Virt5   !n_turn'
       write (49,*) (pf_turn(i),i=1,17)
       write (49,*) ''
@@ -234,43 +249,43 @@ call xml2eg_free_doc(doc)
 
 
       open(unit=49,file='scr_data.dat', form='formatted')
-      ktime = size(psch%pf_active%coil(1)%current%reference%data)
+      ktime = size(psch%pf_active%time)
       write(49,*) 'Time(s),Ip,I(CSU3),I(CSU2),I(CS1),I(CSL2)  '
       do i=1,ktime
-        write(49,*) psch%pf_active%coil(1)%current%reference%time(i), &
-        & psch%flux_control%i_plasma%reference%data(i)*(tpl_dir*1.d-6), &
-        & psch%pf_active%coil(1)%current%reference%data(i)*(tpl_dir*1.d-6*pf_turn(1)), &
-        & psch%pf_active%coil(2)%current%reference%data(i)*(tpl_dir*1.d-6*pf_turn(2)), &
-        & psch%pf_active%coil(3)%current%reference%data(i)*(tpl_dir*1.d-6*pf_turn(3)), &
-        & psch%pf_active%coil(5)%current%reference%data(i)*(tpl_dir*1.d-6*pf_turn(4)), &
-        & psch%pf_active%coil(6)%current%reference%data(i)*(tpl_dir*1.d-6*pf_turn(5)), &
-        & psch%pf_active%coil(7)%current%reference%data(i)*(tpl_dir*1.d-6*pf_turn(6)), &
-        & psch%pf_active%coil(8)%current%reference%data(i)*(tpl_dir*1.d-6*pf_turn(7)), &
-        & psch%pf_active%coil(9)%current%reference%data(i)*(tpl_dir*1.d-6*pf_turn(8)), &
-        & psch%pf_active%coil(10)%current%reference%data(i)*(tpl_dir*1.d-6*pf_turn(9)), &
-        & psch%pf_active%coil(11)%current%reference%data(i)*(tpl_dir*1.d-6*pf_turn(10)), &
-        & psch%pf_active%coil(12)%current%reference%data(i)*(tpl_dir*1.d-6*pf_turn(11))
+        write(49,*) psch%pf_active%time(i), &
+        & psch%flux_control%i_plasma%reference(i)*(tpl_dir*1.d-6), &
+        & psch%pf_active%coil(1)%current%reference(i)*(tpl_dir*1.d-6*pf_turn(1)), &
+        & psch%pf_active%coil(2)%current%reference(i)*(tpl_dir*1.d-6*pf_turn(2)), &
+        & psch%pf_active%coil(3)%current%reference(i)*(tpl_dir*1.d-6*pf_turn(3)), &
+        & psch%pf_active%coil(5)%current%reference(i)*(tpl_dir*1.d-6*pf_turn(4)), &
+        & psch%pf_active%coil(6)%current%reference(i)*(tpl_dir*1.d-6*pf_turn(5)), &
+        & psch%pf_active%coil(7)%current%reference(i)*(tpl_dir*1.d-6*pf_turn(6)), &
+        & psch%pf_active%coil(8)%current%reference(i)*(tpl_dir*1.d-6*pf_turn(7)), &
+        & psch%pf_active%coil(9)%current%reference(i)*(tpl_dir*1.d-6*pf_turn(8)), &
+        & psch%pf_active%coil(10)%current%reference(i)*(tpl_dir*1.d-6*pf_turn(9)), &
+        & psch%pf_active%coil(11)%current%reference(i)*(tpl_dir*1.d-6*pf_turn(10)), &
+        & psch%pf_active%coil(12)%current%reference(i)*(tpl_dir*1.d-6*pf_turn(11))
       enddo
       write(49,*) ''
       close(49)
       
       
       open(unit=49,file='volt.dat', form='formatted')
-      ktime = size(psch%pf_active%supply(1)%voltage%reference%data)
+      ktime = size(psch%pf_active%time)
       write(49,*) '!!!!!!!!!!!!'
       do i=1,ktime
-        write(49,*) psch%pf_active%supply(1)%voltage%reference%time(i)*1.d3, &
-        & psch%pf_active%supply(1)%voltage%reference%data(i)*(tpl_dir/pf_turn(1)), &
-        & psch%pf_active%supply(2)%voltage%reference%data(i)*(tpl_dir/pf_turn(2)), &
-        & (psch%pf_active%supply(3)%voltage%reference%data(i) + psch%pf_active%supply(4)%voltage%reference%data(i))*(tpl_dir/pf_turn(3)), &
-        & psch%pf_active%supply(5)%voltage%reference%data(i)*(tpl_dir/pf_turn(4)), &
-        & psch%pf_active%supply(6)%voltage%reference%data(i)*(tpl_dir/pf_turn(5)), &
-        & psch%pf_active%supply(7)%voltage%reference%data(i)*(tpl_dir/pf_turn(6)), &
-        & psch%pf_active%supply(8)%voltage%reference%data(i)*(tpl_dir/pf_turn(7)), &
-        & psch%pf_active%supply(9)%voltage%reference%data(i)*(tpl_dir/pf_turn(8)), &
-        & psch%pf_active%supply(10)%voltage%reference%data(i)*(tpl_dir/pf_turn(9)), &
-        & psch%pf_active%supply(11)%voltage%reference%data(i)*(tpl_dir/pf_turn(10)), &
-        & psch%pf_active%supply(13)%voltage%reference%data(i)*(tpl_dir/pf_turn(11))
+        write(49,*) psch%pf_active%time(i)*1.d3, &
+        & psch%pf_active%supply(1)%voltage%reference(i)*(tpl_dir/pf_turn(1)), &
+        & psch%pf_active%supply(2)%voltage%reference(i)*(tpl_dir/pf_turn(2)), &
+        & (psch%pf_active%supply(3)%voltage%reference(i) + psch%pf_active%supply(4)%voltage%reference(i))*(tpl_dir/pf_turn(3)), &
+        & psch%pf_active%supply(5)%voltage%reference(i)*(tpl_dir/pf_turn(4)), &
+        & psch%pf_active%supply(6)%voltage%reference(i)*(tpl_dir/pf_turn(5)), &
+        & psch%pf_active%supply(7)%voltage%reference(i)*(tpl_dir/pf_turn(6)), &
+        & psch%pf_active%supply(8)%voltage%reference(i)*(tpl_dir/pf_turn(7)), &
+        & psch%pf_active%supply(9)%voltage%reference(i)*(tpl_dir/pf_turn(8)), &
+        & psch%pf_active%supply(10)%voltage%reference(i)*(tpl_dir/pf_turn(9)), &
+        & psch%pf_active%supply(11)%voltage%reference(i)*(tpl_dir/pf_turn(10)), &
+        & psch%pf_active%supply(13)%voltage%reference(i)*(tpl_dir/pf_turn(11))
       enddo
       write(49,*) ''
       close(49)

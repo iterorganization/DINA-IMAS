@@ -122,11 +122,6 @@ def FillIonElement(ion, z:int, m:float=None):
   ion.element[0].atoms_n = 1
 
 
-def FillPulseScheduleRef(PSitem, time, data):
-  PSitem.time = copy.deepcopy(time)
-  PSitem.data = copy.deepcopy(data)
-
-
 def FillPulseScheduleItem(PSitem, record, col=0):
   PSitem.time = copy.deepcopy(record.time)
   PSitem.data = copy.deepcopy(record.data[col])
@@ -182,7 +177,7 @@ def FillGapRecords(psch, gaprecords):
   for j in range(len(ind)):
     gapname = GapName[ind[j]]
     refname = gapname
-    FillPulseScheduleItem(psch.position_control.gap[j].value.reference, gaprecords[ind[j]])
+    psch.position_control.gap[j].value.reference = gaprecords[ind[j]].data[0]
     psch.position_control.gap[j].r = Rg[ind[j]]
     psch.position_control.gap[j].z = Zg[ind[j]]
     #psch.position_control.gap[j].angle = Ag[j]*numpy.pi/180.
@@ -200,11 +195,10 @@ def FillGapRecords(psch, gaprecords):
   Rmax = gaprecords[2].data[0]
   Rmin = gaprecords[5].data[0]
 
-  psch.position_control.geometric_axis.r.reference.time = time
-  psch.position_control.geometric_axis.r.reference.data = 0.5*(Rmax + Rmin)
+  psch.position_control.time = time
   
-  psch.position_control.minor_radius.reference.time = time
-  psch.position_control.minor_radius.reference.data = 0.5*(Rmax - Rmin)
+  psch.position_control.geometric_axis.r.reference = 0.5*(Rmax + Rmin)
+  psch.position_control.minor_radius.reference = 0.5*(Rmax - Rmin)
 
  
   
@@ -226,8 +220,9 @@ def GetIonLabel(path):
 
 def GetPulseSchedule(path, pfa, ion_label):
   
-  psch = imas.pulse_schedule()
-  psch_dw = imas.pulse_schedule()
+  ids_factory = imas.IDSFactory()
+  psch = ids_factory.pulse_schedule()
+  psch_dw = ids_factory.pulse_schedule()
 
   psch.ids_properties.homogeneous_time = 0
   psch_dw.ids_properties.homogeneous_time = 0
@@ -312,16 +307,17 @@ def GetPulseSchedule(path, pfa, ion_label):
   time_dens = jointime(time_list)
   dens_main = np.interp(time_dens, record_d.time, record_d.data[0]) + np.interp(time_dens, record_t.time, record_t.data[0])
 
+  psch.density_control.time = time_dens
 
   dens = np.interp(time_dens, record_d.time, record_d.data[0])
   iobj = psch.density_control.ion[0]
   FillIonElement(iobj, 1, a_ion0)
-  FillPulseScheduleRef(iobj.n_i_volume_average.reference, time_dens, dens)
+  iobj.n_i_volume_average.reference = dens
 
   dens = np.interp(time_dens, record_t.time, record_t.data[0])
   iobj = psch.density_control.ion[1]
   FillIonElement(iobj, 1, a_ion1)
-  FillPulseScheduleRef(iobj.n_i_volume_average.reference, time_dens, dens)
+  iobj.n_i_volume_average.reference = dens
 
   z0 = record0.params[0]
   print('Impurity 0D z = ' + str(z0))
@@ -329,7 +325,7 @@ def GetPulseSchedule(path, pfa, ion_label):
   dens = np.multiply(dens_main, gamma)
   iobj = psch.density_control.ion[2]
   FillIonElement(iobj, z0)
-  FillPulseScheduleRef(iobj.n_i_volume_average.reference, time_dens, dens)
+  iobj.n_i_volume_average.reference = dens
 
 
   for iz in range(4):
@@ -342,14 +338,14 @@ def GetPulseSchedule(path, pfa, ion_label):
       record = joinrecords(record0,record,t_1D)
       iobj = psch.density_control.ion[2]
     else:
-      iobj = type(psch.density_control.ion[0])()
+      iobj = copy.deepcopy(psch.density_control.ion[0])
       psch.density_control.ion.append(iobj)
 
     gamma = np.interp(time_dens, record.time, record.data[0])
     dens = np.multiply(dens_main, gamma)
 
     FillIonElement(iobj, z)
-    FillPulseScheduleRef(iobj.n_i_volume_average.reference, time_dens, dens)
+    iobj.n_i_volume_average.reference = dens
 
 
     
@@ -362,7 +358,7 @@ def GetPulseSchedule(path, pfa, ion_label):
     err = 1
     for iobj in psch.density_control.ion:
       if iobj.element[0].z_n == 8.:
-        FillPulseScheduleRef(iobj.n_i_volume_average.reference, time_dens, dens)
+        iobj.n_i_volume_average.reference = dens
         err = 0
     if err == 1:
       print("Oxygen in dens_o.dat is found but not set to the pulse_schedule!")
@@ -397,7 +393,7 @@ def GetPulseSchedule(path, pfa, ion_label):
 
   if os.path.isfile(os.path.join(path, "emo1.dat")):
     n_beam = 4
-    psch.ec.launcher.resize(n_beam)
+    psch.ec.beam.resize(n_beam)
     record = [None,]*n_beam
     for i in range(n_beam):
       record[i] = ReadFileTimeTable(path, "emo%d.dat"%(i+1))
@@ -416,12 +412,10 @@ def GetPulseSchedule(path, pfa, ion_label):
       power[i] = np.interp(time, record[i].time, record[i].data[0])
       p_total += power[i]
       
-      psch.ec.launcher[i].name = "rho=0.%d-0.%d"%(i*2, (i+1)*2)
-      psch.ec.launcher[i].identifier = "rho=0.%d-0.%d"%(i*2, (i+1)*2)
-      psch.ec.launcher[i].power.reference.time = time
-      psch.ec.launcher[i].power.reference.data = power[i]
-      psch.ec.launcher[i].deposition_rho_tor_norm.reference.time = time
-      psch.ec.launcher[i].deposition_rho_tor_norm.reference.data = np.ones(len(time))*(0.1 + float(i)*0.2)
+      psch.ec.beam[i].name = "rho=0.%d-0.%d"%(i*2, (i+1)*2)
+      psch.ec.beam[i].identifier = "rho=0.%d-0.%d"%(i*2, (i+1)*2)
+      psch.ec.beam[i].power_launched.reference = power[i]
+      psch.ec.beam[i].deposition_rho_tor_norm.reference = np.ones(len(time))*(0.1 + float(i)*0.2)
     
     record_e_beams = Waveform(time, [p_total,], '', [], [])
 
@@ -442,17 +436,16 @@ def GetPulseSchedule(path, pfa, ion_label):
     record_i = Waveform(record_e.time, [np.zeros(len(record_e.time)),], '', [], [])
   
 
-
-  psch.ec.power.reference.time = record_e.time
-  psch.ec.power.reference.data = record_e.data[0]
+  psch.ec.time = record_e.time
+  psch.ec.power_launched.reference = record_e.data[0]
   
-  psch.ic.power.reference.time = record_i.time
-  psch.ic.power.reference.data = record_i.data[0]
+  psch.ic.time = record_i.time
+  psch.ic.power.reference = record_i.data[0]
 
   
   if os.path.isfile(os.path.join(path, "emo1_r.dat")):
     n_beam = 4
-    psch_dw.ec.launcher.resize(n_beam)
+    psch_dw.ec.beam.resize(n_beam)
     record = [None,]*n_beam
     for i in range(n_beam):
       record[i] = ReadFileTimeTable(path, "emo%d_r.dat"%(i+1))
@@ -465,15 +458,13 @@ def GetPulseSchedule(path, pfa, ion_label):
       power[i] = np.interp(time, record[i].time, record[i].data[0])
       p_total += power[i]
       
-      psch_dw.ec.launcher[i].name = "rho=0.%d-0.%d"%(i*2, (i+1)*2)
-      psch_dw.ec.launcher[i].identifier = "rho=0.%d-0.%d"%(i*2, (i+1)*2)
-      psch_dw.ec.launcher[i].power.reference.time = time
-      psch_dw.ec.launcher[i].power.reference.data = power[i]
-      psch_dw.ec.launcher[i].deposition_rho_tor_norm.reference.time = time
-      psch_dw.ec.launcher[i].deposition_rho_tor_norm.reference.data = np.ones(len(time))*(0.1 + float(i)*0.2)
+      psch_dw.ec.beam[i].name = "rho=0.%d-0.%d"%(i*2, (i+1)*2)
+      psch_dw.ec.beam[i].identifier = "rho=0.%d-0.%d"%(i*2, (i+1)*2)
+      psch_dw.ec.beam[i].power_launched.reference = power[i]
+      psch_dw.ec.beam[i].deposition_rho_tor_norm.reference = np.ones(len(time))*(0.1 + float(i)*0.2)
     
-    psch_dw.ec.power.reference.time = time
-    psch_dw.ec.power.reference.data = p_total
+    psch_dw.ec.time = time
+    psch_dw.ec.power_launched.reference = p_total
 
   elif os.path.isfile(os.path.join(path, "heat_profile.dat")):
     data = ReadFileParameters(path, 'heat_profile.dat', 15)
@@ -487,17 +478,17 @@ def GetPulseSchedule(path, pfa, ion_label):
     p0 = psch.ec.power.reference.data[-1]
     t_del = p0/del_emoe
     if (t_dw > t_del):
-      psch_dw.ec.power.reference.time = np.array([0., t_del, t_dw])
-      psch_dw.ec.power.reference.data = np.array([p0, 0.0, 0.0])
+      psch_dw.ec.time = np.array([0., t_del, t_dw])
+      psch_dw.ec.power_launched.reference = np.array([p0, 0.0, 0.0])
     else:
-      psch_dw.ec.power.reference.time = np.array([0., t_del])
-      psch_dw.ec.power.reference.data = np.array([p0, 0.0])
+      psch_dw.ec.time = np.array([0., t_del])
+      psch_dw.ec.power_launched.reference = np.array([p0, 0.0])
   else:
-    psch_dw.ec.power.reference.time = np.array([0., t_dw])
-    psch_dw.ec.power.reference.data = np.array([0.0, 0.0])
+    psch_dw.ec.time = np.array([0., t_dw])
+    psch_dw.ec.power_launched.reference = np.array([0.0, 0.0])
 
-  psch_dw.ic.power.reference.time = np.array([0., t_dw])
-  psch_dw.ic.power.reference.data = np.array([0.0, 0.0])
+  psch_dw.ic.time = np.array([0., t_dw])
+  psch_dw.ic.power.reference = np.array([0.0, 0.0])
 
 
   ## Magnetic control
@@ -522,7 +513,7 @@ def GetPulseSchedule(path, pfa, ion_label):
   for rec in gaprecords:
     rec.SetTime(time)
 
-  FillPulseScheduleItem(psch.position_control.elongation.reference, record_elong)
+  psch.position_control.elongation.reference = record_elong.data[0]
   FillGapRecords(psch, gaprecords)
   
   
@@ -555,35 +546,13 @@ def GetPulseSchedule(path, pfa, ion_label):
   filepath = os.path.join(path, "scr_data.dat")
   f = open(filepath, 'rt')
   data = DINAFiles.ReadScrData(f)
-  record = Waveform(time=data['time'], data=data['data'])
+  record_scrdata = Waveform(time=data['time'], data=data['data'])
   f.close()
-  record.Rescale(tmult=1., fmult=tpl_dir*1.e6)
+  record_scrdata.Rescale(tmult=1., fmult=tpl_dir*1.e6)
   for i in range(11):
-    record.data[i+1] /= ntur[i]
+    record_scrdata.data[i+1] /= ntur[i]
+
   
-  
-  # Plasma current
-  FillPulseScheduleItem(psch.flux_control.i_plasma.reference, record, col=0)
-  psch_dw.flux_control.i_plasma.reference.time = np.array([0., t_dw])
-  psch_dw.flux_control.i_plasma.reference.data = np.array([record.data[0][-1], 0.])
-  
-  
-  # CSPF currents
-  ncoil = len(pfa.coil)
-  print(ncoil)
-  psch.pf_active.coil.resize(ncoil)
-  psch_dw.pf_active.coil.resize(ncoil)
-  for i in range(ncoil):
-    psch.pf_active.coil[i].name = pfa.coil[i].name
-    psch.pf_active.coil[i].identifier = pfa.coil[i].identifier
-    psch_dw.pf_active.coil[i].name = pfa.coil[i].name
-    psch_dw.pf_active.coil[i].identifier = pfa.coil[i].identifier
-  # Linearly decrease at ramp-down
-  for i in range(12):
-    FillPulseScheduleItem(psch.pf_active.coil[i].current.reference, record, col=cm[i]+1)
-    I0 = record.data[cm[i]+1][-1]
-    psch_dw.pf_active.coil[i].current.reference.time = np.array([0., t_dw])
-    psch_dw.pf_active.coil[i].current.reference.data = np.array([I0, 0.])
   
   
   # CSPF voltages
@@ -591,12 +560,66 @@ def GetPulseSchedule(path, pfa, ion_label):
   filepath = os.path.join(path, "volt.dat")
   f = open(filepath, 'rt')
   data = DINAFiles.ReadScrData(f)
-  record = Waveform(time=data['time'], data=data['data'])
+  record_volt = Waveform(time=data['time'], data=data['data'])
   f.close()
-  record.Rescale(tmult=1.e-3, fmult=tpl_dir)
+  record_volt.Rescale(tmult=1.e-3, fmult=tpl_dir)
   for i in range(11):
-    record.data[i] *= ntur[i]
+    record_volt.data[i] *= ntur[i]
   
+
+
+
+  # CSPF resistances
+  vm = [1., 1., 0.5, 0.5, 1., 1., 1., 1., 1., 1., 1., 1., 0.5, 0.5]
+  record_res = ReadFileTimeTable(path, 'pfres.dat')
+  for i in range(12):
+    record_res.data[i] *= (ntur[i]*ntur[i])
+  record_res.data[11] -= record_res.data[11][-1]
+
+  data2 = []
+  for i in range(14):
+    data2.append(record_res.data[cm[i]]*vm[i])
+  record_res.data = data2
+
+
+
+  # Common time array
+  time_list = [record_scrdata.time, record_volt.time, record_res.time]
+  time = jointime(time_list)
+
+  record_scrdata.SetTime(time)
+  record_volt.SetTime(time)
+  record_res.SetTime(time)
+
+
+  # Plasma current
+  psch.flux_control.time = record_scrdata.time
+  psch.flux_control.i_plasma.reference = record_scrdata.data[0]
+  psch_dw.flux_control.time = np.array([0., t_dw])
+  psch_dw.flux_control.i_plasma.reference = np.array([record_scrdata.data[0][-1], 0.])
+
+
+  # CSPF currents
+  ncoil = len(pfa.coil)
+  print(ncoil)
+  psch.pf_active.coil.resize(ncoil)
+  psch_dw.pf_active.coil.resize(ncoil)
+  psch.pf_active.time = record_scrdata.time
+  for i in range(ncoil):
+    psch.pf_active.coil[i].name = pfa.coil[i].name
+    psch.pf_active.coil[i].identifier = pfa.coil[i].identifier
+    psch_dw.pf_active.coil[i].name = pfa.coil[i].name
+    psch_dw.pf_active.coil[i].identifier = pfa.coil[i].identifier
+  # Linearly decrease at ramp-down
+  psch_dw.pf_active.time = np.array([0., t_dw])
+  for i in range(12):
+    psch.pf_active.coil[i].current.reference = record_scrdata.data[cm[i]+1]
+    I0 = record_scrdata.data[cm[i]+1][-1]
+    psch_dw.pf_active.coil[i].current.reference = np.array([I0, 0.])
+
+
+
+
   nsup = len(pfa.supply)
   psch.pf_active.supply.resize(nsup)
   for i in range(nsup):
@@ -608,36 +631,23 @@ def GetPulseSchedule(path, pfa, ion_label):
       supply = psch.pf_active.supply[j]
       l = min(len(CircuitName[i]), len(supply.identifier))
       if supply.identifier[:l] == CircuitName[i][:l]:
-        supply.voltage.reference.time = record.time
-        supply.voltage.reference.data = record.data[i]*vcm[i]
+        supply.voltage.reference = record_volt.data[i]*vcm[i]
         print(CircuitName[i])
         print(i)
         print(vcm[i])
         break
   # Zero voltages at ramp-down
   for supply in psch_dw.pf_active.supply:
-    supply.voltage.reference.time = np.array([0., t_dw])
-    supply.voltage.reference.data = np.array([0., 0.0])
-  
+    supply.voltage.reference = np.array([0., 0.0])
 
 
-  # CSPF resistances
-  vm = [1., 1., 0.5, 0.5, 1., 1., 1., 1., 1., 1., 1., 1., 0.5, 0.5]
-  record = ReadFileTimeTable(path, 'pfres.dat')
-  for i in range(12):
-    record.data[i] *= (ntur[i]*ntur[i])
-  record.data[11] -= record.data[11][-1]
 
-  data2 = []
+
   for i in range(14):
-    data2.append(record.data[cm[i]]*vm[i])
-  record.data = data2
-  for i in range(14):
-    FillPulseScheduleItem(psch.pf_active.coil[i].resistance_additional.reference, record, col=i)
+    psch.pf_active.coil[i].resistance_additional.reference = record_res.data[i]
   # Zero resistances at ramp-down
   for coil in psch_dw.pf_active.coil:
-    coil.resistance_additional.reference.time = np.array([0., t_dw])
-    coil.resistance_additional.reference.data = np.array([0., 0.0])
+    coil.resistance_additional.reference = np.array([0., 0.0])
 
   
   # Rampdown densities
@@ -652,7 +662,8 @@ def GetPulseSchedule(path, pfa, ion_label):
   time1 = np.linspace(t_pcchp, t_dw, 10)
   time = np.append(0., time1)
 
-  
+  psch_dw.density_control.time = time
+
   # Deuterium density
   data = ReadFileParameters(path, 'pcchp_end.dat', 1)
   n_pcchp = float(data[0][0].value)*1.e19
@@ -661,21 +672,19 @@ def GetPulseSchedule(path, pfa, ion_label):
   n = np.zeros(len(time1))
   n_Gw = np.zeros(len(time1))
   for i in range(len(time1)):
-    a = np.interp(time1[i], psch_dw.position_control.minor_radius.reference.time, psch_dw.position_control.minor_radius.reference.data)
-    Ip = np.interp(time1[i], psch_dw.flux_control.i_plasma.reference.time, psch_dw.flux_control.i_plasma.reference.data)
+    a = np.interp(time1[i], psch_dw.position_control.time, psch_dw.position_control.minor_radius.reference)
+    Ip = np.interp(time1[i], psch_dw.flux_control.time, psch_dw.flux_control.i_plasma.reference)
     n_Gw[i] = 1.e20*(abs(Ip)*1.e-6)/(math.pi*a*a)
     f = n_pcchp/n_Gw[0]
     n[i] = f*n_Gw[i]
 
-  iobj.n_i_volume_average.reference.data = np.append(record_d.data[0][-1], n)
-  iobj.n_i_volume_average.reference.time = time
+  iobj.n_i_volume_average.reference = np.append(record_d.data[0][-1], n)
   
   
   # Tritium density
   iobj = psch_dw.density_control.ion[1]
   FillIonElement(iobj, 1, a_ion1)
-  iobj.n_i_volume_average.reference.time = time
-  iobj.n_i_volume_average.reference.data = np.append(record_t.data[0][-1], np.zeros(len(time1)))
+  iobj.n_i_volume_average.reference = np.append(record_t.data[0][-1], np.zeros(len(time1)))
   
   
   # Impurities
@@ -686,12 +695,11 @@ def GetPulseSchedule(path, pfa, ion_label):
     
     gamma = n_i/n_main
     
-    n = gamma*psch_dw.density_control.ion[0].n_i_volume_average.reference.data
+    n = gamma*psch_dw.density_control.ion[0].n_i_volume_average.reference
     
     iobj_dw = psch_dw.density_control.ion[i]
     FillIonElement(iobj_dw, iobj.element[0].z_n, iobj.element[0].a)
-    iobj_dw.n_i_volume_average.reference.data = n
-    iobj_dw.n_i_volume_average.reference.time = time
+    iobj_dw.n_i_volume_average.reference = n
   
   
   # Oxygen density
@@ -701,10 +709,7 @@ def GetPulseSchedule(path, pfa, ion_label):
     err = 1
     for iobj in psch_dw.density_control.ion:
       if iobj.element[0].z_n == 8.:
-        iobj.n_i_volume_average.reference.data = np.zeros(1)
-        iobj.n_i_volume_average.reference.time = np.zeros(1)
-        iobj.n_i_volume_average.reference.data[0] = record.data[0][-1]
-        iobj.n_i_volume_average.reference.time[0] = 0.0
+        iobj.n_i_volume_average.reference = np.ones(len(time))*record.data[0][-1]
         err = 0
     if err == 1:
       print("Oxygen in dens_o.dat is found but not set to the pulse_schedule!")

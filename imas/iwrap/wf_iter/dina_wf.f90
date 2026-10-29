@@ -184,6 +184,41 @@ endif
 
 
 
+write(*,*) 'Reading the pulse schedule'
+call imas_open(uri_psch, OPEN_PULSE, idx0, error_flag)
+
+call ids_get(idx0,"pulse_schedule",pulse_schedule)
+call ids_get(idx0,"pulse_schedule/1",pulse_schedule_term)
+
+call imas_close(idx0)
+
+
+
+call imas_open(uri_pfa, OPEN_PULSE, idx0, error_flag)
+call ids_get_slice(idx0,"pf_active",pf_active0, time_start, interp_start)
+call imas_close(idx0)
+
+call imas_open(uri_pfp, OPEN_PULSE, idx0, error_flag)
+call ids_get_slice(idx0,"pf_passive",pf_passive0, time_start, interp_start)
+call imas_close(idx0)
+
+if (.NOT.error_mag) then
+print *,' Using magnetics from URI =', trim(uri_mag)
+call imas_open(uri_mag, OPEN_PULSE, idx0, error_flag)
+call ids_get_slice(idx0,"magnetics",magnetics0, time_start, interp_start)
+call imas_close(idx0)
+endif
+
+call imas_open(uri_wll, OPEN_PULSE, idx0, error_flag)
+call ids_get_slice(idx0,"wall",wall, time_start, interp_start)
+call imas_close(idx0)
+
+
+
+call file2buffer('codeparam_dina.xml', io_unit, codeparam_dina%parameters_value)
+call file2buffer('codeparam_kmc.xml', io_unit, codeparam_kmc%parameters_value)
+
+
 
 if (restart.eq.1) then
 
@@ -262,33 +297,18 @@ else
   write(*,*) 'equilibrium0 grid is set '
   flush(6)
 
+  
+  do i=1,size(pf_active0%coil)
+    allocate(pf_active0%coil(i)%current%data(1))
+    if (associated(pulse_schedule%pf_active%coil(i)%current%reference)) then
+      pf_active0%coil(i)%current%data(1) = pulse_schedule%pf_active%coil(i)%current%reference(1)
+    else
+      pf_active0%coil(i)%current%data(1) = 0.d0
+    endif
+  enddo
+  
 endif
 
-
-
-call imas_open(uri_pfa, OPEN_PULSE, idx0, error_flag)
-call ids_get_slice(idx0,"pf_active",pf_active0, time_start, interp_start)
-call imas_close(idx0)
-
-call imas_open(uri_pfp, OPEN_PULSE, idx0, error_flag)
-call ids_get_slice(idx0,"pf_passive",pf_passive0, time_start, interp_start)
-call imas_close(idx0)
-
-if (.NOT.error_mag) then
-print *,' Using magnetics from URI =', trim(uri_mag)
-call imas_open(uri_mag, OPEN_PULSE, idx0, error_flag)
-call ids_get_slice(idx0,"magnetics",magnetics0, time_start, interp_start)
-call imas_close(idx0)
-endif
-
-call imas_open(uri_wll, OPEN_PULSE, idx0, error_flag)
-call ids_get_slice(idx0,"wall",wall, time_start, interp_start)
-call imas_close(idx0)
-
-
-
-call file2buffer('codeparam_dina.xml', io_unit, codeparam_dina%parameters_value)
-call file2buffer('codeparam_kmc.xml', io_unit, codeparam_kmc%parameters_value)
 
 
 workflow%ids_properties%homogeneous_time = 2
@@ -349,14 +369,6 @@ pf_active0%coil(14)%resistance = 0.5d0*vs3_R
 endif
 
 
-write(*,*) 'Reading the pulse schedule'
-call imas_open(uri_psch, OPEN_PULSE, idx0, error_flag)
-
-call ids_get(idx0,"pulse_schedule",pulse_schedule)
-call ids_get(idx0,"pulse_schedule/1",pulse_schedule_term)
-
-call imas_close(idx0)
-
 !print *,'Press any key to begin simulation...'
 !read (*,*)
 
@@ -405,6 +417,8 @@ call imas_close(idx0)
  
  call ids_put(idx,"dataset_description",data_description)
 
+
+ 
 do iloop=1,imax
 
 write(*,*) 'call DINA_IMAS i =',iloop

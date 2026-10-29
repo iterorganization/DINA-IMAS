@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>538</width>
-    <height>191</height>
+    <width>508</width>
+    <height>171</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -35,6 +35,65 @@
           </item>
          </layout>
         </widget>
+        <widget class="QWidget" name="tabPath">
+         <attribute name="title">
+          <string>Path</string>
+         </attribute>
+         <layout class="QVBoxLayout" name="verticalLayout_10">
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_2">
+            <item>
+             <widget class="QLabel" name="labelUser_8">
+              <property name="text">
+               <string>Backend</string>
+              </property>
+              <property name="alignment">
+               <set>Qt::AlignCenter</set>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QComboBox" name="comboBoxBackend_Path">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="editable">
+               <bool>false</bool>
+              </property>
+              <item>
+               <property name="text">
+                <string>MDS+</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>HDF5</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>ASCII</string>
+               </property>
+              </item>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="pushButton_SelectPath">
+              <property name="text">
+               <string>Select path...</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="lineEditPath"/>
+          </item>
+         </layout>
+        </widget>
         <widget class="QWidget" name="tabKeys">
          <attribute name="title">
           <string>Legacy</string>
@@ -53,7 +112,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QComboBox" name="comboBoxBackend">
+             <widget class="QComboBox" name="comboBoxBackend_Legacy">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
                 <horstretch>0</horstretch>

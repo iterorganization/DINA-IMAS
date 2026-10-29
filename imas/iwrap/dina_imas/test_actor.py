@@ -5,13 +5,14 @@
 # NEEDED MODULES
 import imas,os
 import argparse
-from imas import imasdef
+from imas import ids_defs
 import numpy
 import xml.etree.ElementTree as ET
 
 from dina_imas.actor import dina_imas
 from dina_imas.common.runtime_settings import SandboxMode
 
+ids_factory = imas.IDSFactory()
 
 def get_dbentry(root, opt):
     if root == None:
@@ -22,10 +23,7 @@ def get_dbentry(root, opt):
     
     uri = uri_node.text
     IMAS_DBEntry = imas.DBEntry(uri, opt)
-    status,_ = IMAS_DBEntry.open()
-    if status == 0:
-        IMAS_DBEntry.close()
-    return IMAS_DBEntry, status
+    return IMAS_DBEntry
 
 
 
@@ -43,15 +41,13 @@ user_default = os.getenv('USER')
 
 Time_Start = float(root.find('time_start').text)
 Time_Sim = float(root.find('time_sim').text)
-InterpStart = imasdef.CLOSEST_INTERP
+InterpStart = ids_defs.CLOSEST_INTERP
 
 # INPUT/OUTPUT CONFIGURATION
-IMAS_SCEN, status = get_dbentry(root.find('input_scenario'), 'r')
-IMAS_SCEN.open()
+with get_dbentry(root.find('input_scenario'), 'r') as IMAS_SCEN:
 
-print("Reading input database at t=%f"%(Time_Start))
+    print("Reading input database at t=%f"%(Time_Start))
 
-if True:
     em_coupling = IMAS_SCEN.get('em_coupling')
     wall = IMAS_SCEN.get('wall')
     pulse_schedule = IMAS_SCEN.get('pulse_schedule')
@@ -63,26 +59,26 @@ if True:
     core_profiles0 = IMAS_SCEN.get_slice('core_profiles', Time_Start, InterpStart)
     core_sources0 = IMAS_SCEN.get_slice('core_sources', Time_Start, InterpStart)
 
-IMAS_SCEN.close()
 
-bndcond_in = imas.transport_solver_numerics()
+bndcond_in = ids_factory.transport_solver_numerics()
 bndcond_in.ids_properties.homogeneous_time=1
 
 # CREATE OUTPUT DATAFILE
 print('=> Create output datafile')
-IMAS_OUT, status = get_dbentry(root.find('output'), 'w')
-IMAS_OUT.create()
+IMAS_OUT = get_dbentry(root.find('output'), 'w')
 
 
 # CREATE AND INITIALIZE ACTOR
 dina_imas_actor = dina_imas()
 #dina_imas_actor.initialize()
+code_parameters = dina_imas_actor.get_code_parameters()
+code_parameters.parameters_path = 'code_parameters.xml'
 
 # Set this directory as sandbox to use imp folder
 runtime_settings = dina_imas_actor.get_runtime_settings()
 runtime_settings.sandbox.mode = SandboxMode.MANUAL
 runtime_settings.sandbox.path = os.getcwd()
-dina_imas_actor.initialize(runtime_settings=runtime_settings)
+dina_imas_actor.initialize(runtime_settings=runtime_settings, code_parameters=code_parameters)
 
 
 IMAS_OUT.put(em_coupling)
@@ -124,8 +120,6 @@ while True:
     
   iloop = iloop + 1
     
-
-IMAS_OUT.close()
 print('Done exporting.')
 
 

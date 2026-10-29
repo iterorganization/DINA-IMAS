@@ -11,7 +11,6 @@
     <uri>imas:mdsplus?user=public;database=ITER_MD;pulse=115005;run=2;version=3</uri>
   </input_pf_passive>
   <input_magnetics>
-    <uri>imas:mdsplus?user=dubrovm;database=test;pulse=170;run=1;version=3</uri>
   </input_magnetics>
   <input_em_coupling>
   </input_em_coupling>

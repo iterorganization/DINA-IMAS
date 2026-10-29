@@ -1,45 +1,17 @@
 FC?=gfortran
+FCFLAGS?=-fPIC -w
+F90FLAGS?=-fPIC -w
 ACTOR=kav_mag_contr
 INCDIR:=../../../src/include
 
 
 PACKAGES=
-#PACKAGES+=imas-$(FC)
 PACKAGES+=al-fortran
-#PACKAGES+=libxml-2.0
 PACKAGES+=xmllib
 
 F90LIB=
 F90INC=-I$(INCDIR)
 
-F90DEF=-D'GIT_URL="$(GIT_URL)"'
-F90DEF+=-D'GIT_COMMIT_ID="$(GIT_COMMIT_ID)"'
-F90DEF+=-D'GIT_VERSION="$(GIT_VERSION)"'
-
-F90FLAGS=-fPIC -w
-FCFLAGS=-fPIC -w
-# COMPILER-SPECIFIC FLAGS
-ifeq ($(FC), ifort)
-  F90FLAGS+=-fpp
-  F90FLAGS+=-real-size 64 -assume no2underscores -no-wrap-margin
-  FCFLAGS+=-real-size 64 -extend-source
-else ifeq ($(FC), gfortran)
-  F90FLAGS+=-cpp
-  F90FLAGS+=-freal-4-real-8 -fno-second-underscore -ffree-line-length-none
-  FCFLAGS+=-freal-4-real-8 -ffixed-line-length-none
-else
-  $(error Unsupported Fortran compiler)
-endif
-
-
-DEBUG = -g -O0
-ifeq ($(TARGET), DEBUG)
-  F90FLAGS += $(DEBUG)
-  FCFLAGS += $(DEBUG)
-endif
-
-
-F90FLAGS+=$(F90DEF)
 
 # FLAGS OF PACKAGES
 F90LIB+=`pkg-config $(PACKAGES) --libs`
