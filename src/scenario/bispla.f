@@ -32,6 +32,7 @@ c	read (*,*)
 	if(kpr.eq.1)print *,' end of writing SURF'
 	call w_b_coor()
 	if(kpr.eq.1)print *,' end of writing SURF'
+	print *, "STOP boxda"
 	stop
 	return
 	end if

@@ -76,18 +76,28 @@ real*8 :: output_1(kint), output_2(kint)
 
 real*8 :: pf(npf)
 integer :: ncirc(npf), dircirc(npf)
+integer :: igaps(n_gaps)
 real*8 :: vmult(npf)
 real*8 :: pf_turn(nact)
 data ncirc(1:14) /1, 2, 3, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 12/
 data dircirc(1:14) /1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, -1/
 data vmult(1:14) /1, 1, 0.5d0, 0.5d0, 1, 1, 1, 1, 1, 1, 1, 1, 0.5d0, -0.5d0/
-data pf_turn(1:12) /554., 554., 554. ,554., 554. ,248.6, 115.2, 185.9, 169.9, 216.8, 459.4, 4.0/
+data pf_turn(1:12) /554., 554., 554. ,554., 554., 248.6, 115.2, 185.9, 169.9, 216.8, 459.4, 4.0/
+data igaps(1:6) /1, 2, 2, 3, 4, 4/
+
+
+integer :: ncirc2(14)
+real*8 :: vmult2(14)
+!                   CS3U  CS2U  CS1U  CS1L  CS2L  CS3L   PF1    PF2    PF3    PF4    PF5    VS1    PF6   VS3
+data ncirc2(1:14) /  16,   17,   18,   18,   19,   20,   21,    22,    23,    24,    25,    36,    26,   38 /
+data vmult2(1:14) / 554., 554., 277., 277., 554., 554., 248.6, 115.2, 185.9, 169.9, 216.8, 216.8, 459.4,  4.0 /
+
 
 !real(ids_real) :: dsep, dsep_ref
 
-  kpr = 1
+  !kpr = 1
   
-  tpl_dir = -1.d0
+  !tpl_dir = -1.d0
   
   if (loop_count.eq.0) then
     write(*,*) 'Controller parameters initialization...'
@@ -133,7 +143,7 @@ data pf_turn(1:12) /554., 554., 554. ,554., 554. ,248.6, 115.2, 185.9, 169.9, 21
   kk=0
   do i=1,n_gaps
     kk=kk+1
-    input_2(kk) = equilibrium0%time_slice(1)%boundary_separatrix%gap(24+i)%value
+    input_2(kk) = equilibrium0%time_slice(1)%boundary_separatrix%gap(igaps(i))%value
   end do
     
   do i=1,npf
@@ -185,11 +195,18 @@ data pf_turn(1:12) /554., 554., 554. ,554., 554. ,248.6, 115.2, 185.9, 169.9, 21
   !if (.NOT.associated(pf_active%time)) allocate(pf_active%time(1))
   !pf_active%time(1) = tt
       
-
-  do i=1,npfa
+  ! Assign coil voltages
+  do i=1,14
     if (.NOT.associated(pf_active%coil(i)%voltage%data)) allocate(pf_active%coil(i)%voltage%data(1))
     pf_active%coil(i)%voltage%data(1) = tpl_dir*vmult(i)*output_2(ncirc(i))*pf_turn(ncirc(i))
   enddo
+
+  ! Assign power supply voltages
+  do i=1,14
+    if (.NOT.associated(pf_active%supply(i)%voltage%data)) allocate(pf_active%supply(i)%voltage%data(1))
+    pf_active%supply(i)%voltage%data(1) = tpl_dir*output_2(ncirc2(i))*vmult2(i)
+  enddo
+
 
   print*, 'pf_active voltages allocated'
   flush(6)

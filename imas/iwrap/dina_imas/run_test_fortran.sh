@@ -1,7 +1,3 @@
-mkdir sandbox
-cd sandbox
-rm -rf ./*
+cp -rf $DINA_ROOT/machines/imp ./
 
-cp -rf ../../../../machines/imp ./
-
-../test_actor.exe ../test_wf_parameters.xml ../code_parameters.xml 2>&1 | tee log_fortran
+$DINA_ROOT/imas/iwrap/dina_imas/test_actor.exe ./test_wf_parameters.xml ./code_parameters.xml 2>&1 | tee log_fortran

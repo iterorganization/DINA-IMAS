@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+  
+  <xs:include schemaLocation="../imas_database.xsd" />  
+  
+  <xs:element name="parameters">
+    <xs:complexType>
+      <xs:all>
+        <xs:element name="pulse_schedule" type="imas_database"/>
+        <xs:element name="input_pf_active" type="imas_database"/>
+        <xs:element name="input_pf_passive" type="imas_database"/>
+        <xs:element name="input_magnetics" type="imas_database"/>
+        <xs:element name="input_em_coupling" type="imas_database"/>
+        <xs:element name="input_wall" type="imas_database"/>
+        <xs:element name="input_start" type="imas_database"/>
+        <xs:element name="output" type="imas_database"/>
+        <xs:element name="input_transp" type="imas_database"/>
+        
+        <xs:element ref="time_start"/>
+		    <xs:element ref="start_interp_mode"/>
+		    <xs:element ref="transp_interp_mode"/>
+        <xs:element ref="time_stop"/>
+        <xs:element ref="decimation"/>
+        <xs:element ref="time_ext"/>
+        <xs:element ref="controller"/>
+        <xs:element ref="step_max"/>
+        <xs:element ref="use_astra"/>
+        <xs:element ref="vs3_l"/>
+        <xs:element ref="vs3_r"/>
+        <xs:element ref="rs0"/>
+        <xs:element ref="bt0"/>
+        <xs:element ref="rmin"/>
+        <xs:element ref="rmax"/>
+        <xs:element ref="zmin"/>
+        <xs:element ref="zmax"/>
+      </xs:all>
+    </xs:complexType>
+  </xs:element>
+  
+  
+  <xs:element name="time_start" type="xs:decimal"/>
+  <xs:element name="time_stop" type="xs:decimal"/>
+  <xs:element name="time_ext" type="xs:decimal"/>
+  <xs:element name="controller" type="xs:string"/>
+  <xs:element name="step_max" type="xs:integer"/>
+  <xs:element name="decimation" type="integer_decimation"/>
+  <xs:element name="start_interp_mode" type="imas_interp"/>
+  <xs:element name="transp_interp_mode" type="imas_interp"/>
+  <xs:element name="use_astra" type="integer_flag"/>
+  <xs:element name="vs3_l" type="xs:decimal"/>
+  <xs:element name="vs3_r" type="xs:decimal"/>
+  <xs:element name="rs0" type="xs:decimal"/>
+  <xs:element name="bt0" type="xs:decimal"/>
+  <xs:element name="rmin" type="xs:decimal"/>
+  <xs:element name="rmax" type="xs:decimal"/>
+  <xs:element name="zmin" type="xs:decimal"/>
+  <xs:element name="zmax" type="xs:decimal"/>
+  <xs:element name="comment" type="xs:string"/>
+  
+   <xs:simpleType name="integer_decimation">
+     <xs:restriction base="xs:integer">
+       <xs:minInclusive value="1"/>
+     </xs:restriction>
+   </xs:simpleType>  
+  
+   <xs:simpleType name="integer_flag">
+     <xs:restriction base="xs:integer">
+       <xs:minInclusive value="0"/>
+	   <xs:maxInclusive value="1"/>
+     </xs:restriction>
+   </xs:simpleType> 
+  
+   <xs:simpleType name="imas_interp">
+     <xs:restriction base="xs:integer">
+       <xs:minInclusive value="0"/>
+       <xs:maxInclusive value="3"/>
+     </xs:restriction>
+   </xs:simpleType> 
+  
+</xs:schema>

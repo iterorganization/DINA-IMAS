@@ -58,19 +58,19 @@ class Second_window(QtWidgets.QWidget, eq_win4.Ui_Form_eq): #QtGui.QWidget
         verticalLayout.addWidget(self.Label)
         
         
-        self.CreateCheckBox(verticalLayout, "Legend", True)
+        self.CreateCheckBox(verticalLayout, "Legend", False)
         self.CreateCheckBox(verticalLayout, "Grid", False)
         self.CreateCheckBox(verticalLayout, "Coils", True)
         self.CreateCheckBox(verticalLayout, "Passive", True)
         self.CreateCheckBox(verticalLayout, "PassiveCurrentColored", False)
         self.CreateCheckBox(verticalLayout, "Limiter", True)
         self.CreateCheckBox(verticalLayout, "LimiterActivePoint", True)
-        self.CreateCheckBox(verticalLayout, "Boundary", True)
+        self.CreateCheckBox(verticalLayout, "Boundary", False)
         self.CreateCheckBox(verticalLayout, "Separatrix", True)
         self.CreateCheckBox(verticalLayout, "Separatrix2", True)
         self.CreateCheckBox(verticalLayout, "PsiInside", True)
         self.CreateCheckBox(verticalLayout, "PsiOutside", True)
-        self.CreateCheckBox(verticalLayout, "Gaps", True)
+        self.CreateCheckBox(verticalLayout, "Gaps", False)
         
         
         
@@ -256,18 +256,20 @@ class Second_window(QtWidgets.QWidget, eq_win4.Ui_Form_eq): #QtGui.QWidget
         ax = self.ax_Q_profile
         ax.cla()
         
-        isrc = 0
-        
-        x = idslist['core_sources'].source[isrc].profiles_1d[it].grid.rho_tor_norm
-        
-        y = idslist['core_sources'].source[isrc].profiles_1d[it].electrons.energy
-        y1 = idslist['core_sources'].source[isrc].profiles_1d[it].total_ion_energy
-        
-        ax.plot(x, y, label = "Qe")
-        ax.plot(x, y1, label = "Qi")
-        
-        ax.set_xlim([0.0, 1.0])
-        ax.set_ylim([min(y), max(y)])
+        if len(idslist['core_sources'].source) > 0:
+          isrc = 0
+          
+          x = idslist['core_sources'].source[isrc].profiles_1d[it].grid.rho_tor_norm
+          
+          y = idslist['core_sources'].source[isrc].profiles_1d[it].electrons.energy
+          y1 = idslist['core_sources'].source[isrc].profiles_1d[it].total_ion_energy
+          
+          ax.plot(x, y, label = "Qe")
+          ax.plot(x, y1, label = "Qi")
+          
+          ax.set_xlim([min(x), max(x)])
+          #ax.set_ylim([min(y), max(y)])
+          
         ax.set_title ("Heat sources, W/m³")
         ax.legend(loc='center left',bbox_to_anchor=(1,0.5))
         
@@ -456,28 +458,12 @@ def main():
     # ------------------------------
     parser = argparse.ArgumentParser(description=\
             '---- Display scenario')
-    parser.add_argument('-s','--shot',help='Shot number', required=True,type=int)
-    parser.add_argument('-r','--run',help='Run number',required=True,type=int)
-    parser.add_argument('-u','--user_or_path',help='User or absolute path name where the data-entry is located', required=False)
-    parser.add_argument('-d','--database',help='Database name where the data-entry is located', required=False)
+    parser.add_argument('-u','--uri',help='User or absolute path name where the data-entry is located', required=True)
     parser.add_argument('-t','--time',help='Time', required=False,type=float)
     
     args = vars(parser.parse_args())
     
-    shot = args["shot"]
-    run  = args["run"]
-    
-    # User or absolute path name
-    if args['user_or_path'] != None:
-        user = args['user_or_path']
-    else:
-        user = 'public'
-    
-    # Database name
-    if args['database'] != None:
-        database = args['database']
-    else:
-        database = 'iter'
+    uri = args["uri"]
     
     # Time
     if args['time'] != None:
@@ -493,7 +479,7 @@ def main():
     
     
     
-    imas_entry_init = imas.DBEntry(imas.imasdef.MDSPLUS_BACKEND, database, shot, run, user, data_version = '3')
+    imas_entry_init = imas.DBEntry(uri, 'r')
     imas_entry_init.open()
     
     idslist = {}
@@ -522,7 +508,7 @@ def main():
     window = Second_window(idslist)
     window.setObjectName("EQUIL_win")
     window.show() 
-    sys.exit(app.exec_())  # Start application
+    sys.exit(app.exec())  # Start application
 
 if __name__ == '__main__':  # If direct run, not import
     main() 

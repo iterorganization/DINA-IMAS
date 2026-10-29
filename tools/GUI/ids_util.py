@@ -124,14 +124,21 @@ def plot_pf_active(ax, ids, facecolor='orange', edgecolor='blue'):
           x_mid = np.mean(x_val[0:-1])
           y_mid = np.mean(y_val[0:-1])
           ax.plot(x_val,y_val,'b',linewidth=1.5)
-          ax.plot(x_mid,y_mid,'b.',linewidth=1.5)
           
+          #ax.plot(x_mid,y_mid,'b.',linewidth=1.5)
+          
+          if len(x_val) == 5:
+            ax.plot([x_val[0], x_val[2]], [y_val[0], y_val[2]],'b',linewidth=1.)
+            ax.plot([x_val[1], x_val[3]], [y_val[1], y_val[3]],'b',linewidth=1.)
+
+
           #if (len(coil.element) > 1):
             #text = str(icoil+1) + '/' + str(ielem+1)
           #else:
             #text = str(icoil+1)
           #txt = ax.annotate(text, xy=(x_mid, y_mid), fontsize = 16, color='r')
           #txt.draggable()
+          
 
         
 def plot_pf_passive(ax, ids, facecolor=(0.8, 0.8, 0.8), edgecolor=(0, 0, 1)):

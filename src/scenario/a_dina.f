@@ -19,7 +19,7 @@
       dimension c_input1(*),c_input2(*)
       dimension c_output1(*),c_output2(*),c_output3(*)
 
-      parameter (kint=200)
+      parameter (kint=mu)
 
 	dimension pf_xx(kint),gaps_xx(kint),tcam_xx(kint)
 
