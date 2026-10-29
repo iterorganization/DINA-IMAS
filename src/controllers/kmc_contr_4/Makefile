@@ -1,20 +1,9 @@
 # Makefile for compilation of DINA components
 
-AR ?= ar
-ARFLAGS ?= -ru
-
+AR = ar
+ARFLAGS = -ru
 CC ?= cc
 CFLAGS ?= -fPIC -w
-
-# Disable warning from of icx
-ifeq ($(CC), icc)
-  CFLAGS += -diag-disable=10441
-endif
-
-DEBUG = -g -O0
-ifeq ($(TARGET), DEBUG)
-  CFLAGS += $(DEBUG)
-endif
 
 
 CONTROLSRC = t15_2.c t15_2_data.c \

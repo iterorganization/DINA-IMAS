@@ -1,39 +1,15 @@
 .PHONY: validate test_dina.exe
 
 FC?=gfortran
+F90FLAGS?=-fPIC -w
 
 
 PACKAGES=
-#PACKAGES+=imas-$(FC)
 PACKAGES+=al-fortran
-#PACKAGES+=libxml-2.0
 PACKAGES+=xmllib
 
 
-F90DEF=-D'GIT_URL="$(GIT_URL)"'
-F90DEF+=-D'GIT_COMMIT_ID="$(GIT_COMMIT_ID)"'
-F90DEF+=-D'GIT_VERSION="$(GIT_VERSION)"'
-
-F90FLAGS=-fPIC -w
-# COMPILER-SPECIFIC FLAGS
-ifeq ($(FC), ifort)
-  F90FLAGS+=-fpp
-  F90FLAGS+=-real-size 64 -assume no2underscores -extend_source
-else ifeq ($(FC), gfortran)
-  F90FLAGS+=-cpp
-  F90FLAGS+=-freal-4-real-8 -fno-second-underscore -ffree-line-length-none
-else
-  $(error Unsupported Fortran compiler)
-endif
-
-DEBUG = -g -O0
-ifeq ($(TARGET), DEBUG)
-  F90FLAGS += $(DEBUG)
-endif
-
-F90FLAGS+=`pkg-config $(PACKAGES) --cflags`
-F90FLAGS+=$(F90DEF)
-
+F90INC=`pkg-config $(PACKAGES) --cflags`
 LDFLAGS=`pkg-config $(PACKAGES) --libs` -mcmodel=large -Wl,--no-relax
 
 F90INC+=-I../dina_green

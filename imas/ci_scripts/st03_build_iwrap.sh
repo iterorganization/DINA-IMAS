@@ -16,12 +16,15 @@
 #
 
 
-set -e -o pipefail
-
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 
 echo "Sourcing environment setup..."
-source "${SCRIPT_DIR}/st00_header.sh"
+source "${SCRIPT_DIR}/st00_header.sh" || exit 1
+
+# Note Disable set -e option when using on local as it will exit the shell on error
+if [[ -n "${bamboo_buildKey:-}" ]]; then
+    set -e -u -o pipefail
+fi
 
 cd "${DINA_ROOT}"
 

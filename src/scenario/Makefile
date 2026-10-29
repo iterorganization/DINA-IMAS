@@ -3,30 +3,11 @@
 AR?=ar
 ARFLAGS?=-ru
 FC?=gfortran
+FCFLAGS?=-fPIC -w
 
 INCDIR=../include
 
-
-
-FCFLAGS=-fPIC -w
-# COMPILER-SPECIFIC FLAGS
-ifeq ($(FC), ifort)
-  FCFLAGS+=-extend-source -nod-lines -save -init=zero -real-size 64
-else ifeq ($(FC), gfortran)
-  FCFLAGS+=-ffixed-line-length-none -fd-lines-as-comments -fno-automatic -freal-4-real-8
-else
-  $(error Unsupported Fortran compiler)
-endif
-
-
-DEBUG = -g -O0 -ffixed-form -fno-inline
-ifeq ($(TARGET), DEBUG)
-  FCFLAGS += $(DEBUG)
-endif
-
-
 FCFLAGS += -I$(INCDIR)
-
 
 
 DINASRC = \

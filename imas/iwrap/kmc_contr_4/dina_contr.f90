@@ -76,13 +76,14 @@ real*8 :: output_1(kint), output_2(kint)
 
 real*8 :: pf(npf)
 integer :: ncirc(npf), dircirc(npf)
+integer :: igaps(n_gaps)
 real*8 :: vmult(npf)
 real*8 :: pf_turn(nact)
 data ncirc(1:14) /1, 2, 3, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 12/
 data dircirc(1:14) /1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, -1/
 data vmult(1:14) /1, 1, 0.5d0, 0.5d0, 1, 1, 1, 1, 1, 1, 1, 1, 0.5d0, -0.5d0/
 data pf_turn(1:12) /554., 554., 554. ,554., 554., 248.6, 115.2, 185.9, 169.9, 216.8, 459.4, 4.0/
-
+data igaps(1:6) /1, 2, 2, 3, 4, 4/
 
 
 integer :: ncirc2(14)
@@ -142,7 +143,7 @@ data vmult2(1:14) / 554., 554., 277., 277., 554., 554., 248.6, 115.2, 185.9, 169
   kk=0
   do i=1,n_gaps
     kk=kk+1
-    input_2(kk) = equilibrium0%time_slice(1)%boundary_separatrix%gap(24+i)%value
+    input_2(kk) = equilibrium0%time_slice(1)%boundary_separatrix%gap(igaps(i))%value
   end do
     
   do i=1,npf

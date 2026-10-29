@@ -30,9 +30,9 @@
    <Ics1_eob>44.0e3</Ics1_eob>
    <rms_noise>0.6</rms_noise>
    <gaps>
-      <ngaps>6</ngaps>
-      <gaps_r> 4.223  5.565  8.2806  7.5095  5.3315  4.0599 </gaps_r>
-      <gaps_z> -3.792  -4.404  0.4665  2.9971  4.5804  0.7777 </gaps_z>
+      <ngaps>4</ngaps>
+      <gaps_r> 4.223  5.565  7.5095  5.3315 </gaps_r>
+      <gaps_z> -3.792  -4.404  2.9971  4.5804 </gaps_z>
    </gaps>
    <circuit>
       <ncirc>14</ncirc>

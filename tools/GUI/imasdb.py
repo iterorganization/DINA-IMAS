@@ -16,14 +16,14 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QImage, QKeySequence, QLinearGradient, QPainter,
     QPalette, QPixmap, QRadialGradient, QTransform)
 from PySide6.QtWidgets import (QApplication, QComboBox, QGroupBox, QHBoxLayout,
-    QLabel, QLineEdit, QSizePolicy, QTabWidget,
-    QVBoxLayout, QWidget)
+    QLabel, QLineEdit, QPushButton, QSizePolicy,
+    QTabWidget, QVBoxLayout, QWidget)
 
 class Ui_IMASDB(object):
     def setupUi(self, IMASDB):
         if not IMASDB.objectName():
             IMASDB.setObjectName(u"IMASDB")
-        IMASDB.resize(538, 191)
+        IMASDB.resize(508, 171)
         self.verticalLayout = QVBoxLayout(IMASDB)
         self.verticalLayout.setObjectName(u"verticalLayout")
         self.groupBox = QGroupBox(IMASDB)
@@ -42,6 +42,46 @@ class Ui_IMASDB(object):
         self.verticalLayout_9.addWidget(self.lineEditURI)
 
         self.tabWidget.addTab(self.tabURI, "")
+        self.tabPath = QWidget()
+        self.tabPath.setObjectName(u"tabPath")
+        self.verticalLayout_10 = QVBoxLayout(self.tabPath)
+        self.verticalLayout_10.setObjectName(u"verticalLayout_10")
+        self.horizontalLayout_2 = QHBoxLayout()
+        self.horizontalLayout_2.setObjectName(u"horizontalLayout_2")
+        self.labelUser_8 = QLabel(self.tabPath)
+        self.labelUser_8.setObjectName(u"labelUser_8")
+        self.labelUser_8.setAlignment(Qt.AlignCenter)
+
+        self.horizontalLayout_2.addWidget(self.labelUser_8)
+
+        self.comboBoxBackend_Path = QComboBox(self.tabPath)
+        self.comboBoxBackend_Path.addItem("")
+        self.comboBoxBackend_Path.addItem("")
+        self.comboBoxBackend_Path.addItem("")
+        self.comboBoxBackend_Path.setObjectName(u"comboBoxBackend_Path")
+        sizePolicy = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.comboBoxBackend_Path.sizePolicy().hasHeightForWidth())
+        self.comboBoxBackend_Path.setSizePolicy(sizePolicy)
+        self.comboBoxBackend_Path.setEditable(False)
+
+        self.horizontalLayout_2.addWidget(self.comboBoxBackend_Path)
+
+        self.pushButton_SelectPath = QPushButton(self.tabPath)
+        self.pushButton_SelectPath.setObjectName(u"pushButton_SelectPath")
+
+        self.horizontalLayout_2.addWidget(self.pushButton_SelectPath)
+
+
+        self.verticalLayout_10.addLayout(self.horizontalLayout_2)
+
+        self.lineEditPath = QLineEdit(self.tabPath)
+        self.lineEditPath.setObjectName(u"lineEditPath")
+
+        self.verticalLayout_10.addWidget(self.lineEditPath)
+
+        self.tabWidget.addTab(self.tabPath, "")
         self.tabKeys = QWidget()
         self.tabKeys.setObjectName(u"tabKeys")
         self.horizontalLayout = QHBoxLayout(self.tabKeys)
@@ -54,19 +94,16 @@ class Ui_IMASDB(object):
 
         self.verticalLayout_2.addWidget(self.labelUser_4)
 
-        self.comboBoxBackend = QComboBox(self.tabKeys)
-        self.comboBoxBackend.addItem("")
-        self.comboBoxBackend.addItem("")
-        self.comboBoxBackend.addItem("")
-        self.comboBoxBackend.setObjectName(u"comboBoxBackend")
-        sizePolicy = QSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
-        sizePolicy.setHorizontalStretch(0)
-        sizePolicy.setVerticalStretch(0)
-        sizePolicy.setHeightForWidth(self.comboBoxBackend.sizePolicy().hasHeightForWidth())
-        self.comboBoxBackend.setSizePolicy(sizePolicy)
-        self.comboBoxBackend.setEditable(False)
+        self.comboBoxBackend_Legacy = QComboBox(self.tabKeys)
+        self.comboBoxBackend_Legacy.addItem("")
+        self.comboBoxBackend_Legacy.addItem("")
+        self.comboBoxBackend_Legacy.addItem("")
+        self.comboBoxBackend_Legacy.setObjectName(u"comboBoxBackend_Legacy")
+        sizePolicy.setHeightForWidth(self.comboBoxBackend_Legacy.sizePolicy().hasHeightForWidth())
+        self.comboBoxBackend_Legacy.setSizePolicy(sizePolicy)
+        self.comboBoxBackend_Legacy.setEditable(False)
 
-        self.verticalLayout_2.addWidget(self.comboBoxBackend)
+        self.verticalLayout_2.addWidget(self.comboBoxBackend_Legacy)
 
 
         self.horizontalLayout.addLayout(self.verticalLayout_2)
@@ -173,10 +210,17 @@ class Ui_IMASDB(object):
         IMASDB.setWindowTitle(QCoreApplication.translate("IMASDB", u"Form", None))
         self.groupBox.setTitle(QCoreApplication.translate("IMASDB", u"GroupBox", None))
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabURI), QCoreApplication.translate("IMASDB", u"URI", None))
+        self.labelUser_8.setText(QCoreApplication.translate("IMASDB", u"Backend", None))
+        self.comboBoxBackend_Path.setItemText(0, QCoreApplication.translate("IMASDB", u"MDS+", None))
+        self.comboBoxBackend_Path.setItemText(1, QCoreApplication.translate("IMASDB", u"HDF5", None))
+        self.comboBoxBackend_Path.setItemText(2, QCoreApplication.translate("IMASDB", u"ASCII", None))
+
+        self.pushButton_SelectPath.setText(QCoreApplication.translate("IMASDB", u"Select path...", None))
+        self.tabWidget.setTabText(self.tabWidget.indexOf(self.tabPath), QCoreApplication.translate("IMASDB", u"Path", None))
         self.labelUser_4.setText(QCoreApplication.translate("IMASDB", u"Backend", None))
-        self.comboBoxBackend.setItemText(0, QCoreApplication.translate("IMASDB", u"MDS+", None))
-        self.comboBoxBackend.setItemText(1, QCoreApplication.translate("IMASDB", u"HDF5", None))
-        self.comboBoxBackend.setItemText(2, QCoreApplication.translate("IMASDB", u"ASCII", None))
+        self.comboBoxBackend_Legacy.setItemText(0, QCoreApplication.translate("IMASDB", u"MDS+", None))
+        self.comboBoxBackend_Legacy.setItemText(1, QCoreApplication.translate("IMASDB", u"HDF5", None))
+        self.comboBoxBackend_Legacy.setItemText(2, QCoreApplication.translate("IMASDB", u"ASCII", None))
 
         self.labelUser.setText(QCoreApplication.translate("IMASDB", u"User", None))
         self.labelUser_2.setText(QCoreApplication.translate("IMASDB", u"Database", None))

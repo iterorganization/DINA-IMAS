@@ -222,19 +222,19 @@ write(*,100) shape(pf_active0%coil),shape(pf_passive0%loop)
 ! Allocation em_coupling
 
 allocate(em_coupling%mutual_passive_passive(npass,npass))
-allocate(em_coupling%mutual_grid_passive(nwnh,npass))
+allocate(em_coupling%mutual_plasma_passive(nwnh,npass))
 allocate(em_coupling%mutual_loops_passive(kloop,npass))
-allocate(em_coupling%field_probes_passive(kprobe,npass))
+allocate(em_coupling%b_field_pol_probes_passive(kprobe,npass))
 
 allocate(em_coupling%mutual_active_active(nact,nact))
-allocate(em_coupling%mutual_grid_active(nwnh,nact))
+allocate(em_coupling%mutual_plasma_active(nwnh,nact))
 allocate(em_coupling%mutual_loops_active(kloop,nact))
-allocate(em_coupling%field_probes_active(kprobe,nact))
+allocate(em_coupling%b_field_pol_probes_active(kprobe,nact))
 
 allocate(em_coupling%mutual_passive_active(npass,nact))
 
-allocate(em_coupling%mutual_loops_grid(kloop,nwnh))
-allocate(em_coupling%field_probes_grid(kprobe,nwnh))
+allocate(em_coupling%mutual_loops_plasma(kloop,nwnh))
+allocate(em_coupling%b_field_pol_probes_plasma(kprobe,nwnh))
 
 
 
@@ -247,14 +247,14 @@ flush(6)
 
 
 em_coupling%mutual_passive_passive(1:npass,1:npass) = pmj(1:npass,1:npass)
-em_coupling%mutual_grid_passive(1:nwnh,1:npass) = vesarr(1:nwnh,1:npass)
+em_coupling%mutual_plasma_passive(1:nwnh,1:npass) = vesarr(1:nwnh,1:npass)
 em_coupling%mutual_loops_passive(1:kloop,1:npass) = vesgreen(1:kloop,1:npass)
-em_coupling%field_probes_passive(1:kprobe,1:npass) = vesprobe(1:kprobe,1:npass)
+em_coupling%b_field_pol_probes_passive(1:kprobe,1:npass) = vesprobe(1:kprobe,1:npass)
 do j=1,kloop
-  em_coupling%mutual_loops_grid(j,1:nwnh)=pslgreen(1:nwnh,j)
+  em_coupling%mutual_loops_plasma(j,1:nwnh)=pslgreen(1:nwnh,j)
 end do
 do j=1,kprobe
-  em_coupling%field_probes_grid(j,1:nwnh)=bprgreen(1:nwnh,j)
+  em_coupling%b_field_pol_probes_plasma(j,1:nwnh)=bprgreen(1:nwnh,j)
 end do
 
 
@@ -271,9 +271,9 @@ do i=1,nact
     em_coupling%mutual_active_active(i,j) = pfind(i,j)*pf_turns(i)*pf_turns(j)
   enddo
 
-  em_coupling%mutual_grid_active(:,i) = fluxarr(1:nwnh,i)*pf_turns(i)
+  em_coupling%mutual_plasma_active(:,i) = fluxarr(1:nwnh,i)*pf_turns(i)
   em_coupling%mutual_loops_active(1:kloop,i) = pfgreen(1:kloop,i)*pf_turns(i)
-  em_coupling%field_probes_active(1:kprobe,i) = pfprobe(1:kprobe,i)*pf_turns(i)
+  em_coupling%b_field_pol_probes_active(1:kprobe,i) = pfprobe(1:kprobe,i)*pf_turns(i)
   em_coupling%mutual_passive_active(:,i) = pfc(1:npass,i)*pf_turns(i)
 enddo
 
@@ -289,9 +289,9 @@ do i=1,npass
   !em_coupling%passive_loops(i) = 'loop '
 enddo
 
-allocate(character(len=132):: em_coupling%poloidal_probes(kprobe))
+allocate(character(len=132):: em_coupling%b_field_pol_probes(kprobe))
 do i=1,kprobe
-  write(em_coupling%poloidal_probes(i),*) 'probe', i
+  write(em_coupling%b_field_pol_probes(i),*) 'probe', i
 enddo
 
 allocate(character(len=132):: em_coupling%flux_loops(kloop))
@@ -299,9 +299,9 @@ do i=1,kloop
   write(em_coupling%flux_loops(i),*) 'loop', i
 enddo
 
-allocate(character(len=132):: em_coupling%grid_points(nwnh))
+allocate(character(len=132):: em_coupling%plasma_elements(nwnh))
 do i=1,nwnh
-  write(em_coupling%grid_points(i),*) 'ngrid', i
+  write(em_coupling%plasma_elements(i),*) 'ngrid', i
 enddo
 
 print *,' em_coupling filled'

@@ -1,7 +1,7 @@
 
 import sys,os
 import imas
-from imas import imasdef
+from imas import ids_defs
 import numpy as np
 import matplotlib as mpl 
 import matplotlib.pyplot as plt
@@ -16,6 +16,7 @@ from dina_imas.common import runtime_settings as DINA_RTS
 
 from dina_green.actor import dina_green
 
+ids_factory = imas.IDSFactory()
 
 def get_dbentry(root, opt='a'):
     if root == None:
@@ -26,10 +27,7 @@ def get_dbentry(root, opt='a'):
     
     uri = uri_node.text
     IMAS_DBEntry = imas.DBEntry(uri, opt)
-    status,_ = IMAS_DBEntry.open()
-    if status == 0:
-        IMAS_DBEntry.close()
-    return IMAS_DBEntry, status
+    return IMAS_DBEntry
 
 
 class DINA_Workflow:
@@ -97,9 +95,6 @@ class DINA_Workflow:
     
     #print('Time_Start = ' + str(idslist['equilibrium'].time_slice[0].time), flush=True)
     
-    # Preparing of an IMAS entry for the simulation output
-    
-    self.IMAS_Output.create()
     
     self.IMAS_Output.put(idslist["pulse_schedule"])
     self.IMAS_Output.put(idslist['em_coupling'])
@@ -133,10 +128,8 @@ class DINA_Workflow:
           
           TimeGet = time
           
-          self.IMAS_Transp.open()
           idslist['core_profiles'] = self.IMAS_Transp.get_slice('core_profiles', TimeGet, self.InterpTransp)
           idslist['core_sources'] = self.IMAS_Transp.get_slice('core_sources', TimeGet, self.InterpTransp)
-          self.IMAS_Transp.close()
          
        
       #n1 = len(core_profiles.profiles_1d[0].grid.rho_tor_norm)
@@ -201,7 +194,6 @@ class DINA_Workflow:
     self.IMAS_Output.put(idslist['dataset_description'])
     self.IMAS_Output.put(idslist['workflow'])
         
-    self.IMAS_Output.close()
     
     print('Finished successfully after ' + str(iloop) + ' steps')
 
@@ -221,14 +213,14 @@ class DINA_Workflow:
     self.Time_ExternalTranspStarts = 4.0e4   
     
     # Mode of interpolation for initialization data reading
-    # imasdef.CLOSEST_INTERP == 1
-    # imasdef.LINEAR_INTERP == 3
-    #self.InterpMode = imasdef.LINEAR_INTERP # may cause a crash!
-    self.InterpStart = imasdef.CLOSEST_INTERP
+    # ids_defs.CLOSEST_INTERP == 1
+    # ids_defs.LINEAR_INTERP == 3
+    #self.InterpMode = ids_defs.LINEAR_INTERP # may cause a crash!
+    self.InterpStart = ids_defs.CLOSEST_INTERP
     
     # Mode of interpolation for prescribed transport reading
-    #self.InterpMode = imasdef.LINEAR_INTERP # may cause a crash!
-    self.InterpTransp = imasdef.CLOSEST_INTERP
+    #self.InterpMode = ids_defs.LINEAR_INTERP # may cause a crash!
+    self.InterpTransp = ids_defs.CLOSEST_INTERP
     
     # Decimation used to put IDS's in the database
     # A full set of IDS's is saved only at each Decimation-th step
@@ -265,13 +257,13 @@ class DINA_Workflow:
 
     # Reading initial IDS's
     input_start = root.find('input_start')
-    IMAS_InputStart, status = get_dbentry(input_start, 'r')
+    IMAS_InputStart = get_dbentry(input_start, 'r')
     
   
-    IMAS_PulseSchedule, status = get_dbentry(root.find('pulse_schedule'), 'r')
+    IMAS_PulseSchedule = get_dbentry(root.find('pulse_schedule'), 'r')
 
 
-    dataset_description = imas.dataset_description()
+    dataset_description = ids_factory.dataset_description()
     idslist['dataset_description'] = dataset_description
     dataset_description.ids_properties.homogeneous_time = 2
     dataset_description.data_entry.user = user_default
@@ -285,71 +277,58 @@ class DINA_Workflow:
     TimeGet = self.Time_Start
     print('Restart at t = ' + str(TimeGet))
 
-    IMAS_InputStart.open()
     idslist['equilibrium'] = IMAS_InputStart.get_slice('equilibrium', TimeGet, interp)
     idslist['core_profiles'] = IMAS_InputStart.get_slice('core_profiles', TimeGet, interp)
     idslist['core_sources'] = IMAS_InputStart.get_slice('core_sources', TimeGet, interp)
     #idslist['transport_solver_numerics'] = IMAS_InputStart.get_slice('transport_solver_numerics', TimeGet, interp)
-    idslist['transport_solver_numerics'] = imas.transport_solver_numerics()
+    idslist['transport_solver_numerics'] = ids_factory.transport_solver_numerics()
     idslist['transport_solver_numerics'].ids_properties.homogeneous_time=1
-    IMAS_InputStart.close()
-    
+
     dataset_description.simulation.time_restart = idslist['equilibrium'].time[0]
     
-    IMAS_PulseSchedule.open()
     idslist['pulse_schedule'] = IMAS_PulseSchedule.get('pulse_schedule')
-    IMAS_PulseSchedule.close()
+
     
 
-
-    IMAS_PFA, status = get_dbentry(root.find('input_pf_active'), 'r')
-    IMAS_PFA.open()
+    IMAS_PFA = get_dbentry(root.find('input_pf_active'), 'r')
     idslist['pf_active'] = IMAS_PFA.get_slice('pf_active', self.Time_Start, self.InterpStart)
-    IMAS_PFA.close()
 
-    IMAS_PFP, status = get_dbentry(root.find('input_pf_passive'), 'r')
-    IMAS_PFP.open()
+
+    IMAS_PFP = get_dbentry(root.find('input_pf_passive'), 'r')
     idslist['pf_passive'] = IMAS_PFP.get_slice('pf_passive', self.Time_Start, self.InterpStart)
-    IMAS_PFP.close()
 
-    IMAS_MAG, status = get_dbentry(root.find('input_magnetics'), 'r')
-    if (status == 0):
-      IMAS_MAG.open()
+    try:
+      IMAS_MAG = get_dbentry(root.find('input_magnetics'), 'r')
       idslist['magnetics'] = IMAS_MAG.get_slice('magnetics', self.Time_Start, self.InterpStart)
-      IMAS_MAG.close()
-    else:
-      idslist['magnetics'] = imas.magnetics()
+    except:
+      idslist['magnetics'] = ids_factory.magnetics()
       idslist['magnetics'].ids_properties.homogeneous_time=1
 
-    IMAS_WLL, status = get_dbentry(root.find('input_wall'), 'r')
-    IMAS_WLL.open()
+    IMAS_WLL = get_dbentry(root.find('input_wall'), 'r')
     idslist['wall'] = IMAS_WLL.get_slice('wall', self.Time_Start, self.InterpStart)
-    IMAS_WLL.close()
 
-
-
-    IMAS_EMCoupling, status = get_dbentry(root.find('input_em_coupling'), 'r')
-    if (status == 0):
+    try:
+      IMAS_EMCoupling = get_dbentry(root.find('input_em_coupling'), 'r')
       print('Reading em_coupling from the database')
-      IMAS_EMCoupling.open()
       idslist['em_coupling'] = IMAS_EMCoupling.get('em_coupling')
-      IMAS_EMCoupling.close()
-    else:
+    except:
       idslist['em_coupling'] = None
 
 
 
     output = root.find('output')
-    self.IMAS_Output, status = get_dbentry(output, 'w')
+    self.IMAS_Output = get_dbentry(output, 'w')
       
     
     
     input_transp = root.find('input_transp')
     if (input_transp != None):
-      self.IMAS_Transp, status = get_dbentry(input_transp, 'r')
-      if (status == 0):
+      try:
+        self.IMAS_Transp = get_dbentry(input_transp, 'r')
         print('External transport profiles are located')
         self.InterpTransp = int(root.find('transp_interp_mode').text)
+      except:
+        print('External transport profiles are not found.')
 
 
     self.idslist = idslist
@@ -378,7 +357,7 @@ class DINA_Workflow:
     
     
     
-    workflow = imas.workflow()
+    workflow = ids_factory.workflow()
     idslist['workflow'] = workflow
     
     workflow.ids_properties.homogeneous_time = 2

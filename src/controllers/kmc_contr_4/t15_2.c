@@ -29,9 +29,9 @@
 #include <stdlib.h>
 #include <string.h>
 //#include <Windows.h>
-int kpr1, kpr =0;
 
-kpr1=1;
+int kpr1 = 1;
+int kpr = 0;
 
 
 /* Block signals (auto storage) */

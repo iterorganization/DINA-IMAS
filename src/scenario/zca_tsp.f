@@ -226,7 +226,7 @@ c###	CALL rp_CONTROL()
 	vel_x=(del_x-del_x0)/tay
 	r_vel=vel_x	
 	if(ntay.le.3)r_vel=0.
-	call rvel_filter()
+	!call rvel_filter()
 	if(ntay.gt.3)then
 	   if(kpr.eq.1)print*,g_r_p
 	   if(kpr.eq.1)print*,g_r_d

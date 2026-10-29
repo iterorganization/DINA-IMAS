@@ -1943,6 +1943,11 @@ struct tag_RTM_t15_2 {
   } Timing;
 };
 
+extern void contr_lim(SimStruct* rts);
+extern void contr_curr(SimStruct* rts);
+extern void contr_div(SimStruct* rts);
+extern void contr_vert_vs3(SimStruct* rts);
+
 /* Block parameters (auto storage) */
 extern Parameters_t15_2 t15_2_P;
 

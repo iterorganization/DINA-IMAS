@@ -84,8 +84,18 @@ def ControlDataToXML(directoryLoad):
     element = ET.SubElement(root, 'Tu')
     element.text = str(data[0][-1].value)
     
+    element = ET.SubElement(root, 'volt_lim')
+    element.text = ""
+    for i in range(len(data[0])-1):
+        element.text += (str(data[0][i].value) + "  ")
+    
     element = ET.SubElement(root, 'c_cur_max')
     element.text = str(data[1][0].value)
+
+    element = ET.SubElement(root, 'curr_lim')
+    element.text = ""
+    for i in range(1, len(data[1])):
+        element.text += (str(data[1][i].value) + "  ")
 
     f.close()
 

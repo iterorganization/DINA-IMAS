@@ -228,12 +228,8 @@ Description of the parameters in the XML:
 * grid_rho - rho value after which the 1D grid gradually increases density
 * grid_alpha - 1D grid compression factor in the boundary region
 * coef_p_lh - coeffitient modifying threshold power of L to H transition
-* tt_rampup [s] - Duration of the plasma current ramp-up
-* dt_end_sim [s] - Duration of the CS&PF current termination phase, starting after end of plasma
-* dtpl_term_l - [s] - Duration of the plasma current ramp-down phase
 * cIp_end [A] - Minimum plasma current at the ramp-down phase
 * Ics1_eob [A] - Value of the current in CS1 circuit at which the current ramp-down starts
-* rms_noise [m/s] - RMS of noise in the diagnostic signal of dZ/dt for VS stabilization
 * gaps/ngaps - amount of plasma shape gaps calculated
 * gaps/gaps_r [m] - list of R coordinates of plasma shape gaps measuring points
 * gaps/gaps_z [m] - list of Z coordinates of plasma shape gaps measuring points

@@ -40,6 +40,11 @@
         <string>Pulse Schedule</string>
        </attribute>
       </widget>
+      <widget class="QWidget" name="tabGreenData">
+       <attribute name="title">
+        <string>Green Parameters</string>
+       </attribute>
+      </widget>
       <widget class="QWidget" name="tabDINAData">
        <attribute name="title">
         <string>DINA Parameters</string>
