@@ -62,11 +62,13 @@
      *  /cont4/ZPP,RPP,WVSPIP,ZXP,ELP,SHAPE,GAPINP,
      *  DFZP, DFZP0
 
+        common /c_imas_curr_d/curr_d(nr,nz)
 c----------
 	dimension f(nwnh)
 	dimension pspl_temp(nwnh)                                      
 
 	dimension pptab(*),fptab(*)
+	character *20 apr
 
 	delta0=1.2*sqrt(dx**2+dy**2)
 	COEF=10./(4.*PI)
@@ -75,6 +77,10 @@ c----------
 c--- calc. pspl boundary...  
 	i_bound=i_bound+1
 
+      if(i_bound.eq.-1)then
+	call psgrid_z()
+	key_b=1
+      end if
 !!!	i_old=1
 	i_old=0
 
@@ -168,10 +174,13 @@ c
 c-------
 c  calc. flux from plasma to vessel,PF loops and probes...
 	call pl_out(f)
+!	key_b=2
 
 c---------------
 c--- calc. pspl boundary...
-	if(key_b.eq.1)call  pspl_b1(f)
+
+        apr= 'pspl '
+ !       if(kpr.eq.1)print 71,apr,(pspl(i),i=1,24)
 	if(key_b.eq.2.and.i_old.eq.1)call  pspl_b2(al1,f)
 
 	   if(kpr.eq.1)print *,' i_old i_bound key_b==',
@@ -188,6 +197,15 @@ c	   call ves_bnd_green()
 	call b_temp()
 
 	end if
+        apr= 'pspl '
+ !       if(kpr.eq.1)print 71,apr,(pspl(i),i=1,24)
+
+
+	if(key_b.eq.1)call  pspl_b1(f)
+       apr= 'pspl '
+  !      if(kpr.eq.1)print 71,apr,(pspl(i),i=1,24)
+
+!        call bound_psgrid()
 
 c------------------
 c  calc. psi_plasma - pspl...
@@ -195,7 +213,7 @@ c  calc. psi_plasma - pspl...
 	it1=0
 	if(errm.gt.eps2)it1=1
 c
-	if(kpr.eq.1)print *,'error_max eps2 ',errm,eps2
+	if(kpr.eq.1)print *,'error_max eps2 it1 ',errm,eps2,it1
 	
 	if(it1.eq.0)print *,'error_max eps2 al1 ',errm,eps2,al1
 c
@@ -211,9 +229,12 @@ c
 	end do
 
 c        fdd_1=fdd
-c	fdd=2.*pi*psval(n)-pll*tpl
+        fpl2=tpl*pll
+	fdd2=2.*pi*(psval(n)-fpl2)
 c        if(kpr.eq.1)print *,' psval p_s',psval(n)*1.e-5,p_s*1.e-5
 c        if(kpr.eq.1)print *,' fdd FDD ==',fdd_1*1.e-5,fdd*1.e-5
+        if(kpr.eq.1)print *,' fdd fpl2 ==',fdd*1.e-5,fpl2*1.e-5
+        if(kpr.eq.1)print *,' psi_ax psi_b==',2*pi*pmag*1.e-5,2*pi*pbound*1.e-5
 
 c!!!	if(abs(del_r).gt.1.e-1)call bound_hcoor()
 
@@ -236,6 +257,12 @@ c     *  call bound_h2()
 	end do
 
 
+	do i=1,nr
+	do j=1,nz
+	kk=(i-1)*nz+j
+      curr_d(i,j)=f(kk)*coef
+	end do
+	end do
 
 
 71	format(20x,a6/,(6(1pe10.3)))
@@ -444,6 +471,196 @@ c vic Naka 1999
            if(kpr.eq.1)print *,' k pf_k pf(k)',k,pf_k,pf(k)
         end if
 
+	END DO
+
+71	format(20x,a6/,(6(1pe10.3)))
+
+
+	ksep=-1
+
+	call spoint(ksep,xw,yw,fint,rmag,zmag,pmag,
+     *  rsep,zsep,psep,rsep1,zsep1,psep1)
+
+	if(kpr.eq.1)print *,' ---rmag zmag pmag',rmag,zmag,pmag
+
+        return
+        end
+	subroutine br_bz_virt()
+	include 'double.inc'
+        include 'parf0'
+        include 'parf1'
+        include 'parf2'
+        include 'parf2e'
+
+	common
+     *  /ge1/pi
+     *  /ge5/kpr
+	common
+     *  /eq1/psi(nr,nz),pspl(nwnh),x(nr),y(nz),dx,dy
+     *  /eq1e/psext(nwnh),re(nre),ze(nze),dr,dz
+     *  /eq3/FLUXARR(nwnh,kf)
+
+	common
+     *  /pf1/npf,pf(kf),pf0(kf)
+
+        common
+     *	/con1/gain,ta,zref,kzref
+     *  /con2/rref,krref,bvert
+     *  /con3/i_pf
+     *  /con6/ind_r(2),ind_z(2)
+
+        common
+     *	/cont9/brad,kefit
+     *  /cont13/zmag,zvel,delrmag,delzmag
+     *  /cont13e/zmag0,rmag,rmag0,rvel
+
+	common
+     *	/fluxc6/pmag,pbound,psep,p_s,delaval,dr_h
+     *	/fluxc7/coef,coef1,api
+     *  /fluxc8/work(nwnhe)
+
+     *  /c_pf_coils/pf_coils(2)
+     *  /c_green_coils/green_coils(nwnh,2)
+
+	dimension pdd(6),pfhelp(kf)
+	character *20 apr
+
+	urr=rref
+	vrr=zref
+
+
+	do i=1,nr
+	do j=1,nz
+	kk=(i-1)*nz+j
+	kk1=(j-1)*nr+i
+
+	psext0=0.
+	psext0=psext0+green_coils(kk,1)
+	work(kk1)=psext0*api
+
+	end do
+	end do
+
+	call boxda(work,urr,vrr,pdd,ier)
+
+        a_r=pdd(2)
+        a_z=pdd(3)
+
+c---R stabilization---
+
+	do i=1,nr
+	do j=1,nz
+	kk=(i-1)*nz+j
+	kk1=(j-1)*nr+i
+
+	psext0=0.
+	psext0=psext0+green_coils(kk,2)
+	work(kk1)=psext0*api
+
+	end do
+	end do
+
+	call boxda(work,urr,vrr,pdd,ier)
+
+
+        b_r=pdd(2)
+        b_z=pdd(3)
+
+        a11=a_z
+        a12=b_z
+        a21=a_r
+        a22=b_r
+
+ 1      continue
+
+	ksep=-1
+	rmag=urr
+	zmag=vrr
+
+	call spoint(ksep,xw,yw,fint,rmag,zmag,pmag,
+     *  rsep,zsep,psep,rsep1,zsep1,psep1)
+
+	if(kpr.eq.1)print *,' rmag zmag pmag',rmag,zmag,pmag
+
+	call boxd(urr,vrr,pdd,ier)
+c---------------
+	psi_r=pdd(2)
+	psi_z=pdd(3)
+c-------------------
+	brad=-psi_z
+	bvert=-psi_r
+        if(kpr.eq.1)print *,' brad bvert ',brad,bvert
+
+        f1=brad
+        f2=bvert
+
+	call mat_prep(a11,a12,a21,a22,f1,f2,x1,x2)
+
+        if(kpr.eq.1)print *,' x1 x2 api ',x1,x2,api
+
+        f1_c=a11*x1+a12*x2
+        f2_c=a21*x1+a22*x2
+
+        if(kpr.eq.1)print *,' f1_c f1 ',f1_c,f1
+        if(kpr.eq.1)print *,' f2_c f2 ',f2_c,f2
+
+c ----->
+	do i=1,nr
+	do j=1,nz
+
+	kk=(i-1)*nz+j
+	kk1=(j-1)*nr+i
+
+      psext0=0.
+	DO k=1,2
+
+	if(k.eq.1)psext0=psext0+x1*green_coils(kk,1)
+	if(k.eq.2)psext0=psext0+x2*green_coils(kk,2)
+
+
+	END DO
+	work(kk1)=psext0*api
+      	psi(i,j)=psi(i,j)+work(kk1)
+
+	end do
+	end do
+
+	call boxda(work,urr,vrr,pdd,ier)
+
+        if(kpr.eq.1)print *,' pdd2 pdd3',pdd(2),pdd(3)
+
+	ksep=-1
+	rmag=urr
+	zmag=vrr
+
+	call spoint(ksep,xw,yw,fint,rmag,zmag,pmag,
+     *  rsep,zsep,psep,rsep1,zsep1,psep1)
+
+	if(kpr.eq.1)print *,' rmag zmag pmag',rmag,zmag,pmag
+
+	call boxd(urr,vrr,pdd,ier)
+c---------------
+	psi_r=pdd(2)
+	psi_z=pdd(3)
+c-------------------
+	brad=-psi_z
+	bvert=-psi_r
+
+        if(kpr.eq.1)print *,' brad bvert ',brad,bvert
+
+	DO k=1,2
+
+	if(k.eq.1)then
+	   pf_k=pf_coils(k)
+           pf_coils(k)=pf_coils(k)+x1
+           if(kpr.eq.1)print *,' k pf_k pf_coils(k)',k,pf_k,pf_coils(k)
+        end if
+
+	if(k.eq.2)then
+	   pf_k=pf_coils(k)
+           pf_coils(k)=pf_coils(k)+x2
+           if(kpr.eq.1)print *,' k pf_k pf_coils(k)',k,pf_k,pf_coils(k)
+        end if
 	END DO
 
 71	format(20x,a6/,(6(1pe10.3)))
@@ -1510,6 +1727,105 @@ c
 	if(kpr.eq.1)print *,' pf6 pf60==',pf(6),pf0(6)
 	if(kpr.eq.1)print *,' pf6+9 pf60==',pf(6+9),pf0(6+9)
 
+
+        return
+        end
+        subroutine brad_test_old()
+	include 'double.inc'
+        include 'parf0'
+        include 'parf1'
+        include 'parf2'
+        include 'parf2e'
+
+	common
+     *  /ge1/pi
+     *  /ge5/kpr
+	common
+     *  /eq1/psi(nr,nz),pspl(nwnh),x(nr),y(nz),dx,dy
+     *  /eq1e/psext(nwnh),re(nre),ze(nze),dr,dz
+     *  /eq3/FLUXARR(nwnh,kf)
+     *  /eq12/omega,pspl0(nwnh)
+
+	common
+     *  /pf1/npf,pf(kf),pf0(kf)
+
+        common
+     *	/con1/gain,ta,zref,kzref
+     *  /con2/rref,krref,bvert
+     *  /con3/i_pf
+     *  /con6/ind_r(2),ind_z(2)
+
+        common
+     *	/cont9/brad,kefit
+     *  /cont13/zmag,zvel,delrmag,delzmag
+     *  /cont13e/zmag0,rmag,rmag0,rvel
+
+	common
+     *	/fluxc6/pmag,pbound,psep,p_s,delaval,dr_h
+     *	/fluxc7/coef,coef1,api
+     *  /fluxc8/work(nwnhe)
+
+	common
+     *  /ge2/NTAY,TAY,TT
+
+	common
+     *  /c_temp1/umm,vmm
+
+	dimension pdd(6),pfhelp(kf),psi_tem(nr,nz)
+	character *20 apr
+
+	k=0
+1	continue
+	k=k+1
+
+
+	ksep=-1
+
+	call spoint(ksep,xw,yw,fint,rmag,zmag,pmag,
+     *  rsep,zsep,psep,rsep1,zsep1,psep1)
+
+	if(kpr.eq.1)
+     *  print *,' rmag zmag pmag brad',rmag,zmag,pmag,brad
+
+	zmag0=zmag
+
+
+	urr=rmag
+	vrr=zref
+
+	call boxd(urr,vrr,pdd,ier)
+c---------------
+	psi_r=pdd(2)
+	psi_z=pdd(3)
+
+	if(kpr.eq.1)print *,' psi_z psi_r==',psi_z,psi_r
+
+	brad=-psi_z
+
+
+	do i=1,nr
+	do j=1,nz
+	kk=(i-1)*nz+j
+c---
+	psi(i,j)=psi(i,j)+brad*(y(j)-zref)
+c---
+	end do
+	end do
+
+
+	ksep=-1
+
+	call spoint(ksep,xw,yw,fint,rmag,zmag,pmag,
+     *  rsep,zsep,psep,rsep1,zsep1,psep1)
+
+
+	if(kpr.eq.1)
+     *  print *,' rmag zmag zref brad ',rmag,zmag,zref,brad
+
+       print *,' rmag zmag zref brad ',rmag,zmag,zref,brad
+
+
+71	format(20x,a6/,(6(1pe10.3)))
 
         return
         end
@@ -2623,6 +2939,7 @@ c-------------------
 	common
      *  /ge1/pi
      *  /eq1e/psext(nwnh),re(nre),ze(nze),dr,dz
+     *  /c_eq1e/c_psext(nr,nz)
      *  /eq1g/psi_g(nr,nz)
      *  /ge5/kpr
      *  /ge7/eu,rout,zout,elong
@@ -2664,6 +2981,11 @@ c********* psext_pf ****
      *	/v_jp/f_jp(nwnh)
      *  /vic_003/psi_pf
      *  /vic_psi_av/psipl_av,psiext_av
+
+     *  /c_pf_coils/pf_coils(2)
+     *  /c_psi_coils/psi_coils(nwnh,2)
+     *  /c_green_coils/green_coils(nwnh,2)
+     *  /c_rz_coils/r_coils(2),z_coils(2),n_coil
 	dimension pdd(6),pfhelp(kf),yh(nz)
 	character *20 apr
 c=========================================
@@ -2686,11 +3008,19 @@ C
 	psext(kk)=0.
 	PSEXT0=0.
 	psext_pf=0.
+	psext_coils=0.
 c
 	DO K=1,NPF
 	psext0=psext0+PF(K)*FLUXARR(kk,K)
 	psext_pf=psext_pf+PF(K)*FLUXARR(kk,K)
 	END DO
+	DO K=1,2
+	psext0=psext0+PF_coils(K)*green_coils(kk,K)
+	psext_coils=psext_coils+PF_coils(K)*green_coils(kk,K)
+	psi_coils(kk,K)=PF_coils(K)*green_coils(kk,K)
+	END DO
+
+	c_psext(i,j)=psext_pf*1.e-5
 c
 	pscam=0.
 	DO K=1,ncam
@@ -2719,7 +3049,7 @@ c
 	END DO
 	if(kpr.eq.1)print *,' TOKC omega',tokc,omega
 
-
+       print *,' pf_coils=',pf_coils(1),pf_coils(2)
 c************************
 c BRAD - additional radial magnetic field to establish the plasma
 c column in  z=zref  for the first time
@@ -2772,6 +3102,7 @@ c
      *  zmag,brad,bvert
 
 
+	if(kpr.eq.1)print *,' ***kzref krref *** ',kzref,krref
 	if(kzref.eq.1.and.krref.eq.1)then
 
 
@@ -2819,7 +3150,11 @@ c---
 !           call br_bz()  
            call br_bz_ves()  
 
+           return
+        end if
 
+	if(kzref.eq.1.and.krref.eq.5)then
+           call br_bz_virt()
            return
         end if
 
@@ -2842,7 +3177,8 @@ c	pause 'from psi_tot'
 	if(kzref.eq.1) then
 
 c	if(i_smal.eq.1) call brad_pf()
-	call brad_test()
+	call brad_test_old()
+!	call brad_test()
 c	call brad_hor_it()
 c	call brad_pf()
 
@@ -3395,8 +3731,10 @@ c   calculations ---
 	end do
 	pspl5=pspl(kk2)
 	pspl(kk2)=fpl*coef2
-c	if(kpr.eq.1)
-c     *	print *,' kk2 pspl psgrid ',kk2,pspl(kk2),psgrid(kk,k)
+
+	if(kpr.eq.-1.and.kk2.le.130)
+     *	print *,' kk2 pspl psgrid ',kk2,pspl(kk2),psgrid(kk,k)
+
 	end do
 	end do
 c
@@ -3414,6 +3752,8 @@ c   calculations ---
 	end do
 	end do
 	pspl(kk2)=fpl*coef2
+	if(kpr.eq.-1.and.kk2.le.130)
+     *	print *,' ++kk2 pspl psgrid ',kk2,pspl(kk2),psgrid(kk,k)
 c
 	END DO
 	END DO
@@ -3931,20 +4271,21 @@ c
 c  starting calculate flux
 	k=0
 	fpl=0.
-c	fplp=0.
+	fplp=0.
 	do j=2,jbound
 	k=k+1
 	urr=xbound(j)
 	vrr=ybound(j)
 c
-c	call boxd(urr,vrr,pdd,ier)
-c        fplp=fplp+pdd(1)
+	call boxd(urr,vrr,pdd,ier)
+        fplp=fplp+pdd(1)
 	call boxda(work,urr,vrr,pdd,ier)
 	fint=pdd(1)
 	fpl=fpl+fint
 	end do
-	fpl=fpl/k
-c	fplp=fplp/k
+	fpl=fpl/float(k)
+	fplp=fplp/float(k)
+        fddp=2.*pi*fplp
 
         fdd=2.*pi*fpl
 c	k_fdd=5
@@ -3953,7 +4294,7 @@ c	call avr_fdd(fdd,k_fdd)
 c        fddp=2.*pi*fplp
 c        fdd_tot=fdd+pll*pt01
 
-c	if(kpr.eq.1)print *,' fdd_tot= fddp',fdd_tot*1.e-5,fddp*1.e-5
+        if(kpr.eq.1)print *,' fdd= fddp',fdd*1.e-5,fddp*1.e-5
 
 	return
 	end
@@ -4957,7 +5298,7 @@ c
 	character *20 apr
 
 
-      return
+!      return
 
 	ml=mp/2+1
 	i=0
