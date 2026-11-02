@@ -1,0 +1,43 @@
+.PHONY: validate test_dina.exe
+
+FC?=gfortran
+F90FLAGS?=-fPIC -w
+
+
+PACKAGES=
+PACKAGES+=al-fortran
+PACKAGES+=xmllib
+
+
+F90INC=`pkg-config $(PACKAGES) --cflags`
+LDFLAGS=`pkg-config $(PACKAGES) --libs` -mcmodel=large -Wl,--no-relax
+
+F90INC+=-I../dina_green
+F90INC+=-I../dina_imas
+
+
+DINA_LIBS =  ../dina_imas/dina_imas.a  ../dina_green/dina_green.a
+		 
+all: dina_wf.exe
+
+dina_wf.exe: dina_wf.o $(DINA_LIBS)
+	@echo "   * $^ -> $@"
+	$(FC) -o $@ $^ $(LDFLAGS)
+
+%.o: %.f90
+	@echo "   * $^ -> $@"
+	$(FC) $(F90FLAGS) $(F90INC) -c -o $@ $^
+
+validate: ## Test the consistency of the XML and XSD files for input parameters
+	xmllint --noout wfconfig.xsd wfconfig.xml
+	xmllint --noout --schema wfconfig.xsd wfconfig.xml
+
+clean:
+	rm -f *.o
+	rm -f *.a
+	rm -f *.exe
+
+help :
+	@grep -Eh '^[a-zA-Z0-9_%\./-]+[ ]*:.*?## .*$$' $(MAKEFILE_LIST) |sort|awk \
+	'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
+

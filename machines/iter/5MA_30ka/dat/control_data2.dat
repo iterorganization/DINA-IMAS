@@ -1,0 +1,5 @@
+    tcont2      dtcont2    Ip_div    ref_ramp    Ip_rd   trd_ref  max_VS_lim   c_a_tpl2_lim  Time_stop ! control_data2.dat  
+1.9   0.3   2.9   1.0   2.5   25   0.3   2   180   
+!!!!!
+c_a_tpl1        c_a_tpl1_eob        c_a_tpl2     c_a_tpl_min       y0      c1_y0        c2_y0  
+5   1.7   3   0.64   0.7   1.8   2.4   

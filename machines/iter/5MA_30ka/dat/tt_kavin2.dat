@@ -1,0 +1,6 @@
+tt_rampup ! tt_kavin2.dat  
+20000   
+  dt_end_sim      dtpl_term_l   cIp_end  
+30   30   1   
+  Ics1_eob(kA)   rms_noise(m/s)  
+-29.0   0.2   

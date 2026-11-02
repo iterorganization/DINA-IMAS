@@ -1,0 +1,5 @@
+  0.001  p
+  0.002  T_e
+  0.002  T_i
+  0.05  gam=Ne/N0_initial_(N0=4.8*p)
+  50.0  g_gain__neutrals_paffing_speed_gain

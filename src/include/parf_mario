@@ -1,2 +1,3 @@
-	parameter (num_coils=30)
+	parameter (num_coils=35)
 
+	

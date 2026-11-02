@@ -50,12 +50,6 @@ else
 endif
 
 
-DEBUG = -g -O0
-ifeq ($(TARGET), DEBUG)
-  FCFLAGS += $(DEBUG)
-endif
-
-
 
 S=./
 V=$(S)

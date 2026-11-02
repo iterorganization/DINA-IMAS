@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+<parameters>
+
+  <pulse_schedule>
+    <uri>imas:mdsplus?path=input</uri>
+  </pulse_schedule>
+  <input_pf_active>
+    <uri>imas:mdsplus?user=public;database=ITER_MD;pulse=111001;run=203;version=3</uri>
+  </input_pf_active>
+  <input_pf_passive>
+    <uri>imas:mdsplus?user=public;database=ITER_MD;pulse=115005;run=2;version=3</uri>
+  </input_pf_passive>
+  <input_magnetics>
+  </input_magnetics>
+  <input_em_coupling>
+  </input_em_coupling>
+  <input_wall>
+    <uri>imas:mdsplus?user=public;database=ITER_MD;pulse=116000;run=2;version=3</uri>
+  </input_wall>
+  <input_start>
+    <uri>imas:mdsplus?path=input</uri>
+  </input_start>
+  <output>
+    <uri>imas:mdsplus?path=output</uri>
+  </output>
+  <input_transp>
+    <uri>imas:mdsplus?user=dubrovm;database=test;pulse=170;run=41;version=3</uri>
+  </input_transp>
+
+  <time_start>0.0</time_start>
+  <start_interp_mode>1</start_interp_mode>
+  <transp_interp_mode>1</transp_interp_mode>
+  <time_stop>1000.0</time_stop>
+  <decimation>10</decimation>
+  <time_ext>3000.0</time_ext>
+  <controller>kmc</controller>
+  <step_max>1000000</step_max>
+  <use_astra>0</use_astra>
+  <vs3_l>1.1734595613829850E-003</vs3_l>
+  <vs3_r>0.012</vs3_r>
+  <rs0>6.2</rs0>
+  <bt0>-5.3</bt0>
+  <rmin>3.0</rmin>
+  <rmax>9.0</rmax>
+  <zmin>-6.0</zmin>
+  <zmax>6.0</zmax>
+  <comment>Test</comment>
+
+</parameters>

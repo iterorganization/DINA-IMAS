@@ -4,35 +4,13 @@
 
 # NEEDED MODULES
 import imas,os
-from imas import imasdef
+from imas import ids_defs
 import numpy
 import xml.etree.ElementTree as ET
 from dina_green.actor import dina_green
 
 
-
-def get_dbentry(root, user_default):
-    if root == None:
-        return None, -1
-    usernode = root.find('user')
-    if (usernode != None):
-        username = usernode.text
-    else:
-        username = None
-    if (username == None or username == ""):
-        username = user_default
-    database = root.find('database').text
-    if database == None or database == '':
-        return None, -1
-    pulse = int(root.find('pulse').text)
-    run = int(root.find('run').text)
-    IMAS_DBEntry = imas.DBEntry(imasdef.MDSPLUS_BACKEND, database, pulse, run, username, data_version = '3')
-    status,_ = IMAS_DBEntry.open()
-    if status == 0:
-        IMAS_DBEntry.close()
-    return IMAS_DBEntry, status
-
-
+ids_factory = imas.IDSFactory()
 
 
 config = "test_wf_parameters.xml"
@@ -44,42 +22,35 @@ root = tree.getroot()
 user_default = os.getenv('USER')
 
 Time_Start = 0.
-InterpStart = imasdef.CLOSEST_INTERP
+InterpStart = ids_defs.CLOSEST_INTERP
 
 # INPUT/OUTPUT CONFIGURATION
-IMAS_PFA, status = get_dbentry(root.find('input_pf_active'), user_default)
-IMAS_PFA.open()
+IMAS_PFA = imas.DBEntry(root.find('input_pf_active').find('uri').text, 'r')
 pf_active = IMAS_PFA.get_slice('pf_active', Time_Start, InterpStart)
-IMAS_PFA.close()
 
-IMAS_PFP, status = get_dbentry(root.find('input_pf_passive'), user_default)
-IMAS_PFP.open()
+
+IMAS_PFP = imas.DBEntry(root.find('input_pf_passive').find('uri').text, 'r')
 pf_passive = IMAS_PFP.get_slice('pf_passive', Time_Start, InterpStart)
-IMAS_PFP.close()
 
-IMAS_MAG, status = get_dbentry(root.find('input_magnetics'), user_default)
-if (status == 0):
-    IMAS_MAG.open()
+try:
+    IMAS_MAG = imas.DBEntry(root.find('input_magnetics').find('uri').text, 'r')
     magnetics = IMAS_MAG.get_slice('magnetics', Time_Start, InterpStart)
-    IMAS_MAG.close()
-else:
-    magnetics = imas.magnetics()
+except:
+    magnetics = ids_factory.magnetics()
     magnetics.ids_properties.homogeneous_time=2
 
-IMAS_EQ, status = get_dbentry(root.find('input_equilibrium'), user_default)
-if (status == 0):
-    IMAS_EQ.open()
+try:
+    IMAS_EQ = imas.DBEntry(root.find('input_equilibrium').find('uri').text, 'r')
     equilibrium = IMAS_EQ.get_slice('equilibrium', Time_Start, InterpStart)
-    IMAS_EQ.close()
-else:
-    equilibrium = imas.equilibrium()
+except:
+    equilibrium = ids_factory.equilibrium()
     grid = root.find('grid')
     nr = int(grid.find('nr').text)
     nz = int(grid.find('nz').text)
-    r1 = float(grid.find('r1').text)
-    r2 = float(grid.find('r2').text)
-    z1 = float(grid.find('z1').text)
-    z2 = float(grid.find('z2').text)
+    r1 = float(grid.find('rmin').text)
+    r2 = float(grid.find('rmax').text)
+    z1 = float(grid.find('zmin').text)
+    z2 = float(grid.find('zmax').text)
     equilibrium.ids_properties.homogeneous_time=1
     equilibrium.time_slice.resize(1)
     equilibrium.time.resize(1)
@@ -93,9 +64,7 @@ else:
 
 # CREATE OUTPUT DATAFILE
 print('=> Create output datafile')
-IMAS_OUT, status = get_dbentry(root.find('output'), user_default)
-IMAS_OUT.create()
-
+IMAS_OUT = imas.DBEntry(root.find('output').find('uri').text, 'w')
 
 # CREATE AND INITIALIZE ACTOR
 dina_green_actor = dina_green()
@@ -111,9 +80,11 @@ except Exception as error_message:
 # SAVE IDS INTO OUTPUT FILE
 print('=> Append IDS slice to local database')
 IMAS_OUT.put(em_coupling)
-    
+IMAS_OUT.put(pf_active)
+IMAS_OUT.put(pf_passive)
+IMAS_OUT.put(equilibrium)
 
-IMAS_OUT.close()
+
 print('Done exporting.')
 
 

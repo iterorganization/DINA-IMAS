@@ -1,2 +1,3 @@
-	parameter ( ntime=40000)
+	parameter ( ntime=100000)
 
+	

@@ -1,8 +1,8 @@
 !> dina_data_read is the main subroutine to read the input code parameters
 
-subroutine dina_data_read_imas(psch, codeparam)
+subroutine dina_data_read_imas(psch, pfa, codeparam)
 
-use ids_schemas, only: ids_pulse_schedule, ids_parameters_input
+use ids_schemas, only: ids_pulse_schedule, ids_pf_active, ids_parameters_input
 
 use f90_file_reader, only: file2buffer
 use xml2eg_mdl, only: xml2eg_parse_memory, xml2eg_get, type_xml2eg_document, xml2eg_free_doc
@@ -16,9 +16,12 @@ use xml2eg_mdl, only: xml2eg_parse_memory, xml2eg_get, type_xml2eg_document, xml
 include 'imas_interface.inc'
 
 type (ids_pulse_schedule)   :: psch
+type (ids_pf_active)   :: pfa
 type(ids_parameters_input) :: codeparam
 
-        COMMON /pf1/npf,pf(kf),pf0(kf)
+        common /pf1/npf,pf(kf),pf0(kf)
+        common /pf8/pfind(kf,kf),pfres(kf),a1(kf,kf),e1(kf),e2(kf) 
+
         common /ge5/kpr
 	common /n_m/n,m,mp
 
@@ -75,9 +78,11 @@ type(ids_parameters_input) :: codeparam
 
      common /c_one2d/alf,ro_alf
      common /c_q_test/q_test
-
+     common /maksim_06/r_lh_coef
      
-!character(len=30) :: ConfigFile = 'code_parameters.xml'
+
+     real*8 :: dens_main(ntime)
+
 type(type_xml2eg_document) :: doc
 character(len=132), pointer :: buffer(:) => NULL()
 integer :: io_unit = 1
@@ -101,21 +106,13 @@ integer :: ncirc(kf), dircirc(kf)
 integer :: grid_n
 real*8 :: grid_rho, grid_alpha
 
-!      n=n_c
-      n_c=50
-      n=n_c
-      
-      if(kpr.eq.1)print *,'n n_c ',n,n_c
       
       
       print*, 'DINA_PARAMS_IMAS'
       print*, 'npf =', npf
       print*, 'PF_TURNS =', pf_turns
       
-      
-      ! Initializing 1D grid
- !     call one2d()
-     
+
      
         !open(unit=49,file='dina_data.dat', form='formatted')
      
@@ -124,6 +121,11 @@ real*8 :: grid_rho, grid_alpha
 call xml2eg_parse_memory(codeparam%parameters_value, doc)
 
          
+        call xml2eg_get(doc, 'kpr', kpr_c)
+        kpr = kpr_c
+        
+        
+        
          call xml2eg_get(doc, 'grid_n', grid_n)
          call xml2eg_get(doc, 'grid_rho', grid_rho)
          call xml2eg_get(doc, 'grid_alpha', grid_alpha)
@@ -151,20 +153,19 @@ end if
       alf=grid_alpha
       
       if(kpr.eq.1)print *,'alf ro_alf ',alf,ro_alf
-   
+         
          
 ! 	open (unit=40,file='tt_kavin.dat',form='formatted') 
         !read (49,*) 
         !read (49,*)time_eq_c
           
         call xml2eg_get(doc, 'tt_kavin', tt_kavin_c)
+          tt_kavin_c = tt_kavin_c * 1.d3
           
 !        open (unit=1,file='kpr.dat',form='formatted')
 
         !read (49,*)
         !read (49,*)kpr_c
-        
-        call xml2eg_get(doc, 'kpr', kpr_c)
 
 !     	open(unit=2,file='for002_kav',form='formatted')
 
@@ -172,6 +173,7 @@ end if
 	!read (49,*)tay_c,rs0_c,key_t11_c,bt0_c
         
 call xml2eg_get(doc, 'tau', tay_c)
+tay_c = tay_c * 1.d3
 !call xml2eg_get(doc, 'rs0', rs0_c)
 call xml2eg_get(doc, 'key_t11', key_t11_c)
 !call xml2eg_get(doc, 'bt0', bt0_c)
@@ -181,10 +183,15 @@ if (errorflag) then
    print*, 'q_swth reading error'
    q_test = 0.97
 end if
-
 print*, 'q_swth=q_test=', q_test
 
 
+call xml2eg_get(doc, 'coef_p_lh', r_lh_coef, errorflag)
+if (errorflag) then
+   print*, 'r_lh_coef reading error'
+   r_lh_coef = 1.0
+end if
+print*, 'r_lh_coef=', r_lh_coef
 
 
 	!open(unit=49,status='old',file='gaps_data_ramp',form='formatted')
@@ -202,6 +209,11 @@ call xml2eg_get(doc, 'gaps/gaps_z', gaps_z_str)
     read(gaps_r_str,*)(x_gaps_c(i),i=1,n_ga_c)
     read(gaps_z_str,*)(y_gaps_c(i),i=1,n_ga_c)
 
+    do i=1,n_ga_c
+    x_gaps_c(i) = x_gaps_c(i) * 1.d2
+    y_gaps_c(i) = y_gaps_c(i) * 1.d2
+    enddo
+    
   print*, 'x gaps =', (x_gaps_c(i),i=1,n_ga_c)
   print*, 'y gaps =', (y_gaps_c(i),i=1,n_ga_c)
 
@@ -222,6 +234,7 @@ call xml2eg_get(doc, 'circuit/direction', dircircuit_str)
         !read (49,*)
         !read (49,*)tt_dina_c
 call xml2eg_get(doc, 'tt_dina', tt_dina_c)
+tt_dina_c = tt_dina_c*1.d3
 
 !           open (unit=41,file='pfres.dat',form='formatted') 
            !read (49,*) 
@@ -236,15 +249,20 @@ call xml2eg_get(doc, 'tt_dina', tt_dina_c)
 
           !npf_c1 = size(ps%pf_active%coil)
           !print*,'ncoil =', size(psch%pf_active%coil)
-          n_t_c1 = size(psch%pf_active%coil(1)%resistance_additional%reference%time)
-          t_t_c1(1:n_t_c1) = psch%pf_active%coil(1)%resistance_additional%reference%time(1:n_t_c1)
+          n_t_c1 = size(psch%pf_active%time)
+          t_t_c1(1:n_t_c1) = psch%pf_active%time(1:n_t_c1)
 
           do i=1,kf
+                print*, 'pfres_0(i)', i, pfres(i)
+              enddo
+
+          do i=1,kf
+                !pf_t_c1(i,1:n_t_c1) = pfres(i)
                 pf_t_c1(i,1:n_t_c1) = 0.d0
           enddo
-
+   
           do i=1,size(psch%pf_active%coil)
-                pf_t_c1(ncirc(i),1:n_t_c1) = pf_t_c1(ncirc(i),1:n_t_c1) + psch%pf_active%coil(i)%resistance_additional%reference%data(1:n_t_c1)
+                pf_t_c1(ncirc(i),1:n_t_c1) = pf_t_c1(ncirc(i),1:n_t_c1) + psch%pf_active%coil(i)%resistance_additional%reference(1:n_t_c1) + pfa%coil(i)%resistance
           enddo
         
         
@@ -253,7 +271,8 @@ call xml2eg_get(doc, 'tt_dina', tt_dina_c)
         enddo
         
         do i=1,n_t_c1
-          print*, 'pfres', pf_t_c1(:,i)
+          print*, 'time =', t_t_c1(i)
+          print*, 'pfres+pfres_add ', pf_t_c1(:,i)
         enddo
         
 !           do k=1,npf_c1
@@ -271,9 +290,9 @@ call xml2eg_get(doc, 'tt_dina', tt_dina_c)
            !   read (49,*)t_t_c2(i),udd_sol_t_c2(i)
            !end do 
 
-           n_t_c2 = size(psch%ec%launcher(1)%power%reference%time)
-           t_t_c2(1:n_t_c2) = psch%ec%launcher(1)%power%reference%time(1:n_t_c2)
-           udd_sol_t_c2(1:n_t_c2) = psch%ec%launcher(1)%power%reference%data(1:n_t_c2)*1.d-6
+           n_t_c2 = size(psch%ec%time)
+           t_t_c2(1:n_t_c2) = psch%ec%time(1:n_t_c2)
+           udd_sol_t_c2(1:n_t_c2) = psch%ec%power_launched%reference(1:n_t_c2)*1.d-6
         
         
         
@@ -288,10 +307,37 @@ call xml2eg_get(doc, 'tt_dina', tt_dina_c)
            !end do 
         
            ion = 1
-           n_t_c3 = size(psch%density_control%ion(ion)%n_i_volume_average%reference%time)
-           t_t_c3(1:n_t_c3) = psch%density_control%ion(ion)%n_i_volume_average%reference%time(1:n_t_c3)
-           pn_d_t_c3(1:n_t_c3) = psch%density_control%ion(ion)%n_i_volume_average%reference%data(1:n_t_c3)*1.d-19
+           n_t_c3 = size(psch%density_control%time)
+           t_t_c3(1:n_t_c3) = psch%density_control%time(1:n_t_c3)
+           pn_d_t_c3(1:n_t_c3) = psch%density_control%ion(ion)%n_i_volume_average%reference(1:n_t_c3)*1.d-19
 
+
+
+!           open (unit=41,file='dens.dat',form='formatted')
+           !read (49,*) 
+           !read (49,*)n_t_c8 
+           !read (49,*) 
+
+           !do i=1,n_t_c8 
+           !   read (49,*)t_t_c8(i),den_t_c8(i)
+           !end do
+
+           ion = 2
+           n_t_c8 = size(psch%density_control%time)
+           t_t_c8(1:n_t_c8) = psch%density_control%time(1:n_t_c8)
+           den_t_c8(1:n_t_c8) = psch%density_control%ion(ion)%n_i_volume_average%reference(1:n_t_c8)*1.d-19
+
+
+           if (n_t_c8.ne.n_t_c3) then
+                print*, 'References of D and T have different length:',  n_t_c3, n_t_c8
+                stop
+           endif
+           dens_main(1:n_t_c8) = (pn_d_t_c3(1:n_t_c8) + den_t_c8(1:n_t_c8))*1.d19
+
+           print*, 'dens_main = ', dens_main(1:n_t_c8)
+
+
+           ! 0D model only
 !           open (unit=41,file='gamma_z.dat',form='formatted')
            !read (49,*) 
            !read (49,*)n_t_c4,nz_imp_c4 
@@ -303,11 +349,16 @@ call xml2eg_get(doc, 'tt_dina', tt_dina_c)
 
            ion = 3
            nz_imp_c4 = psch%density_control%ion(ion)%element(1)%z_n
-           n_t_c4 = size(psch%density_control%ion(ion)%n_i_volume_average%reference%time)
-           t_t_c4(1:n_t_c4) = psch%density_control%ion(ion)%n_i_volume_average%reference%time(1:n_t_c4)*1.d3
-           pn_d_t_c4(1:n_t_c4) = psch%density_control%ion(ion)%n_i_volume_average%reference%data(1:n_t_c4)
+           n_t_c4 = size(psch%density_control%time)
+           if (n_t_c4.ne.n_t_c3) then
+                print*, 'References of impurity and main ion have different length:', ion, n_t_c4, n_t_c3
+                stop
+           endif
+           t_t_c4(1:n_t_c4) = psch%density_control%time(1:n_t_c4)*1.d3
+           pn_d_t_c4(1:n_t_c4) = psch%density_control%ion(ion)%n_i_volume_average%reference(1:n_t_c4)/dens_main(1:n_t_c4)
         
         
+           ! 0D and 1D model
 !           open (unit=41,file='gamma_z2.dat',form='formatted') 
            !read (49,*) 
            !read (49,*)n_t_c5,nz_imp2_c5 
@@ -319,9 +370,13 @@ call xml2eg_get(doc, 'tt_dina', tt_dina_c)
            
            ion = 5
            nz_imp2_c5 = psch%density_control%ion(ion)%element(1)%z_n
-           n_t_c5 = size(psch%density_control%ion(ion)%n_i_volume_average%reference%time)
-           t_t_c5(1:n_t_c5) = psch%density_control%ion(ion)%n_i_volume_average%reference%time(1:n_t_c5)*1.d3
-           pn_d_t_c5(1:n_t_c5) = psch%density_control%ion(ion)%n_i_volume_average%reference%data(1:n_t_c5)
+           n_t_c5 = size(psch%density_control%time)
+           if (n_t_c5.ne.n_t_c3) then
+                print*, 'References of impurity and main ion have different length:', ion, n_t_c5, n_t_c3
+                stop
+           endif
+           t_t_c5(1:n_t_c5) = psch%density_control%time(1:n_t_c5)*1.d3
+           pn_d_t_c5(1:n_t_c5) = psch%density_control%ion(ion)%n_i_volume_average%reference(1:n_t_c5)/dens_main(1:n_t_c5)
         
         
 !	open (unit=41,file='init.dat',form='formatted')
@@ -346,26 +401,15 @@ call xml2eg_get(doc, 'gain_puff', g_gain_c6)
            !   read (49,*)t_t_c7(i),emoe_t_c7(i),emoq_t_c7(i)
            !end do 
 
-           n_t_c7 = size(psch%ec%power%reference%time)
-           t_t_c7(1:n_t_c7) = psch%ec%power%reference%time(1:n_t_c7)
-           emoe_t_c7(1:n_t_c7) = psch%ec%power%reference%data(1:n_t_c7)*1.d-6
-           emoq_t_c7(1:n_t_c7) = psch%ic%power%reference%data(1:n_t_c7)*1.d-6
+           n_t_c7 = size(psch%ec%time)
+           t_t_c7(1:n_t_c7) = psch%ec%time(1:n_t_c7)
+           emoe_t_c7(1:n_t_c7) = psch%ec%power_launched%reference(1:n_t_c7)*1.d-6
+           emoq_t_c7(1:n_t_c7) = psch%ic%power%reference(1:n_t_c7)*1.d-6
         
         
-!           open (unit=41,file='dens.dat',form='formatted')
-           !read (49,*) 
-           !read (49,*)n_t_c8 
-           !read (49,*) 
 
-           !do i=1,n_t_c8 
-           !   read (49,*)t_t_c8(i),den_t_c8(i)
-           !end do
 
-           ion = 2
-           n_t_c8 = size(psch%density_control%ion(ion)%n_i_volume_average%reference%time)
-           t_t_c8(1:n_t_c8) = psch%density_control%ion(ion)%n_i_volume_average%reference%time(1:n_t_c8)
-           den_t_c8(1:n_t_c8) = psch%density_control%ion(ion)%n_i_volume_average%reference%data(1:n_t_c8)*1.d-19
-
+           ! 1D model only
 !           open (unit=41,file='gamma_z1.dat',form='formatted')
            !read (49,*) 
            !read (49,*)n_t_c9,nz_imp1_c9 
@@ -377,10 +421,16 @@ call xml2eg_get(doc, 'gain_puff', g_gain_c6)
            
            ion = 4
            nz_imp1_c9 = psch%density_control%ion(ion)%element(1)%z_n
-           n_t_c9 = size(psch%density_control%ion(ion)%n_i_volume_average%reference%time)
-           t_t_c9(1:n_t_c9) = psch%density_control%ion(ion)%n_i_volume_average%reference%time(1:n_t_c9)*1.d3
-           pn_d_t_c9(1:n_t_c9) = psch%density_control%ion(ion)%n_i_volume_average%reference%data(1:n_t_c9)
+           n_t_c9 = size(psch%density_control%time)
+           if (n_t_c9.ne.n_t_c3) then
+                print*, 'References of impurity and main ion have different length:', ion, n_t_c9, n_t_c3
+                stop
+           endif
+           t_t_c9(1:n_t_c9) = psch%density_control%time(1:n_t_c9)*1.d3
+           pn_d_t_c9(1:n_t_c9) = psch%density_control%ion(ion)%n_i_volume_average%reference(1:n_t_c9)/dens_main(1:n_t_c9)
         
+
+           ! 1D model only
 !           open (unit=41,file='gamma_z3.dat',form='formatted') 
            !read (49,*) 
            !read (49,*)n_t_c10,nz_imp3_c10 
@@ -392,11 +442,16 @@ call xml2eg_get(doc, 'gain_puff', g_gain_c6)
         
            ion = 6
            nz_imp3_c10 = psch%density_control%ion(ion)%element(1)%z_n
-           n_t_c10 = size(psch%density_control%ion(ion)%n_i_volume_average%reference%time)
-           t_t_c10(1:n_t_c10) = psch%density_control%ion(ion)%n_i_volume_average%reference%time(1:n_t_c10)*1.d3
-           pn_d_t_c10(1:n_t_c10) = psch%density_control%ion(ion)%n_i_volume_average%reference%data(1:n_t_c10)
+           n_t_c10 = size(psch%density_control%time)
+           if (n_t_c10.ne.n_t_c3) then
+                print*, 'References of impurity and main ion have different length:', ion, n_t_c10, n_t_c3
+                stop
+           endif
+           t_t_c10(1:n_t_c10) = psch%density_control%time(1:n_t_c10)*1.d3
+           pn_d_t_c10(1:n_t_c10) = psch%density_control%ion(ion)%n_i_volume_average%reference(1:n_t_c10)/dens_main(1:n_t_c10)
         
         
+           ! 1D model only
 !           open (unit=41,file='gamma_z4.dat',form='formatted') 
            !read (49,*) 
            !read (49,*)n_t_c11,nz_imp4_c11 
@@ -406,12 +461,28 @@ call xml2eg_get(doc, 'gain_puff', g_gain_c6)
            !   read (49,*)t_t_c11(i),pn_d_t_c11(i)
            !end do 
 
-           ion = 7
+           if (size(psch%density_control%ion) .lt. 7) then
+                print*, "psch%density_control%ion(3) is used for both 0D and 1D model"
+             ion = 3
+           elseif (size(psch%density_control%ion) .eq. 7) then
+             ion = 7
+           else
+                print*, "Amount of ions greater than 7 is not supported"
+                stop
+           endif
+
            nz_imp4_c11 = psch%density_control%ion(ion)%element(1)%z_n
-           n_t_c11 = size(psch%density_control%ion(ion)%n_i_volume_average%reference%time)
-           t_t_c11(1:n_t_c11) = psch%density_control%ion(ion)%n_i_volume_average%reference%time(1:n_t_c11)*1.d3
-           pn_d_t_c11(1:n_t_c11) = psch%density_control%ion(ion)%n_i_volume_average%reference%data(1:n_t_c11)
+           n_t_c11 = size(psch%density_control%time)
+           if (n_t_c11.ne.n_t_c3) then
+                print*, 'References of impurity and main ion have different length:', ion, n_t_c11, n_t_c3
+                stop
+           endif
+           t_t_c11(1:n_t_c11) = psch%density_control%time(1:n_t_c11)*1.d3
+           pn_d_t_c11(1:n_t_c11) = psch%density_control%ion(ion)%n_i_volume_average%reference(1:n_t_c11)/dens_main(1:n_t_c11)
         
+
+
+
 !                 open (unit=41,file='bohm_gbohm.dat',form='formatted')
                 !read (49,*)
                 !read (49,*) k_Bohm_c12
@@ -421,19 +492,19 @@ call xml2eg_get(doc, 'bohm_gbohm', k_Bohm_c12)
            !read (49,*) 
            !read (49,*)tay_simul_c13
 call xml2eg_get(doc, 'tau_sim', tay_simul_c13)
-
+tay_simul_c13 = tay_simul_c13 * 1.d3
 !          open (unit=40,file='dw.dat',form='formatted') 
           !read (49,*) 
 !          read (40,*)tt_dw,tay_dw
           !read (49,*)tay_dw_c14
 call xml2eg_get(doc, 'tau_dw', tay_dw_c14)
-
+tay_dw_c14 = tay_dw_c14 * 1.d3
 
 !           open (unit=40,file='pcchp_end.dat',form='formatted') 
         !read (49,*)
         !read (49,*)pcchp_end_c15
 call xml2eg_get(doc, 'pcchp_end', pcchp_end_c15)
-
+pcchp_end_c15 = pcchp_end_c15 * 1.d-19
 
           !read (49,*) 
           !read (49,*)k_ener_ext_c16, k_dens_ext_c16,k_ajb_ext_c16
@@ -446,25 +517,25 @@ call xml2eg_get(doc, 'ajb_ext', k_ajb_ext_c16)
           !read (49,*)tt_rampup
           !read (49,*) 
           !read (49,*)dt_end_sim,dtpl_term_l,cIp_end
-call xml2eg_get(doc, 'tt_rampup', tt_rampup)
-call xml2eg_get(doc, 'dt_end_sim', dt_end_sim)
-call xml2eg_get(doc, 'dtpl_term_l', dtpl_term_l)
+!call xml2eg_get(doc, 'tt_rampup', tt_rampup)
+!call xml2eg_get(doc, 'dt_end_sim', dt_end_sim)
+!call xml2eg_get(doc, 'dtpl_term_l', dtpl_term_l)
 call xml2eg_get(doc, 'cIp_end', cIp_end)
 
-          tt_rampup_c1=tt_rampup
-          dt_end_sim_c1=dt_end_sim
-          dtpl_term_l_c1=dtpl_term_l
-          cIp_end_c1=cIp_end
+          tt_rampup_c1=50.d3
+          dt_end_sim_c1=50.0
+          dtpl_term_l_c1=50.0
+          cIp_end_c1=cIp_end*1.d-6*tpl_dir
 
           dtpl_term_h=0
           
           !read (49,*) 
           !read (49,*)CS1_eob,rms_noise
 call xml2eg_get(doc, 'Ics1_eob', CS1_eob)
-call xml2eg_get(doc, 'rms_noise', rms_noise)
+!call xml2eg_get(doc, 'rms_noise', rms_noise)
 
-          CS1_eob_c1=CS1_eob
-          rms_noise_c1=rms_noise
+          CS1_eob_c1=CS1_eob*1.d-3*tpl_dir
+          rms_noise_c1=0.0
           
           
 call xml2eg_free_doc(doc)
