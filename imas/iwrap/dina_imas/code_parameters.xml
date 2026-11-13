@@ -22,6 +22,8 @@
    <grid_n>50</grid_n>
    <grid_rho>0.5</grid_rho>
    <grid_alpha>0.95</grid_alpha>
+   <edge_smoothing>0</edge_smoothing>
+   <ppx_relaxation>0.5</ppx_relaxation>
    <cIp_end>-1500000.0</cIp_end>
    <Ics1_eob>44000.0</Ics1_eob>
    <tpl_dir>-1.0</tpl_dir>

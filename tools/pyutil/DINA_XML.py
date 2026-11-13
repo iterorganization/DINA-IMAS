@@ -159,6 +159,12 @@ def DINADataToXML(directoryLoad):
     element = ET.SubElement(root, "grid_alpha")
     element.text = str(0.95)
 
+    element = ET.SubElement(root, "edge_smoothing")
+    element.text = str(0)
+
+    element = ET.SubElement(root, "ppx_relaxation")
+    element.text = str(0.5)
+
     element = ET.SubElement(root, "coef_p_lh")
     element.text = str(1.0)
 

@@ -564,6 +564,8 @@ class DINA_GUI(uiclass, baseclass):
         self.DINAData["grid_n"] = CodeParameter(mytype=int, value=50, name='Grid n', comment = 'Amount of 1D grid points')
         self.DINAData["grid_rho"] = CodeParameter(mytype=float, value=0.5, name='Grid rho', comment = 'Rho value after which the 1D grid gradually increases density')
         self.DINAData["grid_alpha"] = CodeParameter(mytype=float, value=0.95, name='Grid compression', comment = '1D grid compression factor in the boundary region')
+        self.DINAData["edge_smoothing"] = CodeParameter(mytype=int, value=0, name='Edge smoothing', comment = "Smooth p' and FF' in the outer 20% of the 1D grid (1 = on)")
+        self.DINAData["ppx_relaxation"] = CodeParameter(mytype=float, value=0.5, name='p\' FF\' relaxation', comment = "Under-relaxation factor for p' and FF' (1 = none)")
         
         
         self.controlData["kpr"] = CodeParameter(mytype=int, value=1, name='Key print', comment = 'Key to print debug and diagnostic logs')
@@ -1427,7 +1429,7 @@ class DINA_GUI(uiclass, baseclass):
       names = ('tpl_dir','Ics1_eob','cIp_end')
       params.append([self.generalData[k] for k in names])
       
-      names = ('grid_n', 'grid_rho', 'grid_alpha')
+      names = ('grid_n', 'grid_rho', 'grid_alpha', 'edge_smoothing', 'ppx_relaxation')
       params.append([self.DINAData[k] for k in names])
       
       names = ('tau', 'tau_sim', 'tau_dw')

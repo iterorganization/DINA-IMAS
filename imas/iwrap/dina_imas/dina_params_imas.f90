@@ -77,6 +77,7 @@ type(ids_parameters_input) :: codeparam
      common /v_turn/pf_turns(kf)
 
      common /c_one2d/alf,ro_alf
+     common /c_ppx_relax/k_smooth_c,omg_ppx_c
      common /c_q_test/q_test
      common /maksim_06/r_lh_coef
      
@@ -105,6 +106,8 @@ integer :: ncirc(kf), dircirc(kf)
 
 integer :: grid_n
 real*8 :: grid_rho, grid_alpha
+integer :: edge_smoothing
+real*8 :: ppx_relaxation
 
       
       
@@ -151,6 +154,14 @@ end if
       
       ro_alf=grid_rho 
       alf=grid_alpha
+
+      call xml2eg_get(doc, 'edge_smoothing', edge_smoothing, errorflag)
+      if (errorflag) edge_smoothing = 0
+      call xml2eg_get(doc, 'ppx_relaxation', ppx_relaxation, errorflag)
+      if (errorflag) ppx_relaxation = 0.5d0
+      k_smooth_c = edge_smoothing
+      omg_ppx_c = ppx_relaxation
+      if(kpr.eq.1)print *,'edge_smoothing ppx_relaxation ',k_smooth_c,omg_ppx_c
       
       if(kpr.eq.1)print *,'alf ro_alf ',alf,ro_alf
          
