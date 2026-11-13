@@ -2193,8 +2193,12 @@ cc	tt_end=95.e3
 	   betp_help1=betp_flat1
 	end if
 	if(key_aux.eq.1)then
+	   if(tt_end.gt.tt_aux)then
 	   betp_flat=betp_flat0+((tt-tt_aux)/(tt_end-tt_aux))*
      *     (betp_help1-betp_flat0)
+	   else
+	   betp_flat=betp_help1
+	   end if
 	end if
 
 	if(betp_flat.gt.betp_help1.and.key_aux.eq.1)then
@@ -2203,8 +2207,12 @@ cc	tt_end=95.e3
 	   if(betp_flat.gt.betp_help1)betp_flat=betp_help1
 	end if
 	if(key_aux.eq.2)then
+	   if(tt_end1.gt.tt_aux)then
 	   betp_flat=betp_help1+((tt-tt_aux)/(tt_end1-tt_aux))*
      *     (betp_help-betp_help1)
+	   else
+	   betp_flat=betp_help
+	   end if
 	   if(betp_flat.gt.betp_help)betp_flat=betp_help
 	end if
 
