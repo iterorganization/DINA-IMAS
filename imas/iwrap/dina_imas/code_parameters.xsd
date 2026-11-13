@@ -30,6 +30,8 @@
 		 <xs:element ref="grid_n" minOccurs="0"/>
 		 <xs:element ref="grid_rho" minOccurs="0"/>
 		 <xs:element ref="grid_alpha" minOccurs="0"/>
+		 <xs:element ref="edge_smoothing" minOccurs="0"/>
+		 <xs:element ref="ppx_relaxation" minOccurs="0"/>
          <xs:element ref="coef_p_lh" minOccurs="0"/>
 		 <xs:element ref="tt_rampup" minOccurs="0"/>
 		 <xs:element ref="dt_end_sim" minOccurs="0"/>
@@ -224,6 +226,18 @@
    <xs:element name="grid_alpha" type="float_general">
       <xs:annotation>
           <xs:documentation></xs:documentation>
+      </xs:annotation>
+   </xs:element>
+   
+   <xs:element name="edge_smoothing" type="integer_flag">
+      <xs:annotation>
+          <xs:documentation>Smooth p' and FF' in the outer 20% of the 1D grid before the equilibrium solve (1 = on, default 0)</xs:documentation>
+      </xs:annotation>
+   </xs:element>
+   
+   <xs:element name="ppx_relaxation" type="float_general">
+      <xs:annotation>
+          <xs:documentation>Under-relaxation factor for p' and FF' passed to the equilibrium solve (1 = no relaxation, default 0.5)</xs:documentation>
       </xs:annotation>
    </xs:element>
    

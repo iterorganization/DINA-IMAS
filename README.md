@@ -227,6 +227,8 @@ Description of the parameters in the XML:
 * grid_n - Amount of 1D grid points
 * grid_rho - rho value after which the 1D grid gradually increases density
 * grid_alpha - 1D grid compression factor in the boundary region
+* edge_smoothing - Smooth p' and FF' in the outer 20% of the 1D grid before the equilibrium solve (1 = on, 0 = off; default 0). Set 1 together with ppx_relaxation = 1 to reproduce results of earlier versions
+* ppx_relaxation - Under-relaxation factor for p' and FF' passed to the equilibrium solve (1 = no relaxation; default 0.5). Needed when edge_smoothing = 0. Tested and converged for 0.5.
 * coef_p_lh - coeffitient modifying threshold power of L to H transition
 * cIp_end [A] - Minimum plasma current at the ramp-down phase
 * Ics1_eob [A] - Value of the current in CS1 circuit at which the current ramp-down starts

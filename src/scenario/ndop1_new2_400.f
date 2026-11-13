@@ -1901,6 +1901,10 @@ c
 	subroutine ppx_pffx()
         include 'double.inc'
 	include 'parf0'
+c under-relaxation of ppx, pffx (codeparam ppx_relaxation, 1 = none)
+	common /c_ppx_relax/k_smooth_c,omg_ppx_c
+	dimension ppx_old(npo),pffx_old(npo)
+	save ppx_old,pffx_old,i_relax_init
 	common
      *	/n_m/n,m,mp
 	common
@@ -1920,6 +1924,10 @@ c
 
 	character *20 apr
 
+	do i=1,n
+	ppx_old(i)=ppx(i)
+	pffx_old(i)=pffx(i)
+	end do
 	if(ntay.gt.0)psend=(dm0(n)-dm0(1))*2.*ai(n)
 c	if(ntay.gt.5)return
 
@@ -1999,6 +2007,13 @@ c	if(kpr.eq.1)print 71,apr,(poa(i),i=1,nrad)
 	pffxd(i)=pffx(i)
 	end do
 
+	if (omg_ppx_c.lt.1.d0 .and. i_relax_init.eq.1) then
+	  do i=1,n
+	    ppx(i)=omg_ppx_c*ppx(i)+(1.d0-omg_ppx_c)*ppx_old(i)
+	    pffx(i)=omg_ppx_c*pffx(i)+(1.d0-omg_ppx_c)*pffx_old(i)
+	  end do
+	end if
+	i_relax_init=1
 	return
 	end
 
@@ -4482,6 +4497,9 @@ c	 implicit real *8 (a-h,o-z)
 
 	dimension a_print(200)
 	character*30 apr
+	common /c_ppx_relax/k_smooth_c,omg_ppx_c
+c edge correction switched off by codeparam edge_smoothing = 0
+	if (k_smooth_c.eq.0) return
 
 71	FORMAT(5X,A10/,(2x,6(1PE11.3)))
 
