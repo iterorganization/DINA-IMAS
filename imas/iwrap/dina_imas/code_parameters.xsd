@@ -4,6 +4,20 @@
      <xs:documentation>Code parameters for DINA-Scenario actor generation</xs:documentation>
    </xs:annotation>
 
+   <xs:simpleType name="inverse_input_source">
+     <xs:restriction base="xs:string">
+       <xs:enumeration value="file"/>
+       <xs:enumeration value="imas"/>
+     </xs:restriction>
+   </xs:simpleType>
+
+   <xs:simpleType name="inverse_boundary_units">
+     <xs:restriction base="xs:string">
+       <xs:enumeration value="cm"/>
+       <xs:enumeration value="m"/>
+     </xs:restriction>
+   </xs:simpleType>
+
    <!-- document element -->
    <xs:element name="parameters">
      <xs:complexType>
@@ -39,6 +53,10 @@
 		 <xs:element ref="rms_noise" minOccurs="0"/>
 		 <xs:element ref="gaps" minOccurs="0"/>
 		 <xs:element ref="circuit" minOccurs="0"/>
+         <xs:element name="inverse_boundary_source" type="inverse_input_source" minOccurs="0" default="file"/>
+         <xs:element name="inverse_pf_weight_source" type="inverse_input_source" minOccurs="0" default="file"/>
+         <xs:element name="inverse_boundary_file" type="xs:string" minOccurs="0"/>
+         <xs:element name="inverse_boundary_file_units" type="inverse_boundary_units" minOccurs="0" default="cm"/>
        </xs:all>
      </xs:complexType>
    </xs:element>

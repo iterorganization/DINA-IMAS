@@ -64,6 +64,8 @@ subroutine dina_step(&
 
 use ids_schemas
 use ids_routines
+use, intrinsic :: ieee_arithmetic, only: ieee_is_finite
+use xml2eg_mdl, only: xml2eg_parse_memory, xml2eg_get, type_xml2eg_document, xml2eg_free_doc
 !implicit none
 include 'double.inc'
 
@@ -208,6 +210,7 @@ integer :: nact = -1
 real(ids_real) :: x1, y1, x2, y2, dst, dst1, dst2
 integer, dimension(:), allocatable :: limunits
 integer :: nlim, ju, jdir
+character(len=160) :: inverse_error
 
 print *,'DINA_IMAS Enter'
 call system(" pwd")
@@ -312,6 +315,11 @@ end if
  call vic_turn()
  call dina_data_read_imas(pulse_schedule, pf_active0, codeparam)
 
+ call configure_inverse_inputs(inverse_error)
+ if (error_flag /= 0) then
+   allocate(error_message, source=trim(inverse_error))
+   return
+ end if
 
 nact = npf
 
@@ -1924,6 +1932,105 @@ FillCodeParametersDINA(core_sources)
 FillCodeParametersDINA(summary)
 
 return
+
+contains
+
+subroutine configure_inverse_inputs(message)
+  character(len=*), intent(out) :: message
+  type(type_xml2eg_document) :: doc
+  character(len=16) :: boundary_source, weight_source, boundary_units
+  character(len=1024) :: boundary_file
+  integer :: status, n_boundary, n_weights, point, coil, circuit, n_times
+  real(ids_real) :: boundary_r(ntet), boundary_z(ntet), weights(kf), weight, scale
+  logical :: assigned(kf)
+
+  call xml2eg_parse_memory(codeparam%parameters_value, doc)
+  call xml2eg_get(doc, 'inverse_boundary_source', boundary_source, status)
+  if (status /= 0) boundary_source = 'file'
+  call xml2eg_get(doc, 'inverse_pf_weight_source', weight_source, status)
+  if (status /= 0) weight_source = 'file'
+  call xml2eg_get(doc, 'inverse_boundary_file', boundary_file, status)
+  if (status /= 0) boundary_file = ''
+  call xml2eg_get(doc, 'inverse_boundary_file_units', boundary_units, status)
+  if (status /= 0) boundary_units = 'cm'
+  call xml2eg_free_doc(doc)
+
+  error_flag = 1
+  if (boundary_source /= 'file' .and. boundary_source /= 'imas') then
+    message = 'inverse_boundary_source must be file or imas'
+    return
+  end if
+  if (weight_source /= 'file' .and. weight_source /= 'imas') then
+    message = 'inverse_pf_weight_source must be file or imas'
+    return
+  end if
+  scale = 1.d0
+  select case (boundary_units)
+  case ('cm')
+  case ('m')
+    scale = 100.d0
+  case default
+    message = 'inverse_boundary_file_units must be cm or m'
+    return
+  end select
+
+  n_boundary = 0
+  if (boundary_source == 'imas') then
+    message = 'Invalid pulse_schedule position_control/boundary_outline or time'
+    associate (control => pulse_schedule%position_control)
+      if (.not. associated(control%time) .or. .not. associated(control%boundary_outline)) return
+      n_times = size(control%time)
+      n_boundary = size(control%boundary_outline)
+      if (n_times < 1 .or. n_boundary < 1 .or. n_boundary > ntet) return
+      if (.not. ieee_is_finite(control%time(1))) return
+      do point = 1, n_boundary
+        associate (outline => control%boundary_outline(point))
+          if (.not. associated(outline%r%reference) .or. .not. associated(outline%z%reference)) return
+          if (size(outline%r%reference) /= n_times .or. size(outline%z%reference) /= n_times) return
+          boundary_r(point) = outline%r%reference(1)
+          boundary_z(point) = outline%z%reference(1)
+          if (.not. ieee_is_finite(boundary_r(point)) .or. .not. ieee_is_finite(boundary_z(point))) return
+          if (boundary_r(point) <= 0.d0) return
+        end associate
+      end do
+    end associate
+  end if
+
+  n_weights = 0
+  if (weight_source == 'imas') then
+    message = 'Missing or invalid equilibrium0 constraints/pf_current weights'
+    if (.not. associated(equilibrium0%time_slice)) return
+    if (size(equilibrium0%time_slice) < 1 .or. npf < 1 .or. npf > kf) return
+    assigned = .false.
+    associate (currents => equilibrium0%time_slice(1)%constraints%pf_current)
+      if (.not. associated(currents)) return
+      if (size(currents) /= npfa) return
+      do coil = 1, npfa
+        circuit = ncirc(coil)
+        if (circuit < 1 .or. circuit > npf) return
+        weight = currents(coil)%weight
+        if (.not. ieee_is_finite(weight)) return
+        if (weight < 0.d0) return
+        if (assigned(circuit)) then
+          if (weight /= weights(circuit)) then
+            message = 'IMAS PF weights must match for coils connected to the same DINA circuit'
+            return
+          end if
+        else
+          weights(circuit) = weight
+          assigned(circuit) = .true.
+        end if
+      end do
+    end associate
+    if (.not. all(assigned(1:npf))) return
+    n_weights = npf
+  end if
+
+  call set_inverse_inputs(n_boundary, boundary_r, boundary_z, n_weights, weights, boundary_file, scale)
+  message = ''
+  error_flag = 0
+end subroutine configure_inverse_inputs
+
 end subroutine
 
 

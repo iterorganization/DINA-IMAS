@@ -548,7 +548,7 @@ c
 
 	character *12 apr
 
-      return
+ !     return
 
 	i_sh=i_sh+1
 	if(i_sh.eq.1)then
@@ -1711,8 +1711,9 @@ c
 c-------
            open (unit=41,file='prof_test2.dat',form='formatted')
 
-!           read (41,*)n_t
-	      k=0
+           if(kpr.eq.1)print *,' ++n n_t==',n,n_t
+!          read (41,*)n_t
+           k=1
            do ii=1,n_t 
 	      k=k+1
          	i=k
@@ -1731,7 +1732,8 @@ c-------
               read (41,*)(qq0_t(iprof,i),iprof=1,n)
 
  
-      if(kpr.eq.-1)print *,' i k tt t==',i,k,tt,t_t(i)
+!          if(kpr.eq.1)print *,' ++i k tt t==',i,k,tt,t_t(i)
+           flush(6)
       
       if(t_t(i).gt.tt)goto 2000
  
@@ -1845,3 +1847,63 @@ c	read (*,*)
 	return
 	end
 
+c     Export profiles and currents for the inverse equilibrium.
+      subroutine wr_equil3()
+      include 'double.inc'
+      include 'new_com.inc'
+
+      call wr_equil3_c(
+     *  tt,n,te0,tq0,
+     *  npf,pf,
+     *  ncam,tcam,tpl,kpr,
+     *  rmag,zmag,
+     *  pne)
+
+      return
+      end
+
+      subroutine wr_equil3_c(
+     *  tt,nutab,te0,tq0,
+     *  npf,pf,
+     *  ncam,tcam,tpl,kpr,
+     *  rmag,zmag,
+     *  pne)
+
+      include 'double.inc'
+
+      dimension te0(*),tq0(*),pf(*),tcam(*),pne(*)
+
+      integer, save :: i_sh=0
+
+      i_sh=i_sh+1
+      if(i_sh.eq.1)then
+        open (unit=43,file='equil_data.txt',form='formatted')
+        if(kpr.eq.1)print *,' tt n npf ncam===',tt,nutab,npf,ncam
+      else
+        open (unit=43,file='equil_data.txt',
+     *        form='formatted',position='append')
+      end if
+
+      write (43,*)tt,tpl
+      write (43,*)nutab
+      write (43,5000)(pne(i),i=1,nutab)
+      write (43,5000)(te0(i),i=1,nutab)
+      write (43,5000)(tq0(i),i=1,nutab)
+      write (43,*)ncam
+      write(43,5000)(tcam(k),k=1,ncam)
+      write (43,*)npf
+      write(43,5000)(pf(k),k=1,npf)
+      write (43,*)rmag,zmag
+
+      close (unit=43)
+
+   71 FORMAT(20X,A8/,(6(1X,1PE10.3)))
+
+ 5000 format (16(1p,1e16.7e3))
+
+      if(kpr.eq.1)print *,' from write_equil tt tpl',tt,tpl
+      if(kpr.eq.1)print *,' from write_equil tcam',tcam(1),tcam(8)
+      if(kpr.eq.1)print *,' from write_equil pf',pf(1),pf(8)
+
+      return
+      end
