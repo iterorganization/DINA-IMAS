@@ -1,3 +1,120 @@
+c     Pass IDS values and file options to the inverse solver.
+      subroutine set_inverse_inputs(nb,r,z,nw,weights,path,scale)
+      include 'parf0'
+      include 'parf5'
+      integer nb,nw,jbound_c,ind_bound(ntet)
+      real*8 r(*),z(*),weights(*),scale
+      real*8 c_xbound(ntet),c_ybound(ntet),d_wght(nx)
+      character*(*) path
+      common /c_eq8/c_xbound,c_ybound,jbound_c
+      common /c_ind_bound/ind_bound
+      common /c_ind_pf/d_wght
+
+      call inverse_input_options(.true.,nb,nw,path,scale)
+      if (nb.gt.0) then
+        jbound_c=nb
+        c_xbound(1:nb)=100.d0*r(1:nb)
+        c_ybound(1:nb)=100.d0*z(1:nb)
+        ind_bound(1:nb)=1
+      end if
+      if (nw.gt.0) d_wght(1:nw)=weights(1:nw)
+      end
+
+c     Save or retrieve the selected inverse solver inputs.
+      subroutine inverse_input_options(store,nb,nw,path,scale)
+      logical store
+      integer nb,nw
+      character*(*) path
+      real*8 scale
+      integer, save :: boundary_count=0,weight_count=0
+      character(len=1024), save :: boundary_path=''
+      real*8, save :: boundary_scale=1.d0
+
+      if (store) then
+        boundary_count=nb
+        weight_count=nw
+        boundary_path=path
+        boundary_scale=scale
+      else
+        nb=boundary_count
+        nw=weight_count
+        path=boundary_path
+        scale=boundary_scale
+      end if
+      end
+
+c     Read only the inputs selected from files.
+      subroutine load_inverse_inputs()
+      use, intrinsic :: ieee_arithmetic, only: ieee_is_finite
+      include 'parf0'
+      include 'parf1'
+      include 'parf5'
+      integer unit,ios,i,row,npf,jbound_c,ind_bound(ntet)
+      integer boundary_count,weight_count
+      real*8 c_xbound(ntet),c_ybound(ntet),d_wght(nx)
+      real*8 pf(kf),pf0(kf),boundary_scale
+      character*1024 path
+      logical exists
+      common /c_eq8/c_xbound,c_ybound,jbound_c
+      common /c_ind_bound/ind_bound
+      common /c_ind_pf/d_wght
+      common /pf1/npf,pf,pf0
+
+      call inverse_input_options(.false.,boundary_count,weight_count,
+     *                           path,boundary_scale)
+      if (boundary_count.eq.0) then
+        if (len_trim(path).eq.0) then
+          path='xy_bound.dat'
+          inquire(file=path,exist=exists)
+          if (.not.exists) path='dat/xy_bound.dat'
+        end if
+        open(newunit=unit,file=trim(path),status='old',
+     *       action='read',iostat=ios)
+        if (ios.ne.0) goto 900
+        read(unit,*,iostat=ios)jbound_c
+        if (ios.ne.0) goto 900
+        if (jbound_c.lt.1.or.jbound_c.gt.min(ntet,mx)) goto 900
+        read(unit,*,iostat=ios)
+        if (ios.ne.0) goto 900
+        do i=1,jbound_c
+          read(unit,*,iostat=ios)row,ind_bound(i),
+     *                         c_xbound(i),c_ybound(i)
+          if (ios.ne.0) goto 900
+          if (.not.ieee_is_finite(c_xbound(i)).or.
+     *        .not.ieee_is_finite(c_ybound(i))) goto 900
+          c_xbound(i)=c_xbound(i)*boundary_scale
+          c_ybound(i)=c_ybound(i)*boundary_scale
+        end do
+        close(unit)
+        if (.not.any(ind_bound(1:jbound_c).eq.1)) goto 900
+      end if
+
+      path='pf_weight.dat'
+      if (npf.lt.1.or.npf.ge.nx.or.npf.gt.kf) goto 900
+      if (weight_count.eq.0) then
+        inquire(file=path,exist=exists)
+        if (.not.exists) path='dat/pf_weight.dat'
+        open(newunit=unit,file=trim(path),status='old',
+     *       action='read',iostat=ios)
+        if (ios.ne.0) goto 900
+        read(unit,*,iostat=ios)
+        if (ios.ne.0) goto 900
+        do i=1,npf
+          read(unit,*,iostat=ios)d_wght(i)
+          if (ios.ne.0) goto 900
+          if (.not.ieee_is_finite(d_wght(i))) goto 900
+          if (d_wght(i).lt.0.d0) goto 900
+        end do
+        close(unit)
+      else if (weight_count.ne.npf) then
+        error stop 'IMAS PF weight count does not match DINA circuits'
+      end if
+      return
+
+  900 write(*,*)'Invalid or missing inverse solver input: ',trim(path)
+      error stop 1
+      end
+
 	subroutine read_psgrid()
 	include 'double.inc'
 	include 'parf2'
@@ -254,7 +371,8 @@ c----
 	close (unit=2)
 	return
 	end
-	subroutine bound_psgrid()
+c     Evaluate Green functions at the inverse boundary points.
+      subroutine bound_psgrid()
 	include 'double.inc'
 	include 'parf0'
 	include 'parf1'
@@ -296,61 +414,14 @@ c
 c
 	dimension pdd(6)
 	character *20 apr
-	i_en=i_en+1
-	if(i_en.eq.1)then
-5000	format(4(1x,1pe14.7))
-	i_wr=0
-	if(i_wr.eq.1)then
-	open (unit=61,file='xy_bound',
-     *  form='formatted')
-	write (61,*)jbound
-	write (61,*)'i,ind_bound(i),xbound(i),ybound(i)'
-	do i=1,jbound
-	ind_bound(i)=1
-	write (61,*)i,ind_bound(i),xbound(i),ybound(i)
-	end do
-	close (61)
-
-	jbound_c=jbound
-
-	do j=1,jbound_c
-	c_xbound(j)=xbound(j)
-	c_ybound(j)=ybound(j)
-	end do
+      call load_inverse_inputs()
+      n_coil=2
+      r_coils(1)=650.d0
+      z_coils(1)=500.d0
+      r_coils(2)=650.d0
+      z_coils(2)=-500.d0
 
 
-	else
-	open (unit=61,file='xy_bound.dat',
-     *  form='formatted')
-	read (61,*)jbound_c
-	read (61,*)
-	do i=1,jbound_c
-	read (61,*)i_i,ind_bound(i),c_xbound(i),c_ybound(i)
-	print *,' i c_xbound(i),c_ybound(i)=',i,c_xbound(i),c_ybound(i)
-	end do
-	close (61)
-	do i=1,jbound_c
-!          c_xbound(i)=c_xbound(i)+20.
-!          c_ybound(i)=c_ybound(i)+20.
-	end do
-	open (unit=61,file='virt_coils.dat',form='formatted')
-	read (61,*)n_coils
-	read (61,*)
-	read (61,*)r_coils(1),z_coils(1)
-	read (61,*)r_coils(2),z_coils(2)
-	i=1
-!          print *,' i r_coils(1),z_coils(1)=',i,r_coils(i),z_coils(i)
-	i=2
-!          print *,' i r_coils(2),z_coils(2)=',i,r_coils(i),z_coils(i)
-close (61)
-
-!     stop
-
-
-	end if
-
-
-	end if
 
 
 	do i=1,nr
@@ -452,7 +523,7 @@ c
         kk=(i-1)*nz+j
 	igreen=1
 
-        do k=1,n_coils
+        do k=1,n_coil
         urr=r_coils(k)
         vrr=z_coils(k)
 
@@ -641,22 +712,6 @@ c
 	character *20 apr
 5000	format(4(1x,1pe14.7))
 c
-	i_en=i_en+1
-	if(i_en.eq.1)then
-	open (unit=61,file='pf_weight.dat',
-     *  form='formatted')
-	read (61,*)
-	do i=1,npf
-	read (61,*)d_wght(i)
-	print *,' i d_wght(i)=',i,d_wght(i)
-	end do
-	close (61)
-
-	do i=1,npf
-	cur_ref(i)=pf(i)
-	print *,' i pf=',i,pf(i)
-	end do
-        end if
 	tokc=0.
 	do jj=1,ncam
 	tokc=tokc+tcam(jj)
@@ -761,6 +816,7 @@ c
 
         if(kpr.eq.1)print *,' fdd0 fdd2 pll2 ==',fdd0,fdd2,pll2
 
+c     Record the old and fitted PF currents and their difference.
 	open (unit=61,file='pf_diff.dat',form='formatted')
         write (61,*)npf
         print *,' i pf_ref pf diff='
@@ -775,6 +831,7 @@ c
 !       stop
 	return
 	end
+c     Fit PF currents to a common boundary flux.
 	subroutine cursol22_c(aaa,mu,
      * nps,npf,pl_green,tok_fil,cur_ref,pi,kpr)
 
@@ -1068,96 +1125,133 @@ c     *  iq,tok_fil(iq),x(iq)
 
 	return
 	end
-        subroutine write_bound()
-	include 'double.inc'
-	include 'parf0'
-	include 'parf1'
-	include 'parf2'
-	include 'parf2e'
-	common
+c     Write the calculated contour in metres.
+      subroutine write_bound()
+      include 'double.inc'
+      include 'parf0'
+      common /eq8/jbound,xbound(ntet),ybound(ntet),alfa0
+      integer unit
+
+      open (newunit=unit,file='xy_bound_output.dat',
+     *      status='replace',action='write')
+      write (unit,*)jbound
+      write (unit,*)'i,ind_bound(i),xbound(i),ybound(i)'
+      do i=1,jbound
+        write (unit,*)i,1,xbound(i)*1.d-2,ybound(i)*1.d-2
+      end do
+      close (unit)
+      end
+
+c     Recalculate the pressure gradient for the inverse equilibrium.
+      subroutine pp_eq_calc()
+      include 'double.inc'
+      include 'parf0'
+      common
+     *  /n_m/n,m,mp
+      common
+     *  /efit4/coef
+     *  /pol6/ppx(npo),pffx(npo)
+     *  /eq11/psval(npo),psval0(npo)
+      common
+     *  /DFM2/PSI(npo),PFI(npo),DM0(npo),DMN(npo)
+      common
+     *  /dfm4/Q(npo),ANU(npo),P(npo),F(npo),PP(npo),PFF(npo)
+     *  /dfm11/c20(npo),tok1(npo),tok2(npo)
+      COMMON
+     *  /mid1/C1(npo),C2(npo),C3(npo)
+     *  /mid2/vi(npo),spo(npo)
+      common
      *  /ge1/pi
+     *  /ge1e/rs0,tpl
+     *  /ge3/AI(npo),A0(npo),HA2(npo),a(npo),ha(npo)
      *  /ge5/kpr
-	common
-     *  /eq1/psi(nwnh),pspl(nwnh),x(NR),y(NZ),dx,dy
-     *  /eq3/FLUXARR(nwnh,kf)
-     *  /c_eq8/c_xbound(ntet),c_ybound(ntet),jbound_c
+      common
+     *  /en1/PNE(npo),PD0(npo),PT0(npo),PH0(npo),PDN(npo),
+     *  PTN(npo),PHN(npo)
+     *  /en1e/te_a,ti_a,te_b,ti_b,pw_e
+     *  /en2e/pd0_a,pt0_a,pd0_b,pt0_b,pw_p
+     *  /en2/TE0(npo),TQ0(npo),TEN(npo),TQN(npo),WE0(npo),
+     *  WQ0(npo)
 
-     *  /eq8/jbound,xbound(ntet),ybound(ntet),alfa0
-     *  /c_eq1e/c_psext(nr,nz)
-     *  /fluxc8/work(nwnhe)
-        common
-     *  /cont13/zmag,zvel,delrmag,delzmag
-     *  /cont13e/zmag0,rmag,rmag0,rvel
+      character *20 apr
 
-     *  /c_green_pf/green_pf(ntet,kf)
-     *  /c_green_ves/green_ves(ntet,mu)
-	common
-     *  /pf1/npf,pf(kf),pf0(kf)
-     *  /eq10/vesarr(nwnh,mu)
-     *  /ves2/ncam,rc(mu),zc(mu)
+      do i=2,n
+        psi(i)=2.*pi*(psval(i)-psval(i-1))/ha(i)
+      end do
 
-     *  /c_green_pl/green_pl(nwnh,ntet)
+      apr='--psi'
+      if(kpr.eq.1)print 71,apr,(psi(i),i=1,n)
 
-     *	/v_turn/pf_turns(kf)
+      tpl_o=-coef*c2(n)*psi(n)
+      if(kpr.eq.1)print *,'tpl=c2(n)*psi(n)=',tpl_o
+c+++++++++++++++++++++++++++++++++
+      i=1
+      p(i)=( te0(i)+tq0(I) )*pne(i)*200.*1.e-6
+      do i=2,n
+        p(i)=( te0(i)+tq0(I) )*pne(i)*200.*1.e-6
+        pp(i)=-(p(i)-p(i-1))/(ha(i)*psi(i))*2.*pi*rs0
+      end do
 
-       common /c_ind_bound/ind_bound
-       dimension ind_bound(ntet)
-c
-      PSF(Xx,hr,hz)=4.*PI/10.*Xx*(dlog(16.*Xx/SQRT(HZ**2+HR**2))
-     *-0.5-0.5*(HR/HZ*DATAN(HZ/HR)+HZ/HR*DATAN(HR/HZ)))
-c
+      pp(1)=pp(2)
 
-	dimension pdd(6)
-	character *20 apr
+      apr='--ppx'
+      if(kpr.eq.1)print 71,apr,(ppx(i),i=1,n)
+      apr='--pp'
+      if(kpr.eq.1)print 71,apr,(pp(i),i=1,n)
 
-      i_en=i_en+1
+      apr='p'
+      if(kpr.eq.1)print 71,apr,(p(i),i=1,n)
 
-      if(i_en.eq.1)then
+      apr='pne'
+      if(kpr.eq.1)print 71,apr,(pne(i),i=1,n)
 
-5000	format(4(1x,1pe14.7))
+      apr='te0'
+      if(kpr.eq.1)print 71,apr,(te0(i),i=1,n)
+      apr='tq0'
+      if(kpr.eq.1)print 71,apr,(tq0(i),i=1,n)
+
+      do i=1,n
+        ppx(i)=pp(i)
+      end do
+
+
+c	pause 'pp_calc'
+
+
+   71 FORMAT(20X,A8/,(6(1X,1PE10.3)))
+      return
+      end
+
+c     Write the boundary points and time.
+      subroutine wr_bound(tt,jbound,xbound,ybound)
+
+      include 'double.inc'
+
+      dimension xbound(*),ybound(*)
+
+      character *20 apr
+
+
+
+ 5000 format(4(1x,1pe14.7))
 
       i_wr=1
+
       if(i_wr.eq.1)then
-      open (unit=61,file='xy_bound',
+        open (unit=61,file='xy_bound',
      *  form='formatted')
 
+        write (61,*)jbound,tt
 
-
-
-
-      write (61,*)jbound
-      write (61,*)'i,ind_bound(i),xbound(i),ybound(i)'
-      do i=1,jbound
-      ind_bound(i)=1
-      write (61,*)i,ind_bound(i),xbound(i),ybound(i)
-      end do
-      close (61)
-
-      jbound_c=jbound
-
-      do j=1,jbound_c
-      c_xbound(j)=xbound(j)
-      c_ybound(j)=ybound(j)
-      end do
-
-
-
-      else
-      open (unit=61,file='xy_bound.dat',
-     *  form='formatted')
-      read (61,*)jbound_c
-      read (61,*)
-      do i=1,jbound_c
-      read (61,*)i_i,ind_bound(i),c_xbound(i),c_ybound(i)
-      print *,' i c_xbound(i),c_ybound(i)=',i,c_xbound(i),c_ybound(i)
-      end do
-      close (61)
-
-      end if
+        write (61,*)'i,ind_bound(i),xbound(i),ybound(i)'
+        do i=1,jbound
+          ind_bound=1
+          write (61,*)i,ind_bound,xbound(i),ybound(i)
+        end do
+        close (61)
 
 
       end if
-
 
       return
       end

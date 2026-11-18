@@ -6,6 +6,7 @@
 *.tif
 *.fig
 *.log
+.DS_Store
 log_fortran
 machines/**/cputime_dinaimas
 machines/**/p_data1

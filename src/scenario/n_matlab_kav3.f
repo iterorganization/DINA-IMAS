@@ -6,7 +6,7 @@
 	include 'new_com.inc'
 
 	call equil3_c(
-     *  ncam,tcam,tcam0,pf,npf,nps,rps,zps,rout,bt0,pll,	
+     *  ncam,tcam,tcam0,pf,npf,nps,rps,zps,rout,bt0,pll,
      *  rref_p,q,tay_simul,int_2000,int_2005,
      *       z_cur,z_cur0,r_cur,tt_1,tt_2,i_wr,
      *       ksepa,ksepa_0,gaps0,i_bound,
@@ -126,11 +126,11 @@
      *  /vic_015/dt_end
      *  /vic_016/tt_rampup
 
-      common 
+      common
      * /c_imas_t_end2/t_end2
 
        common /c_imas_time_eq/time_eq
-           
+
       common /c_tran2/k_ener_ext,k_dens_ext,k_ajb_ext
       common /c_dw_c14/tay_dw_c14
 
@@ -147,7 +147,7 @@
 	dimension a_print(200)
 
 
-!!! Ics1_eob=-30e-3*ntur(3); t_eob2=25; c_eob=0.9999; 
+!!! Ics1_eob=-30e-3*ntur(3); t_eob2=25; c_eob=0.9999;
 !!! cIp_end=1.5; dt_end=dtpl_term_l*cIp_end/7.5;
 
 c********* FROM KAVIN ********
@@ -168,7 +168,7 @@ c*** tt_rampup - SOF time
 !           dt_end=cIp_end/cIp_hl*dtpl_term_l*1e3
 
 
-!!        if(pf(3)/pf_turns(3).lt.CS1_eob .and. k_CS1.eq.0 
+!!        if(pf(3)/pf_turns(3).lt.CS1_eob .and. k_CS1.eq.0
 !!     *     .and. tt.gt.dt_contr_hl*1e3) then
 !!        k_CS1=1
 !!        tt_eob=tt-1e-3
@@ -180,30 +180,30 @@ c*** tt_rampup - SOF time
 !      tt_dw=1.e8
 
       i_en=i_en+1
-      
-!      k_ener_ext=1
-      
-      if(kp.eq.1)print *,'k_ener_ext=',k_ener_ext
-      
 
-      	if(i_en2.eq.-1)then	
+!      k_ener_ext=1
+
+      if(kp.eq.1)print *,'k_ener_ext=',k_ener_ext
+
+
+      	if(i_en2.eq.-1)then
         open (unit=1,file='kpr.dat',form='formatted')
         read (1,*)
         read (1,*)kpr
-        
+
 !              i_con=3
 
-        close ( unit=1)       
+        close ( unit=1)
 	end if
 
       if(i_en.gt.1)goto 2323
-      
+
       eps2=1.e-5
-      
+
       tt_HL_xx=600.e3
-     
+
        key_sig_coef=1.d0
-     
+
     !   kpr=1
 
 
@@ -214,8 +214,8 @@ c  alf of edge thermal barier
 !	alf_bar=0.1
 	alf_bar=1.
 
-c      i_matlab=0 old case 
-c      i_matlab=1 matlab greens reading 
+c      i_matlab=0 old case
+c      i_matlab=1 matlab greens reading
 
 	i_matlab=1
 
@@ -246,11 +246,11 @@ c---
           i_avr=0
           i_filter=0
           tau_p=100.
-          
-          
+
+
           if(kpr.eq.1)print *,' zv_max,n_svd,i_avr,i_filter,tau_p',
      *    zv_max,n_svd,i_avr,i_filter,tau_p
-          
+
 !           close (40)
 
 	   zv_max_help=zv_max
@@ -277,7 +277,7 @@ c---
 
 
  !     call prof_dm0()
-      
+
       if(k_ener.eq.0)call prof_astra()
 
 !	if(k_ener.ne.1)call enit(n)
@@ -294,57 +294,40 @@ c---
 
 
 c*** Input of PF turns - must be consistent with 'koor' file!
-        call vic_turn()
+      call vic_turn()
+      call wr_equil3()
 
+      i_rev=11
+      i_transp=1
+
+      if(i_rev.eq.11)then
         call bound_psgrid()
+        call plas_circ()
+        call bound_pf_calc()
+        call ptoke0()
+        kzref=0
+        krref=0
+        call ptoke1()
 
- !     stop
+        if(i_transp.eq.1)call pp_eq_calc()
+        do iii=1,50
+          call bound_pf_calc()
+          call ptoke1()
+          if(i_transp.eq.1)call pp_eq_calc()
+          print *,' iii==',iii
+          if(it1.eq.0)exit
+        end do
 
-       i_rev=11
-       if(i_rev.eq.11)then
-       call plas_circ()
+        eps2=1.d-6
+        call stabilize(ich,i_graph)
+        call write_bound()
+      end if
 
-       call bound_pf_calc()
-!      stop for testing separate parts of inverse solving
-!      stop
-       call ptoke0()
-       kzref=0
-       krref=0
-       call ptoke1()
-
-       do kk=1,1
-
-       do iii=1,50
-       call bound_pf_calc()
-       call ptoke1()
-
-       print *,' iii==',iii
-       if(it1.eq.0)goto 98
-       end do
-98    continue
-
-       print *,' kk==',kk
-
-       eps2=1.d-6
-       call stabilize(ich,i_graph)
-
-       end do
-
-       call v_sec()
-
-       call write_surf()
-
-       stop
-
-       end if
-
-
-
-       apr='-dmn-'
-       if(kpr.eq.1)print 71,apr,(dmn(i),i=n-5,n)
-
-       сall v_sec()
-!       call bound_psgrid()
+      apr='-dmn-'
+      if(kpr.eq.1)print 71,apr,(dmn(i),i=n-5,n)
+      call v_sec()
+      if(i_rev.eq.11)call write_surf()
+      call map_ps()
 !      call dm0_calc()
 
  !        stop
@@ -352,11 +335,11 @@ c*** Input of PF turns - must be consistent with 'koor' file!
 
 	call map_tor()
 	call eq_res_ps()
-      
+
       do i=1,n
       dm0(i)=dmn(i)
       end do
-      
+
       do i=2,n
       psi(i)=(dm0(i)-dm0(i-1))/ha(i)
       end do
@@ -385,18 +368,18 @@ c-----------------
 	call ppx_pffx()
 	call ppx_pffx_corr2
 
-	call ppx_pffx_tab()         
-      
-      end if
-      
+	call ppx_pffx_tab()
 
-	                                                       
+      end if
+
+
+
       call shape_pfres()
 	if(i_gen.eq.0)call inv_gen()
 	if(i_gen.eq.1)call inv_gen_pf()
-      
+
       call gen()
-	
+
       apr='-dm0-'
       if(kpr.eq.1)print 71,apr,(dm0(i),i=n-5,n)
 	call time_step()
@@ -414,19 +397,19 @@ c* vic  To read tay_simul
 	key_h_to_l=0
 	tt_h_to_l=1.e8
 
-!          open (unit=40,file='scen_data_3.dat',form='formatted') 
+!          open (unit=40,file='scen_data_3.dat',form='formatted')
  !         read (40,*)tt_emo,tt_h,tt_avr,betp_flat,coef_kessel_1,vs_start
-        tt_emo=200.e3 
+        tt_emo=200.e3
         tt_h=66100.
         tt_avr=66100.
         betp_flat=0.678
         coef_kessel_1=1.2
         vs_start2=2.53035
 
-!          open (unit=40,file='dw.dat',form='formatted') 
+!          open (unit=40,file='dw.dat',form='formatted')
 !          tay_dw=5.
-!          open (unit=40,file='dw.dat',form='formatted') 
-!          read (49,*) 
+!          open (unit=40,file='dw.dat',form='formatted')
+!          read (49,*)
 !          read (40,*)tt_dw,tay_dw
 !          read (49,*)tay_dw
           tay_dw=tay_dw_c14
@@ -436,7 +419,7 @@ c* vic  To read tay_simul
 
 	del_tt=0.
 	i_lim=0
-	
+
 	time_to=20.d6
 	time_back=200.d6
 
@@ -444,28 +427,28 @@ c* vic  To read tay_simul
 	   xu_dist(i)=xu(i)
 	   yu_dist(i)=yu(i)
 	end do
-!          open (unit=40,file='tt_kavin2.dat',form='formatted') 
-!          read (39,*) 
+!          open (unit=40,file='tt_kavin2.dat',form='formatted')
+!          read (39,*)
 !          read (39,*)tt_rampup
-!          read (39,*) 
+!          read (39,*)
 !          read (39,*)dt_end_sim,dtpl_term_l,cIp_end
 
           tt_rampup=tt_rampup_c1
           dt_end_sim=dt_end_sim_c1
           dtpl_term_l=dtpl_term_l_c1
           cIp_end=cIp_end_c1
-          
+
 
           dtpl_term_h=0
-          
-!          read (39,*) 
+
+!          read (39,*)
 !          read (39,*)CS1_eob,rms_noise
 
 !	  close (39)
 
           CS1_eob=CS1_eob_c1
           rms_noise=rms_noise_c1
-          
+
 
         dt_term_h=dtpl_term_h*1e3
 
@@ -492,9 +475,9 @@ c* vic  To read tay_simul
 
           if(kpr.eq.1)print*,
      *   ' ++tt t_end2',tt,t_end2
-       
+
          return
-      
+
 
 
 2323	continue
@@ -507,17 +490,17 @@ c*******************************
       if(i_3323.eq.1)goto 3323
 
         cs1_help=pf(3)/pf_turns(3)
-        
+
         print *,' cs1_help CS1_eob dt_contr_hl=',
      *  cs1_help,CS1_eob,dt_contr_hl
-      
-        if(pf(3)/pf_turns(3).lt.CS1_eob .and. k_CS1.eq.0 
+
+        if(pf(3)/pf_turns(3).lt.CS1_eob .and. k_CS1.eq.0
      *     .and. tt.gt.dt_contr_hl*1e3) then
         k_CS1=1
         tt_eob=tt-1.e-3
         tt_dw=tt_eob
         end if
-        
+
 
  5002   format (150(1pe12.4))
 c============================================================
@@ -572,12 +555,12 @@ ccc	      if(tay.lt.tay_elm)tay=tay_elm
 	it1=1
 c----------
       if(i_ngra.eq.0)then
-!          open (unit=40,file='time_ngra.dat',form='formatted') 
-        time1=350.e3 
+!          open (unit=40,file='time_ngra.dat',form='formatted')
+        time1=350.e3
         time2=450.e3
 	  i_ngra=1
 	  end if
-	  
+
 
 	  if(tt.ge.time1.and.key_ngra.eq.0)then
 	     key_ngra=1
@@ -615,13 +598,13 @@ c
 
       omg_ppx=omg_ppx*0.99
       if(omg_ppx.le.0.5d0)omg_ppx=0.5d0
- 
+
 !      omg_ppx=0.d0
-     
+
       if(tt.lt.-56930e9)then
 	   call ppx_pffx()
 ccc	   call avr_ppx_pffx2()
-	   
+
 !         call ppx_pffx_corr2()
 
 ccc         call ppx_pffx_corr4()
@@ -632,10 +615,10 @@ ccc         call ppx_pffx_corr4()
 !	   omg_ppx=1.d0
 	end if
 
-	   if(krref.eq.0.and.tt.gt.tt_avr)then 
+	   if(krref.eq.0.and.tt.gt.tt_avr)then
 	      call ppx_pffx_corr2()
 	   end if
-	   	      
+
 	end if
 
 	zvel_0=zvel
@@ -647,14 +630,14 @@ ccc         call ppx_pffx_corr4()
 
 2005	continue
 	int_2005=int_2005+1
-c        if(i_iter.eq.1.and.i_ramp.eq.0.and.ntay.le.1)then                      
+c        if(i_iter.eq.1.and.i_ramp.eq.0.and.ntay.le.1)then
 c        call gsvd0()
 c        end if
 c	call svd_d3d()
 
 	if(kpr.eq.1)print *,' call ptoke1 i_bound',i_bound
 	if(kpr.eq.1)print *,' Zref Rref BEFORE ptoke1',zref,rref
-	
+
 	if(kpr.eq.1)print *,' kzref krref BEFORE ptoke1',kzref,krref
 
 	do i=1,ncam
@@ -664,7 +647,7 @@ c	   tcam(i)=0.5*(tcam0(i)+tcam(i))
 
 	call ptoke1()
 
-	  call loopflux()                                                       
+	  call loopflux()
         call probefield()
 
 c
@@ -682,9 +665,9 @@ c	call gen()
 
 	call gen()
 
-	zvel=(zmag-zmag0)/tay	
+	zvel=(zmag-zmag0)/tay
 
-	
+
 	if(int_2005.gt.10)eps2=eps2*1.5
 
 
@@ -696,8 +679,8 @@ c----------------
 	delzmag=zmag-zmag_in
 	delrmag=rmag-rmag_in
 
-	zvel=(zmag-zmag0)/tay	
-	
+	zvel=(zmag-zmag0)/tay
+
 	zvel_tran=zvel
 
 	rvel=(rmag-rmag0)/tay
@@ -735,7 +718,7 @@ c----------------
 
 	CALL BTA(n,mp,RS0)
 
- 
+
 	dmo=dm0(n)
 
 	tpl_it=tpl
@@ -779,7 +762,7 @@ c**vic************
 ccc      call ppx_pffx_save(2)
 
 	if(it1.ne.0.and.int_2000.lt.10)go to 2000
-      
+
 
 	zvel=zvel_tran
 
@@ -792,9 +775,9 @@ ccc      call ppx_pffx_save(2)
 	end do
 
 	if(k_ener.ne.1)call enit(n)
-	
+
 	if(kpr.eq.1)print *,' call prof_astra k_ener==',k_ener
-	
+
       if(k_ener.eq.0)call prof_astra()
 
 	q_test=0.97
@@ -831,7 +814,7 @@ c	   call zyb(n,ires,q_test)
 		k_zyb=1
 
       if(k_ener.eq.0)call prof_astra()
-      
+
 	   call pp_calc()
 	   call pff_calc()
 
@@ -864,18 +847,18 @@ c	stop
 	cIp_min=dabs(cIp_end)*1.e3
 
 
-      
+
 !!!	if(tt.lt.100.e3.or.tpl.gt.tpl_end)go to 2323
 !!!	if(tt.lt.100.e3.or.tpl.gt.tpl_end)then
 !	if(tt.lt.5.67e5.and.tpl.gt.tpl_end)then
 	if(ntay.lt.5000.or.tpl.gt.cIp_min)return
 
 !!!	go to 2323
-      
+
 !      kpr=1
-      
+
 	t_end2=tt
-	
+
 !	t_vde=t_end+250.e3
 
 !      if(kpr.eq.1)print*,'t_vde t_end',t_vde,t_end
@@ -885,7 +868,7 @@ c	stop
       dt_end=dtpl_term_l*cIp_end/tpl_flat*1.e6
 
       if(kpr.eq.1)print*,'dt_end',dt_end
-	
+
       t_tpl_down=dt_end
 
 	if(t_tpl_down.gt.1.e-10)then
@@ -900,9 +883,9 @@ c	stop
 	i_3323=1
 
 c      tpl=1.d-10
-      
+
 c      tpl0=1.d-10
-	
+
 
 	if(kpr.eq.1)print*,'before 3323'
 	if(kpr.eq.1)print*,'tt tpl t_end2 t_vde',tt,tpl,t_end2,t_vde
@@ -915,7 +898,7 @@ c      tpl0=1.d-10
 !	ntay=ntay+1
 
 !	tt=tt+tay
-	
+
       call curr_calc(tpl)
 
 	if(kpr.eq.1)print*,'ntay tt tpl',ntay,tt,tpl
@@ -928,7 +911,7 @@ c      tpl0=1.d-10
       tpl=1.d-8
       d_tpl=0.d0
       end if
-	
+
 !	if(tpl.le.1.d0)tpl=1.d0
 
 	a_print(1)=tt
@@ -943,16 +926,16 @@ c      tpl0=1.d-10
 
 
 c*** To read Ip and PF_p preprogrammed waveforms (in DINA order)
-c*** from scr_data file 
+c*** from scr_data file
 c      call vic_shape_ip_iam()
-	   
+
 c        call r_volt()
 
 c        call vic_gaps0_read()
 c	call SCEN_CONTROL(key_h_to_l)
 
 	  call loopflux()
-                                                      
+
         call probefield()
 
         call shape_pfres()
@@ -990,67 +973,67 @@ c	if(tt.lt.t_vde)go to 3323
 	end
 
 c
-	subroutine stabilize(ich_xx,i_graph_xx)
-      	include 'double.inc'
-	include 'new_com.inc'
-	call stabilize_c(ich_xx,i_graph_xx,
+c     Relax the equilibrium while reducing virtual-coil currents.
+      subroutine stabilize(ich_xx,i_graph_xx)
+      include 'double.inc'
+      include 'new_com.inc'
+      call stabilize_c(ich_xx,i_graph_xx,
      *  rref,zref,bvert,brad,it1,dx,dy,
      *  rmag,zmag,pmag,psep,zsep,kpr,
      *  krref,kzref)
-	return
-	end
-	subroutine stabilize_c(ich,i_graph,
+      return
+      end
+      subroutine stabilize_c(ich,i_graph,
      *  rl,zl,clr,clz,it1,dx,dy,
      *  rmag,zmag,pmag,psep,zsep,kpr,
      *  krref,kzref)
-      	include 'double.inc'
-         common
+      include 'double.inc'
+      common
      *  /c_pf_coils/pf_coils(2)
-	character *30 apr
-	dimension a_print(200)
-	pbound=psep
-	iter=0
+      character *30 apr
+      dimension a_print(200)
+      pbound=psep
+      iter=0
 c	ceps=0.1
 c	ceps=0.02
-	ceps=0.02
+      ceps=0.02
       pf_coils(1)=-1000.*1
       pf_coils(2)=2000.*1
- 1000	continue
-	it1=1
-	   int_it=0
- !     rl=rmag-21
- !     zl=zmag-20
+ 1000 continue
+      it1=1
+      int_it=0
+!     rl=rmag-21
+!     zl=zmag-20
       rl=rmag
       zl=zmag
- 1	   continue
-	   int_it=int_it+1
+    1 continue
+      int_it=int_it+1
       if(int_it.eq.1)then
-      kzref=0
-      krref=0
-      clr=0.
-      clz=0.
-      pf_coils(1)=-1000.*0
-      pf_coils(2)=2000.*0
-           call ptoke1()
-	if(kpr.eq.1)print *,' ITER rmag zmag==',iter,rmag,zmag
+        kzref=0
+        krref=0
+        clr=0.
+        clz=0.
+        pf_coils(1)=-1000.*0
+        pf_coils(2)=2000.*0
+        call ptoke1()
+        if(kpr.eq.1)print *,' ITER rmag zmag==',iter,rmag,zmag
 !      rl=0.5*(rmag+rl)
-      zl=-zmag+2.*zl
-      rl=(rmag+2.*rl)/3.
-      kzref=1
-      krref=5
-	if(kpr.eq.1)print *,' ITER rl zl==',iter,rl,zl
+        zl=-zmag+2.*zl
+        rl=(rmag+2.*rl)/3.
+        kzref=1
+        krref=5
+        if(kpr.eq.1)print *,' ITER rl zl==',iter,rl,zl
       end if
-	      call ptoke1()
-	      if(int_it.gt.5)it1=0
-	      if(it1.eq.1)go to 1
+      call ptoke1()
+      if(int_it.gt.5)it1=0
+      if(it1.eq.1)go to 1
       err=dabs( pf_coils(1))+dabs( pf_coils(2))
       int_it=0
-	iter=iter+1
-	if(kpr.eq.1)print *,' ITER err iter==',err,iter
+      iter=iter+1
+      if(kpr.eq.1)print *,' ITER err iter==',err,iter
       if(err.gt.1.and.iter.le.500)go to 1
 !	if(kpr.eq.1)print *,' ITER err iter==',err,iter
-	if(kpr.eq.1)print *,' ITER clr clz crz==',iter,clr,clz,crz
+      if(kpr.eq.1)print *,' ITER clr clz crz==',iter,clr,clz,crz
 !      stop
-	return
-	end
-
+      return
+      end

@@ -485,7 +485,8 @@ c vic Naka 1999
 
         return
         end
-	subroutine br_bz_virt()
+c     Fit virtual-coil currents to position the magnetic axis.
+      subroutine br_bz_virt()
 	include 'double.inc'
         include 'parf0'
         include 'parf1'
@@ -1730,7 +1731,8 @@ c
 
         return
         end
-        subroutine brad_test_old()
+c     Apply a radial-field correction at the reference height.
+      subroutine brad_test_old()
 	include 'double.inc'
         include 'parf0'
         include 'parf1'
