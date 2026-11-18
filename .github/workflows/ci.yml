@@ -1,0 +1,114 @@
+# Continuous integration for DINA on GitHub Actions.
+#
+# Runs the same CI stages as the Bamboo plan on SDCC (imas/ci_scripts/st0*.sh):
+#   st01: make dina       (DINA core libraries)
+#   st02: make interface  (IMAS interface, workflows)
+#   st03: make iwrap      (iWrap actors)
+#
+# On SDCC the dependencies come from Lmod modules loaded by st00_header.sh. Here
+# they come from a conda environment (.github/ci/environment.yml) plus XMLlib
+# and IMAS-Fortran built from source by .github/ci/build_deps.sh and cached, and
+# st00_header.sh is told to skip module loading (SKIP_MODULES=1).
+name: CI
+
+on:
+  push:
+    branches:
+      - develop
+      - main
+      - 'release/**'
+      - 'feature/**'
+      - 'bugfix/**'
+    tags:
+      - '*'
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Keep in line with the SDCC modules in imas/ci_scripts/st00_header.sh
+  XMLLIB_VERSION: '3.3.2'
+  IMAS_FORTRAN_VERSION: '5.6.0'
+  DD_VERSION: '3.42.2'
+  IWRAP_VERSION: '2.0.0'
+  TOOLCHAIN: foss
+  TARGET: DEBUG
+  SKIP_MODULES: '1'
+
+jobs:
+  build:
+    name: Build (foss, DEBUG)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    defaults:
+      run:
+        # Login shell, so that the conda environment is activated in every step
+        shell: bash -el {0}
+    env:
+      IMAS_DEPS_PREFIX: ${{ github.workspace }}/../imas-deps
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          # st00_header.sh needs the tags (git describe)
+          fetch-depth: 0
+
+      - name: Set up conda environment
+        uses: mamba-org/setup-micromamba@v2
+        with:
+          environment-file: .github/ci/environment.yml
+          cache-environment: true
+
+      - name: Cache XMLlib and IMAS-Fortran
+        id: cache-deps
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.IMAS_DEPS_PREFIX }}
+          key: >-
+            imas-deps-${{ runner.os }}-xmllib${{ env.XMLLIB_VERSION }}-imasfortran${{ env.IMAS_FORTRAN_VERSION }}-dd${{ env.DD_VERSION }}-${{ hashFiles('.github/ci/environment.yml', '.github/ci/build_deps.sh') }}
+
+      - name: Build XMLlib and IMAS-Fortran
+        if: steps.cache-deps.outputs.cache-hit != 'true'
+        run: .github/ci/build_deps.sh "${IMAS_DEPS_PREFIX}"
+
+      - name: Install iWrap
+        run: python -m pip install "iwrap==${IWRAP_VERSION}"
+
+      - name: Set up environment
+        run: |
+          echo "PKG_CONFIG_PATH=${IMAS_DEPS_PREFIX}/lib/pkgconfig:${CONDA_PREFIX}/lib/pkgconfig" >> "${GITHUB_ENV}"
+          echo "LD_LIBRARY_PATH=${IMAS_DEPS_PREFIX}/lib:${CONDA_PREFIX}/lib" >> "${GITHUB_ENV}"
+
+      - name: Show environment
+        run: |
+          gfortran --version
+          pkg-config --modversion al-core al-fortran xmllib libxml-2.0
+          iwrap --version || true
+          micromamba list
+
+      # The conda activation sets FC/CC to the prefixed compiler names: use
+      # the plain names that st00_header.sh and the Makefiles expect.
+      - name: 'st01: build DINA'
+        run: |
+          export FC=gfortran CC=gcc
+          imas/ci_scripts/st01_build_dina.sh
+
+      - name: 'st02: build IMAS interface'
+        run: |
+          export FC=gfortran CC=gcc
+          imas/ci_scripts/st02_build_imas.sh
+
+      - name: 'st03: build iWrap actors'
+        run: |
+          export FC=gfortran CC=gcc
+          imas/ci_scripts/st03_build_iwrap.sh
+
+      - name: List iWrap actors
+        run: ls -l "${HOME}/IWRAP_ACTORS"
