@@ -1,0 +1,35 @@
+# Conda environment for the GitHub Actions CI (.github/workflows/ci.yml).
+#
+# This plays the role of the SDCC "foss" Lmod modules loaded by
+# imas/ci_scripts/st00_header.sh. XMLlib and IMAS-Fortran (built against the
+# Data Dictionary version used by DINA) are compiled on top of this
+# environment by .github/ci/build_deps.sh, and iWrap is pip-installed.
+#
+# Changing this file invalidates the cached XMLlib/IMAS-Fortran build: Fortran
+# .mod files are only usable with the compiler version that produced them.
+name: dina-ci
+channels:
+  - conda-forge
+dependencies:
+  # Compilers: GCC 13, as in the SDCC foss-2023b toolchain. GCC >= 15 defaults
+  # to C23, where 'bool' is a keyword, which breaks the MATLAB-generated
+  # controller headers (src/controllers/*/tmwtypes.h).
+  - gfortran 13.*
+  - gcc 13.*
+  - gxx 13.*
+  # Build tools
+  - make
+  - cmake
+  - ninja
+  - pkg-config
+  - autoconf
+  - automake
+  - libtool
+  - git
+  # Libraries
+  - libxml2-devel   # headers and libxml-2.0.pc (the libxml2 package is runtime only)
+  - libimas-core 5.7.*
+  # Python (IMAS-Fortran DD generation, iWrap)
+  - python 3.12.*
+  - pip
+  - imas-python 2.3.*

@@ -14,8 +14,15 @@
 #   TOOLCHAIN        - Toolchain to use (default: foss)
 #   FOSS_MODULES     - FOSS-specific modules (comma-separated)  
 #   INTEL_MODULES    - Intel-specific modules (comma-separated)
+#   SKIP_MODULES     - If set to 1, do not load any module: the compilers and
+#                      dependencies are provided by the calling environment
+#                      (e.g. the conda environment of the GitHub Actions CI)
 #
 set -e -o pipefail
+
+if [[ "${SKIP_MODULES:-0}" == "1" ]]; then
+    echo "SKIP_MODULES=1: using the compilers and libraries from the current environment"
+else
 
 echo "Loading modules..."
 
@@ -57,6 +64,8 @@ echo "${MODULES[@]}" | tr " " "\n"
 
 module load "${MODULES[@]}"
 echo "Done loading modules"
+
+fi
 
 if [[ -z "${FC:-}" ]]; then
     if command -v ifort >/dev/null 2>&1; then
