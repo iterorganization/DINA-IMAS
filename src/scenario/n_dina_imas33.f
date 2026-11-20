@@ -348,7 +348,6 @@
         dimension volume_1d_xx0(npo), area_1d_xx0(npo)
 
         dimension x_cont(npo,ntet), y_cont(npo,ntet)
-        common /c_tt_kavin/tt_kavin_c
         
         include 'imas_interface.inc'
 
@@ -506,12 +505,17 @@
 
 c=================================================
         
-c profiles_1d from the 2D equilibrium (map_kav is valid only after tt_kavin)
-        if (tt .gt. tt_kavin_c) then
+c profiles_1d from the 2D equilibrium, 
+c checks that the first equilibrium exists
+
+        if (delta0 .gt. 0.d0 .and. psval(n) .ne. psval(1)) then
           call get_flux_contours(x_cont, y_cont)
-          call eq_profiles_1d(n, m, npo, x_cont, y_cont,
+          spsi = dabs((psi_eq_xx(n) - psi_eq_xx(1))/(psval(n) - psval(1)))
+          fpol_xx(n) = bt0_dir*(rs0/100.d0)*f(n+1)/10.d0
+          call eq_profiles_1d(n, m, npo, x_cont, y_cont, spsi,
      *      psi_eq_xx, pptab_xx, fptab_xx,
-     *      press_xx, fpol_xx, q_xx, phi_xx, a_xx, q_axis_eq, q_95_eq)
+     *      press_xx, fpol_xx, q_xx, phi_xx, a_xx, tok1_xx,
+     *      volume_1d_xx, area_1d_xx, surface_1d_xx, q_axis_eq, q_95_eq)
           wr_imas(18) = q_axis_eq
           wr_imas(17) = q_95_eq
         end if
@@ -2189,6 +2193,7 @@ c
       x_save = x_map
       y_save = y_map
       k_save = k_map
+      k_map = 0
       call map_kav()
       r_cont = x_map
       z_cont = y_map
@@ -2199,25 +2204,36 @@ c
       return
       end
 
-!> eq_profiles_1d computes pressure, f, q, phi, rho_tor_norm on the psi grid
-!> from dpressure_dpsi, f_df_dpsi and the flux-surface contours, so that
-!> profiles_1d is consistent with the 2D equilibrium.
+!> eq_profiles_1d computes pressure, f, q, phi, rho_tor_norm, j_tor, volume,
+!> area and surface on the psi grid from dpressure_dpsi, f_df_dpsi and the
+!> flux-surface contours, so that profiles_1d is consistent with the 2D
+!> equilibrium.
 !> p and F2 are integrated inward from the boundary values pressure(n), f(n);
-!> phi = int F/R dA (int dA/R = |oint ln(R) dZ|), q = dphi/dpsi.
-!> psi in Wb; r_cont, z_cont in cm, surface 1 = axis, surface n = boundary.
-      subroutine eq_profiles_1d(n, n_rays, ld, r_cont, z_cont,
+!> phi = int F/R dA (int dA/R = |oint ln(R) dZ|), q = dphi/dpsi (signs from
+!> f and psi), and at the boundary q = |F| oint dl/(R |grad psi|).
+!> j_tor = <j_phi/R>/<1/R> = 2 pi (p' + FF' <1/R2>/mu0)/<1/R> with p', FF'
+!> as written, averages weighted with R dl/|grad psi|.
+!> psi in Wb; r_cont, z_cont in cm, surface 1 = axis, surface n = boundary;
+!> spsi converts DINA psi units to Wb (boxd gives the gradient per cm).
+      subroutine eq_profiles_1d(n, n_rays, ld, r_cont, z_cont, spsi,
      *  psi, dpressure_dpsi, f_df_dpsi,
-     *  pressure, f, q, phi, rho_tor_norm, q_axis, q_95)
+     *  pressure, f, q, phi, rho_tor_norm, j_tor,
+     *  volume, area, surface, q_axis, q_95)
       include 'double.inc'
       include 'parf0'
       dimension r_cont(ld,*), z_cont(ld,*)
       dimension psi(n), dpressure_dpsi(n), f_df_dpsi(n)
       dimension pressure(n), f(n), q(n), phi(n), rho_tor_norm(n)
-      dimension f2(npo), sda(npo), tflux(npo)
+      dimension j_tor(n), volume(n), area(n), surface(n)
+      dimension f2(npo), sda(npo), tflux(npo), avr1(npo), avr2(npo)
+      dimension pdd(6)
+      real*8 j_tor
 
       if (n .lt. 4) return
       cm = 1.d-2
       psin95 = 0.95d0
+      pi = 4.d0*datan(1.d0)
+      rmu0 = 4.d-7*pi
 
 c     p and F from p', FF', boundary inward
       f2(n) = f(n)**2
@@ -2232,20 +2248,54 @@ c     p and F from p', FF', boundary inward
         f(i) = f_sign*dsqrt(dmax1(f2(i), 0.d0))
       end do
 
-c     int dA/R inside each surface
+c     int dA/R, volume, area, surface and flux-surface averages
       sda(1) = 0.d0
+      volume(1) = 0.d0
+      area(1) = 0.d0
+      surface(1) = 0.d0
+      avr1(1) = 1.d0/(r_cont(1, 1)*cm)
+      avr2(1) = avr1(1)**2
       do i = 2, n
         sum = 0.d0
-        do j = 1, n_rays
+        s_vol = 0.d0
+        s_ar = 0.d0
+        s_sur = 0.d0
+        c_0 = 0.d0
+        c_1 = 0.d0
+        c_m1 = 0.d0
+c       rays 2..n_rays: ray 1 = ray n_rays-1 and ray n_rays = ray 2 (periodic)
+        do j = 2, n_rays-1
           jn = j + 1
-          if (jn .gt. n_rays) jn = 1
+          call boxd(r_cont(i, j), z_cont(i, j), pdd, ier)
+          g1 = 1.d2*spsi*dsqrt(pdd(2)**2 + pdd(3)**2)
+          call boxd(r_cont(i, jn), z_cont(i, jn), pdd, ier)
+          g2 = 1.d2*spsi*dsqrt(pdd(2)**2 + pdd(3)**2)
+          g1 = dmax1(g1, 1.d-30)
+          g2 = dmax1(g2, 1.d-30)
           r1 = r_cont(i, j)*cm
           r2 = r_cont(i, jn)*cm
           z1 = z_cont(i, j)*cm
           z2 = z_cont(i, jn)*cm
+          dl = dsqrt((r2 - r1)**2 + (z2 - z1)**2)
           sum = sum + 0.5d0*(dlog(r1) + dlog(r2))*(z2 - z1)
+          s_vol = s_vol + 0.5d0*(r1**2 + r2**2)*(z2 - z1)
+          s_ar = s_ar + 0.5d0*(r1 + r2)*(z2 - z1)
+          s_sur = s_sur + pi*(r1 + r2)*dl
+          c_0 = c_0 + 0.5d0*(1.d0/g1 + 1.d0/g2)*dl
+          c_1 = c_1 + 0.5d0*(r1/g1 + r2/g2)*dl
+          c_m1 = c_m1 + 0.5d0*(1.d0/(r1*g1) + 1.d0/(r2*g2))*dl
         end do
         sda(i) = dabs(sum)
+        volume(i) = pi*dabs(s_vol)
+        area(i) = dabs(s_ar)
+        surface(i) = s_sur
+        avr1(i) = c_0/c_1
+        avr2(i) = c_m1/c_1
+      end do
+
+      do i = 1, n
+        j_tor(i) = 2.d0*pi*(dpressure_dpsi(i)
+     *           + f_df_dpsi(i)*avr2(i)/rmu0)/avr1(i)
       end do
 
 c     toroidal flux and q
@@ -2255,13 +2305,12 @@ c     toroidal flux and q
      *           + 0.5d0*(dabs(f(i)) + dabs(f(i-1)))*(sda(i) - sda(i-1))
       end do
 
-      q_sign = sign(1.d0, q(n))
+      q_sign = f_sign*sign(1.d0, psi(n) - psi(1))
       do i = 2, n-1
         q(i) = (tflux(i+1) - tflux(i-1))/dabs(psi(i+1) - psi(i-1))
       end do
       q(1) = q(2) - (q(3) - q(2))*(psi(2) - psi(1))/(psi(3) - psi(2))
-      q(n) = q(n-1) + (q(n-1) - q(n-2))
-     *              *(psi(n) - psi(n-1))/(psi(n-1) - psi(n-2))
+      q(n) = dabs(f(n))*c_m1
 
       q_axis = q(1)
       q_95 = q(n)
@@ -2278,9 +2327,8 @@ c     toroidal flux and q
       q_axis = q_sign*q_axis
       q_95 = q_sign*q_95
 
-      phi_sign = sign(1.d0, phi(n))
       do i = 1, n
-        phi(i) = phi_sign*tflux(i)
+        phi(i) = f_sign*tflux(i)
         rho_tor_norm(i) = dsqrt(tflux(i)/tflux(n))
       end do
 
