@@ -111,6 +111,7 @@ real(ids_real) :: tokc = 0.d0
 real(ids_real) :: x(nr),y(nz),psi(nr,nz),psi1(nr,nz),curr_d(nr,nz)
 
 real(ids_real) :: a(npo),ai(npo),psi_tr(npo),psi_eq(npo),phi_1D(npo),tok1(npo),q(npo)
+real(ids_real) :: q_bnd_eq
 real(ids_real) :: a_tr(npo)
 real(ids_real) :: a_xx(npo),ai_xx(npo)
 
@@ -1298,6 +1299,7 @@ equilibrium%time(CurTimeStep) = tt
 
 
 write(*,*) '!!!dina_outp_tr enter'
+q_bnd_eq = q(n)
 	call dina_outp_tr(n, tpl, tt, &
      & a,psi_tr,q,&
      & sigma,tok1,jbut,aj0,ajae,&
@@ -1386,7 +1388,7 @@ AllocIfNull1(summary%local%separatrix%position%psi, psi_sep)
 AllocIfNull1(summary%local%separatrix%position%rho_tor_norm, a(n))
 
 
-AllocIfNull1(summary%local%separatrix%q%value, wr_imas(17))
+AllocIfNull1(summary%local%separatrix%q%value, q_bnd_eq)
 AllocIfNull1(summary%local%separatrix%zeff%value, zeff(n))
 AllocIfNull1(summary%local%separatrix%t_e%value, te0(n))
 AllocIfNull1(summary%local%separatrix%t_i_average%value, tq0(n))
